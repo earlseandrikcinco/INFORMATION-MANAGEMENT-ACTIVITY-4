@@ -1,17 +1,18 @@
 package ref;
 
+import java.sql.Time;
 import java.time.LocalDateTime;
 
 public class ClassSchedule {
     private int classCode;
     private String courseNo;
-    private String startTime;
-    private String endTime;
+    private Time startTime;
+    private Time endTime;
     private String days;
     private int instructID;
     private String room;
 
-    public ClassSchedule(int classCode, String courseNo, String startTime, String endTime, String days, int instructID, String room){
+    public ClassSchedule(int classCode, String courseNo, Time startTime, Time endTime, String days, int instructID, String room){
         this.classCode = classCode;
         this.courseNo = courseNo;
         this.startTime = startTime;
@@ -37,19 +38,19 @@ public class ClassSchedule {
         this.courseNo = courseNo;
     }
 
-    public String getStartTime() {
+    public Time getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(String startTime) {
+    public void setStartTime(Time startTime) {
         this.startTime = startTime;
     }
 
-    public String getEndTime() {
+    public Time getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(String endTime) {
+    public void setEndTime(Time endTime) {
         this.endTime = endTime;
     }
 

@@ -1,10 +1,11 @@
 package ref;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 public class Attendance {
     private int attendID;
-    private String date;
+    private Date date;
     private String status;
     private String absenceReason;
     private boolean isAsynchronous;
@@ -14,7 +15,7 @@ public class Attendance {
     private int leaveInstructorID;
     private int substituteID;
 
-    private Attendance(int attendID, String date, String status, String absenceReason, boolean isAsynchronous, int classCode,
+    private Attendance(int attendID, Date date, String status, String absenceReason, boolean isAsynchronous, int classCode,
                        int checkerID, int leaveReqID, int leaveInstructorID, int substituteID){
         this.attendID = attendID;
         this.date = date;
@@ -36,11 +37,11 @@ public class Attendance {
         this.attendID = attendID;
     }
 
-    public String getDate() {
+    public Date getDate() {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(Date date) {
         this.date = date;
     }
 
