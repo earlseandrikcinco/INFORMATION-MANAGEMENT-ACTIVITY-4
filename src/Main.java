@@ -1,11 +1,13 @@
 import ref.SystemUser;
 
+import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.Scanner;
 
 public class Main {
     static Scanner input = new Scanner(System.in);
     static DataAccess access = new DataAccess();
+    static Connection conn = DataPB.setConnection();
 
     public static void main(String[] args) {
         SystemUser user = null;
@@ -54,9 +56,11 @@ public class Main {
                 }
 
             } while (password.isEmpty());
+
+            System.out.println("log in successful");
+            getUserDashboard(user);
         }
 
-        // TODO: home page method call
     }
 
     public static void getUserDashboard(SystemUser user){
@@ -70,4 +74,23 @@ public class Main {
         }
     }
 
+    public static void adminDashboard(SystemUser user){
+        /*
+            ADMIN ACTIONS
+                - view account details for all accounts
+                    - instructor
+                    - dept head
+                    - secretary
+                    - checker
+                - view attendance records
+                    - select an instructor then
+        */
+    }
+
+    public static void secretaryDashboard(SystemUser user){
+        /*
+            SECRETARY ACTIONS
+                -
+        */
+    }
 }

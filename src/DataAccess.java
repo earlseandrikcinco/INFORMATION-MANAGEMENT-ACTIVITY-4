@@ -12,7 +12,7 @@ public class DataAccess {
 
             Connection conn = DataPB.setConnection();
 
-            String sql = "SELECT * FROM users WHERE username = ?";
+            String sql = "SELECT * FROM system_user WHERE username = ?";
 
             PreparedStatement stmt = conn.prepareStatement(sql);
 
@@ -21,7 +21,7 @@ public class DataAccess {
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                int userID = rs.getInt("id");
+                int userID = rs.getInt("userID");
                 String name = rs.getString("name");
                 String username = rs.getString("username");
                 String password = rs.getString("password");
