@@ -10,6 +10,7 @@ public class ClassSchedule {
     private Time endTime;
     private String days;
     private int instructID;
+    private String instructorName;
     private String room;
 
     public ClassSchedule(int classCode, String courseNo, Time startTime, Time endTime, String days, int instructID, String room){
