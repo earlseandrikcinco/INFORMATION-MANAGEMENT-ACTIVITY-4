@@ -30,4 +30,9 @@ public class Instructor {
     public String getDepartment(){
         return department;
     }
+
+    @Override
+    public String toString(){
+        return "Instructor ID: " + instructorID + "\nName: " + name + "\nDepartment: " + department;
+    }
 }

@@ -40,6 +40,6 @@ public class SystemUser {
 
     @Override
     public String toString(){
-        return "Name: " + name + "\nUserName: " + userName;
+        return "User ID: " + userID + "\nUsername: " + userName + "\nRole: " + role + "\nEmail: " + email;
     }
 }

@@ -1,7 +1,11 @@
+import ref.DeptHead;
+import ref.Instructor;
 import ref.SystemUser;
 
 import javax.xml.crypto.Data;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -23,7 +27,7 @@ public class Main {
                     System.out.println("Invalid entry, user name field cannot be empty!\n");
                 }
 
-                SystemUser temp = access.getUserLogin(userName);
+                SystemUser temp = access.getUser(userName);
                 if (temp != null){
                     user = temp;
                 } else {
@@ -124,6 +128,93 @@ public class Main {
             switch (choice){
                 case 1 -> {
                     // TODO: add method to view all registered accounts
+                    System.out.println("""
+                            1. Instructors
+                            2. Department Head
+                            3. Secretary
+                            4. Checkers
+                            """);
+                    System.out.print("Select category to view: ");
+                    int category = Integer.parseInt(input.nextLine());
+
+                    switch (category){
+                        case 1 -> {
+                            List<String> instructorList= access.getInstructorList();
+                            int count = 1;
+
+                            for (String name : instructorList){
+                                System.out.println(count + ". " + name);
+                                count++;
+                            }
+                            System.out.print("Select number of instructor to view: ");
+                            int instructChoice = Integer.parseInt(input.nextLine());
+
+                            Instructor temp = access.getInstructorDetails(instructorList.get(instructChoice - 1));
+
+                            System.out.println(temp.toString());
+
+                            System.out.print("Press enter key to continue...");
+                            input.nextLine();
+                        }
+                        case 2 -> {
+                            List<String> deptNames = access.getDepartments();
+                            int count = 1;
+
+                            for (String dept : deptNames){
+                                System.out.println(count + ". " + dept);
+                                count++;
+                            }
+                            System.out.print("Select number of department to view: ");
+                            int deptChoice = Integer.parseInt(input.nextLine());
+
+                            SystemUser deptHead = access.getDeptHead(deptNames.get(deptChoice - 1));
+
+                            System.out.println(deptHead.toString());
+
+                            System.out.print("Press enter key to continue...");
+                            input.nextLine();
+                        }
+                        case 3 -> {
+                            List<String> deptList = access.getDepartments();
+                            int count = 1;
+
+                            for (String dept : deptList){
+                                System.out.println(count + ". " + dept);
+                                count++;
+                            }
+                            System.out.print("Select number of department to view its secretary: ");
+                            int secChoice  = Integer.parseInt(input.nextLine());
+
+                            SystemUser secretary = access.getSecretary(deptList.get(secChoice - 1));
+
+                            System.out.println(secretary.toString());
+
+                            System.out.print("Press enter key to continue...");
+                            input.nextLine();
+                        }
+                        case 4 -> {
+                            // TODO: select checkers
+                            List<SystemUser> checkerList = access.getCheckers();
+                            int count = 1;
+
+                            for (SystemUser temp : checkerList){
+                                System.out.println(count + ": " + temp.getName());
+                                count++;
+                            }
+                            System.out.print("Select number of checker you want to view: ");
+                            int checkerChoice = Integer.parseInt(input.nextLine());
+                            SystemUser checker = checkerList.get(checkerChoice - 1);
+
+                            System.out.println(checker.toString());
+
+                            System.out.print("Please enter key to continue...");
+                            input.nextLine();
+                        }
+                        case 5 -> {
+                            // TODO: go back to main menu
+                            adminDashboard(user);
+                        }
+                    }
                 }
                 case 2 -> {
                     // TODO: add method to view attendance records
