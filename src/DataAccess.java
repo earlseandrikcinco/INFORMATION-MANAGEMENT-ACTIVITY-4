@@ -289,6 +289,58 @@ public class DataAccess {
         return attendance;
     }
 
+    public List<Instructor> getListOfProfLeave(){
+        List<Instructor> list = new ArrayList<>();
+
+        try {
+            Connection conn = DataPB.setConnection();
+
+            String sql = "SELECT instructor.name, request.instructID " +
+                    "FROM attendancechecker.leave_request request " +
+                    "INNER JOIN attendancechecker.instructor ON instructor.instructID = request.instructID " +
+                    "GROUP BY request.instructID";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
+
+            while(rs.next()){
+                Instructor temp = getInstructorByID(rs.getInt("instructID"));
+                list.add(temp);
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<LeaveRequest> getLeaveRequestPerProf(Instructor instructor){
+        List<LeaveRequest> list = new ArrayList<>();
+
+        try {
+            Connection conn = DataPB.setConnection();
+
+            String sql = "SELECT * FROM leave_request WHERE instructID = ?";
+
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, instructor.getInstructorID());
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()){
+                list.add(new LeaveRequest(
+                        rs.getInt("leaveReqID"),
+                        rs.getInt("instructID"),
+                        rs.getString("leaveType"),
+                        rs.getDate("startDate"),
+                        rs.getDate("endDate"),
+                        rs.getString("status"),
+                        rs.getInt("filedBy")
+                ));
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     // For DeptHead and Secretary
     public List<LeaveRequest> getAllLeaveRequests() {
         List<LeaveRequest> list = new ArrayList<>();

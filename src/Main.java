@@ -197,7 +197,6 @@ public class Main {
                     }
                 }
                 case 2 -> {
-                    // TODO: add method to view attendance records
                     List<String> instructorList = access.getInstructorList();
                     int count = 1;
 
@@ -206,7 +205,7 @@ public class Main {
                         count++;
                     }
                     System.out.print("Select number of instructor to view attendance: ");
-                    int instructChoice = Integer.parseInt(input.nextLine());
+                    int instructChoice = validChoice(1, instructorList.size());
 
                     Instructor temp = access.getInstructorDetails(instructorList.get(instructChoice - 1));
 
@@ -253,7 +252,7 @@ public class Main {
 
         while (true) {
             System.out.println("""
-                    1. View professor leave requests
+                    1. View leave requests
                     2. View attendance records
                     3. Log out
                     """);
@@ -264,14 +263,136 @@ public class Main {
             switch (choice){
                 case 1 -> {
                     // TODO: add method to view all requests for leave
+                    // print list of all professors with leave requests
+                    // get all leave requests for that given professor
+                    System.out.println("""
+                            1. View leave requests according to status
+                            2. View leave request per instructor
+                            3. Go Back
+                            """);
+                    System.out.print("Select option to view leave requests: ");
+                    int viewChoice = validChoice(1, 3);
+
+                    switch (viewChoice){
+                        case 1 -> {}
+                        case 2 -> getLeaveForInstructor(user);
+                        case 3 -> {}
+                    }
+
+
                 }
                 case 2 -> {
-                    // TODO: add method to view attendance record
+                    List<String> instructorList = access.getInstructorList();
+                    int count = 1;
+
+                    for (String name : instructorList) {
+                        System.out.println(count + ". " + name);
+                        count++;
+                    }
+                    System.out.print("Select number of instructor to view attendance: ");
+                    int instructChoice = Integer.parseInt(input.nextLine());
+
+                    Instructor temp = access.getInstructorDetails(instructorList.get(instructChoice - 1));
+
+                    // Get attendance of instructor
+                    List<Attendance> list = access.getInstructAttendance(temp);
+                    int record = getAttendanceSummary(list);
+
+                    System.out.println("--- ATTENDANCE SUMMARY ---");
+                    System.out.println("Instructor: " + temp.getName());
+                    System.out.println("Total number of class sessions: " + list.size());
+                    System.out.println("Total number of absences: " + record);
+
+                    System.out.println("View details of absences? [y/n]: ");
+                    char viewChoice = input.nextLine().toLowerCase().charAt(0);
+
+                    if (viewChoice == 'y'){
+                        List<Attendance> absences = getAbsences(list);
+
+                        System.out.println("ABSENCE DETAILS");
+                        for (Attendance attendance : absences){
+                            System.out.println(attendance.toString());
+                            System.out.println();
+                        }
+
+                        System.out.println("Press enter key to continue...");
+                        input.nextLine();
+                    }
                 }
                 case 3 -> {
                     if (handleLogout()) return;
                 }
             }
+        }
+    }
+
+    public static void getLeaveForInstructor(SystemUser user){
+        List<Instructor> instructorList = access.getListOfProfLeave();
+        int count = 1;
+
+        for (Instructor instructor : instructorList){
+            System.out.println(count + ". " + instructor.getName());
+            count++;
+        }
+        System.out.print("Select instructor to view leave details: ");
+        int instructorChoice = Integer.parseInt(input.nextLine());
+
+        Instructor selected = instructorList.get(instructorChoice - 1);
+
+        System.out.println("--- Instructor Filed Leave Requests ---");
+        List<LeaveRequest> requests = access.getLeaveRequestPerProf(selected);
+
+        for (LeaveRequest leave : requests){
+            System.out.println(leave.toString());
+            System.out.println();
+        }
+
+        System.out.print("Press enter key to continue...");
+        input.nextLine();
+    }
+
+    public static void getLeaveByStatus(SystemUser user){
+        System.out.println("""
+                1. Allowed
+                2. Pending
+                3. Unauthorized
+                4. Go back
+                """);
+        System.out.print("Enter status to view: ");
+        int choice = validChoice(1, 4);
+
+        switch (choice){
+            case 1 -> {
+                System.out.println("--- Allowed Leave Requests ---");
+                for (LeaveRequest request : access.getLeaveRequestsByStatus("Allowed")){
+                    System.out.println(request.toString());
+                    System.out.println();
+                }
+
+                System.out.print("Press enter key to continue...");
+                input.nextLine();
+            }
+            case 2 -> {
+                System.out.println("--- Pending Leave Requests ---");
+                for (LeaveRequest request : access.getLeaveRequestsByStatus("Pending")){
+                    System.out.println(request.toString());
+                    System.out.println();
+                }
+
+                System.out.print("Press enter key to continue...");
+                input.nextLine();
+            }
+            case 3 -> {
+                System.out.println("--- Unauthorized Leave Requests ---");
+                for (LeaveRequest request : access.getLeaveRequestsByStatus("Unauthorized")){
+                    System.out.println(request.toString());
+                    System.out.println();
+                }
+
+                System.out.print("Press enter key to continue...");
+                input.nextLine();
+            }
+            case 4 -> {}
         }
     }
 
