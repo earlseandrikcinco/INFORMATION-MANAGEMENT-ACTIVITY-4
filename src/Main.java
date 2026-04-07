@@ -15,17 +15,17 @@ public class Main {
     static Connection conn = DataPB.setConnection(); // test
 
     public static void main(String[] args) {
-        SystemUser user = null;
-
         // Validate user credentials in log in
         while (true){
+            SystemUser user = null;
+
             String userName;
             do {
                 System.out.print("Enter user name: ");
                 userName = input.nextLine();
 
                 if (userName.isEmpty()){
-                    System.out.println("Invalid entry, user name field cannot be empty!\n");
+                    System.out.println("Invalid input, user name field cannot be empty!\n");
                 }
 
                 SystemUser temp = access.getUser(userName);
@@ -62,10 +62,8 @@ public class Main {
 
             } while (password.isEmpty());
 
-            System.out.println();
-            break;
+            getUserDashboard(user);
         }
-        getUserDashboard(user);
     }
 
     public static void getUserDashboard(SystemUser user){
@@ -112,39 +110,26 @@ public class Main {
                     """);
             System.out.print("Enter action to be executed: ");
 
-            int choice;
-            while (true){
-                try{
-                    choice = Integer.parseInt(input.nextLine());
-
-                    if (choice < 1 || choice > 3) {
-                        System.out.println("Invalid choice. Please select a number from the given options");
-                    } else {
-                        break;
-                    }
-                } catch (Exception e){
-                    System.out.println("Invalid choice. Please select a number from the given options");
-                }
-            }
+            int choice = validChoice(1, 3);
 
             switch (choice){
                 case 1 -> {
-                    // TODO: add method to view all registered accounts
                     System.out.println("""
                             1. Instructors
                             2. Department Head
                             3. Secretary
                             4. Checkers
+                            5. Go Back
                             """);
                     System.out.print("Select category to view: ");
-                    int category = Integer.parseInt(input.nextLine());
+                    int category = validChoice(1, 5);
 
-                    switch (category){
+                    switch (category) {
                         case 1 -> {
-                            List<String> instructorList= access.getInstructorList();
+                            List<String> instructorList = access.getInstructorList();
                             int count = 1;
 
-                            for (String name : instructorList){
+                            for (String name : instructorList) {
                                 System.out.println(count + ". " + name);
                                 count++;
                             }
@@ -162,7 +147,7 @@ public class Main {
                             List<String> deptNames = access.getDepartments();
                             int count = 1;
 
-                            for (String dept : deptNames){
+                            for (String dept : deptNames) {
                                 System.out.println(count + ". " + dept);
                                 count++;
                             }
@@ -180,12 +165,12 @@ public class Main {
                             List<String> deptList = access.getDepartments();
                             int count = 1;
 
-                            for (String dept : deptList){
+                            for (String dept : deptList) {
                                 System.out.println(count + ". " + dept);
                                 count++;
                             }
                             System.out.print("Select number of department to view its secretary: ");
-                            int secChoice  = Integer.parseInt(input.nextLine());
+                            int secChoice = Integer.parseInt(input.nextLine());
 
                             SystemUser secretary = access.getSecretary(deptList.get(secChoice - 1));
 
@@ -195,11 +180,10 @@ public class Main {
                             input.nextLine();
                         }
                         case 4 -> {
-                            // TODO: select checkers
                             List<SystemUser> checkerList = access.getCheckers();
                             int count = 1;
 
-                            for (SystemUser temp : checkerList){
+                            for (SystemUser temp : checkerList) {
                                 System.out.println(count + ": " + temp.getName());
                                 count++;
                             }
@@ -212,16 +196,15 @@ public class Main {
                             System.out.print("Please enter key to continue...");
                             input.nextLine();
                         }
-                        case 5 -> {
-                            // TODO: go back to main menu
-                            adminDashboard(user);
-                        }
+                        case 5 -> {}    // Goes back to the admin dashboard
                     }
                 }
                 case 2 -> {
                     // TODO: add method to view attendance records
                 }
-                case 3 -> handleLogout();
+                case 3 -> {
+                    if (handleLogout()) return;
+                }
             }
         }
     }
@@ -235,35 +218,27 @@ public class Main {
                 - view attendance record
         */
 
-        System.out.println("""
-                1. View professor leave requests
-                2. View attendance records
-                3. Log out
-                """);
-        System.out.print("Enter action to be executed: ");
+        while (true) {
+            System.out.println("""
+                    1. View professor leave requests
+                    2. View attendance records
+                    3. Log out
+                    """);
+            System.out.print("Enter action to be executed: ");
 
-        int choice;
-        while (true){
-            try{
-                choice = Integer.parseInt(input.nextLine());
+            int choice = validChoice(1, 3);
 
-                if (choice >= 1 && choice <= 3){
-                    System.out.println("Invalid choice. Please select a number from the given options");
+            switch (choice){
+                case 1 -> {
+                    // TODO: add method to view all requests for leave
                 }
-                break;
-            } catch (Exception e){
-                System.out.println("Invalid choice. Please select a number from the given options");
+                case 2 -> {
+                    // TODO: add method to view attendance record
+                }
+                case 3 -> {
+                    if (handleLogout()) return;
+                }
             }
-        }
-
-        switch (choice){
-            case 1 -> {
-                // TODO: add method to view all requests for leave
-            }
-            case 2 -> {
-                // TODO: add method to view attendance record
-            }
-            case 3 -> handleLogout();
         }
     }
 
@@ -277,33 +252,25 @@ public class Main {
                 - view class schedules
         */
 
-        System.out.println("""
-                1. View professor leave requests
-                2. View attendance records
-                3. View class schedules
-                4. Log out
-                """);
-        System.out.print("Enter action to be executed: ");
+        while (true) {
+            System.out.println("""
+                    1. View professor leave requests
+                    2. View attendance records
+                    3. View class schedules
+                    4. Log out
+                    """);
+            System.out.print("Enter action to be executed: ");
 
-        int choice;
-        while (true){
-            try{
-                choice = Integer.parseInt(input.nextLine());
+            int choice = validChoice(1, 4);
 
-                if (choice >= 1 && choice <= 4){
-                    System.out.println("Invalid choice. Please select a number from the given options");
+            switch (choice){
+                case 1 -> {}
+                case 2 -> {}
+                case 3 -> viewClassSchedules(user);
+                case 4 -> {
+                    if (handleLogout()) return;
                 }
-                break;
-            } catch (Exception e){
-                System.out.println("Invalid choice. Please select a number from the given options");
             }
-        }
-
-        switch (choice){
-            case 1 -> {}
-            case 2 -> {}
-            case 3 -> viewClassSchedules(user);
-            case 4 -> handleLogout();
         }
     }
 
@@ -313,31 +280,23 @@ public class Main {
                 - check class schedule
                 - view attendance of prof
         */
-        System.out.println("""
-                1. View class schedules
-                2. View attendance records
-                3. Log out
-                """);
-        System.out.print("Enter action to be executed: ");
+        while (true) {
+            System.out.println("""
+                    1. View class schedules
+                    2. View attendance records
+                    3. Log out
+                    """);
+            System.out.print("Enter action to be executed: ");
 
-        int choice;
-        while (true){
-            try{
-                choice = Integer.parseInt(input.nextLine());
+            int choice = validChoice(1, 3);
 
-                if (choice >= 1 && choice <= 3){
-                    System.out.println("Invalid choice. Please select a number from the given options");
+            switch (choice){
+                case 1 -> viewClassSchedules(user);
+                case 2 -> {}
+                case 3 -> {
+                    if (handleLogout()) return;
                 }
-                break;
-            } catch (Exception e){
-                System.out.println("Invalid choice. Please select a number from the given options");
             }
-        }
-
-        switch (choice){
-            case 1 -> viewClassSchedules(user);
-            case 2 -> {}
-            case 3 -> handleLogout();
         }
     }
 
@@ -369,7 +328,7 @@ public class Main {
             // Trim off pre-fix "Prof. "
             String nameOnly = s.getInstructorName().replace("Prof. ", "");
 
-            System.out.printf("%-10s | %-12s | %-18s | %-8s | %-8s | %-20s\n",
+            System.out.printf("%-10d | %-12s | %-18s | %-8s | %-8s | %-20s\n",
                     s.getClassCode(),
                     s.getCourseNo(),
                     timeRange,
@@ -380,21 +339,33 @@ public class Main {
         System.out.println("=".repeat(85));
     }
 
-    public static void handleLogout() {
-        System.out.print("Are you sure you want to log out? [y/n]: ");
-        char confirm = input == null ? ' ' : input.nextLine().charAt(0);
-        switch (confirm){
-            case 'y' -> {
-                System.out.println("Logging out. Thank you for using [App Name]");
-//                        main(null);
-                System.exit(0);
-            }
-            case 'n' -> {
-                System.out.println("Log out cancelled. Now returning to main menu\n");
-            }
-            default -> {
-                System.out.println("Invalid choice, log out cancelled. Now returning to main menu\n");
+    public static int validChoice(int min, int max) {
+        int choice;
+        while (true){
+            try{
+                choice = Integer.parseInt(input.nextLine());
+
+                if (choice < min || choice > max) {
+                    System.out.println("Invalid choice. Please select a number from the given options");
+                } else {
+                    return choice;
+                }
+            } catch (Exception e){
+                System.out.println("Invalid choice. Please select a number from the given options");
             }
         }
+    }
+
+    public static boolean handleLogout() {
+        System.out.print("Are you sure you want to log out? [y/n]: ");
+        String response = input.nextLine().toLowerCase();
+
+        if (!response.isEmpty() && response.charAt(0) == 'y') {
+            System.out.println("Logging out. Thank you for using [App Name]");
+            return true;
+        }
+
+        System.out.println("Log out cancelled.\n");
+        return false;
     }
 }
