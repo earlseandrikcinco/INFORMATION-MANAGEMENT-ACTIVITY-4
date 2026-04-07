@@ -338,8 +338,59 @@ public class Main {
             int choice = validChoice(1, 4, "Enter action to be executed: ");
 
             switch (choice){
-                case 1 -> {}
-                case 2 -> {}
+                case 1 -> {
+                    System.out.println("""
+                            1. View leave requests according to status
+                            2. View leave request per instructor
+                            3. Go Back
+                            """);
+                    int viewChoice = validChoice(1, 3, "Select option to view leave requests: ");
+
+                    switch (viewChoice){
+                        case 1 -> getLeaveByStatus(user);
+                        case 2 -> getLeaveForInstructor(user);
+                        case 3 -> deptHeadDashboard(user);
+                    }
+
+                }
+                case 2 -> {
+                    List<String> instructorList = access.getInstructorList();
+                    int count = 1;
+
+                    for (String name : instructorList) {
+                        System.out.println(count + ". " + name);
+                        count++;
+                    }
+                    int instructChoice = validChoice(1, instructorList.size(), "Select number of instructor to view attendance: ");
+
+                    Instructor temp = access.getInstructorDetails(instructorList.get(instructChoice - 1));
+
+                    // Get attendance of instructor
+                    List<Attendance> list = access.getInstructAttendance(temp);
+                    int record = getAttendanceSummary(list);
+
+                    System.out.println("--- ATTENDANCE SUMMARY ---");
+                    System.out.println("Instructor: " + temp.getName());
+                    System.out.println("Total number of class sessions: " + list.size());
+                    System.out.println("Total number of absences: " + record);
+
+                    System.out.print("View details of absences? [y/n]: ");
+                    char viewChoice = input.nextLine().toLowerCase().charAt(0);
+
+                    if (viewChoice == 'y'){
+                        List<Attendance> absences = getAbsences(list);
+
+                        System.out.println("ABSENCE DETAILS");
+                        for (Attendance attendance : absences){
+                            System.out.println(attendance.toString());
+                            System.out.println();
+                        }
+
+                        System.out.print("Press enter key to continue...");
+                        input.nextLine();
+                    }
+
+                }
                 case 3 -> viewClassSchedules(user);
                 case 4 -> {
                     if (handleLogout()) return;
@@ -365,7 +416,44 @@ public class Main {
 
             switch (choice){
                 case 1 -> viewClassSchedules(user);
-                case 2 -> {}
+                case 2 -> {
+                    List<String> instructorList = access.getInstructorList();
+                    int count = 1;
+
+                    for (String name : instructorList) {
+                        System.out.println(count + ". " + name);
+                        count++;
+                    }
+                    int instructChoice = validChoice(1, instructorList.size(), "Select number of instructor to view attendance: ");
+
+                    Instructor temp = access.getInstructorDetails(instructorList.get(instructChoice - 1));
+
+                    // Get attendance of instructor
+                    List<Attendance> list = access.getInstructAttendance(temp);
+                    int record = getAttendanceSummary(list);
+
+                    System.out.println("--- ATTENDANCE SUMMARY ---");
+                    System.out.println("Instructor: " + temp.getName());
+                    System.out.println("Total number of class sessions: " + list.size());
+                    System.out.println("Total number of absences: " + record);
+
+                    System.out.print("View details of absences? [y/n]: ");
+                    char viewChoice = input.nextLine().toLowerCase().charAt(0);
+
+                    if (viewChoice == 'y'){
+                        List<Attendance> absences = getAbsences(list);
+
+                        System.out.println("ABSENCE DETAILS");
+                        for (Attendance attendance : absences){
+                            System.out.println(attendance.toString());
+                            System.out.println();
+                        }
+
+                        System.out.print("Press enter key to continue...");
+                        input.nextLine();
+                    }
+
+                }
                 case 3 -> {
                     if (handleLogout()) return;
                 }
