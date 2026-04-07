@@ -256,6 +256,39 @@ public class DataAccess {
         return temp;
     }
 
+    public List<Attendance> getInstructAttendance(Instructor instructor){
+        List<Attendance> attendance = new ArrayList<>();
+        int instructID = instructor.getInstructorID();
+
+        try {
+            Connection conn = DataPB.setConnection();
+
+            String sql = "SELECT class.instructID, attendance.classCode, attendance.attendID, attendance.date, attendance.status, " +
+                    "attendance.absenceReason, attendance.isAsynchronous, attendance.checkerID, attendance.leaveReqID, " +
+                    "attendance.leaveInstructID, attendance.substituteID " +
+                    "FROM attendancechecker.attendance INNER JOIN " +
+                    "attendancechecker.class_schedule class ON class.classCode = attendance.classCode " +
+                    "WHERE class.instructID = ?";
+
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, instructID);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()){
+                Attendance temp  = mapAttendance(rs);
+                if (temp.getSubstituteID() != 0){
+
+                }
+                attendance.add(temp);
+            }
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return attendance;
+    }
+
     // For DeptHead and Secretary
     public List<LeaveRequest> getAllLeaveRequests() {
         List<LeaveRequest> list = new ArrayList<>();

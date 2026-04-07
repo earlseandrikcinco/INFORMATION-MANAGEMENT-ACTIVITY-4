@@ -1,7 +1,4 @@
-import ref.ClassSchedule;
-import ref.DeptHead;
-import ref.Instructor;
-import ref.SystemUser;
+import ref.*;
 
 import javax.xml.crypto.Data;
 import java.sql.*;
@@ -201,6 +198,42 @@ public class Main {
                 }
                 case 2 -> {
                     // TODO: add method to view attendance records
+                    List<String> instructorList = access.getInstructorList();
+                    int count = 1;
+
+                    for (String name : instructorList) {
+                        System.out.println(count + ". " + name);
+                        count++;
+                    }
+                    System.out.print("Select number of instructor to view attendance: ");
+                    int instructChoice = Integer.parseInt(input.nextLine());
+
+                    Instructor temp = access.getInstructorDetails(instructorList.get(instructChoice - 1));
+
+                    // Get attendance of instructor
+                    List<Attendance> list = access.getInstructAttendance(temp);
+                    int record = getAttendanceSummary(list);
+
+                    System.out.println("--- ATTENDANCE SUMMARY ---");
+                    System.out.println("Instructor: " + temp.getName());
+                    System.out.println("Total number of class sessions: " + list.size());
+                    System.out.println("Total number of absences: " + record);
+
+                    System.out.println("View details of absences? [y/n]: ");
+                    char viewChoice = input.nextLine().toLowerCase().charAt(0);
+
+                    if (viewChoice == 'y'){
+                        List<Attendance> absences = getAbsences(list);
+
+                        System.out.println("ABSENCE DETAILS");
+                        for (Attendance attendance : absences){
+                            System.out.println(attendance.toString());
+                            System.out.println();
+                        }
+
+                        System.out.println("Press enter key to continue...");
+                        input.nextLine();
+                    }
                 }
                 case 3 -> {
                     if (handleLogout()) return;
@@ -367,5 +400,28 @@ public class Main {
 
         System.out.println("Log out cancelled.\n");
         return false;
+    }
+
+    public static int getAttendanceSummary(List<Attendance> list){
+        int record = 0;
+
+        for (Attendance attendance : list){
+            if (attendance.getLeaveInstructorID() != 0){ // instructor is absent
+                record += 1;
+            }
+        }
+        return record;
+    }
+
+    public static List<Attendance> getAbsences(List<Attendance> list){
+        List<Attendance> record = new ArrayList<>();
+
+        for (Attendance attendance : list){
+            if (attendance.getLeaveReqID() != 0){ // instructor is absent
+                record.add(attendance);
+            }
+        }
+
+        return record;
     }
 }

@@ -1,5 +1,7 @@
 package ref;
 
+import jdk.jfr.DataAmount;
+
 import java.time.LocalDateTime;
 //import java.util.Date;
 import java.sql.Date;
@@ -15,6 +17,9 @@ public class Attendance {
     private int leaveReqID;
     private int leaveInstructorID;
     private int substituteID;
+    private Instructor instructor;
+    private Instructor substitute;
+    private ClassSchedule classSchedule;
 
     public Attendance(int attendID, Date date, String status, String absenceReason, boolean isAsynchronous, int classCode,
                       int checkerID, int leaveReqID, int leaveInstructorID, int substituteID){
@@ -28,6 +33,9 @@ public class Attendance {
         this.leaveReqID = leaveReqID;
         this.leaveInstructorID = leaveInstructorID;
         this.substituteID = substituteID;
+        this.instructor = null;
+        this.classSchedule = null;
+        this.substitute = null;
     }
 
     public int getAttendID() {
@@ -110,18 +118,44 @@ public class Attendance {
         this.substituteID = substituteID;
     }
 
+    public Instructor getInstructor() {
+        return instructor;
+    }
+
+    public void setInstructor(Instructor instructor) {
+        this.instructor = instructor;
+    }
+
+    public ClassSchedule getClassSchedule() {
+        return classSchedule;
+    }
+
+    public void setClassSchedule(ClassSchedule classSchedule) {
+        this.classSchedule = classSchedule;
+    }
+
+    public Instructor getSubstitute() {
+        return substitute;
+    }
+
+    public void setSubstitute(Instructor substitute) {
+        this.substitute = substitute;
+    }
+
     @Override
     public String toString() {
         String async = isAsynchronous ? "Yes" : "No";
         String reason = (absenceReason != null && !absenceReason.isEmpty()) ? absenceReason : "N/A";
+        String substituteName = substituteID != 0 ? "N/A" : substitute.getName();
         return String.format(
                 "Attendance ID   : %d%n" +
                 "Date            : %s%n" +
                 "Status          : %s%n" +
                 "Absence Reason  : %s%n" +
                 "Asynchronous    : %s%n" +
-                "Class Code      : %d",
-                attendID, date, status, reason, async, classCode
+                "Class Code      : %d" +
+                "Substitute      : %s",
+                attendID, date, status, reason, async, classCode, substituteName
         );
     }
 }
