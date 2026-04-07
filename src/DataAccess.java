@@ -43,6 +43,40 @@ public class DataAccess {
         return user;
     }
 
+    public List<ClassSchedule> getAllClassSchedules() {
+        List<ClassSchedule> list = new ArrayList<>();
+        try {
+            Connection conn = DataPB.setConnection();
+
+            String sql = "SELECT s.*, i.name FROM class_schedule s " +
+                    "INNER JOIN instructor i ON s.instructID = i.instructID";
+
+            PreparedStatement stmt = conn.prepareStatement(sql);
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                int classCode = rs.getInt("classCode");
+                String courseNo = rs.getString("courseNo");
+                Time startTime = rs.getTime("startTime");
+                Time endTime = rs.getTime("endTime");
+                String days = rs.getString("days");
+                int instructID = rs.getInt("instructID");
+                String room = rs.getString("room");
+
+                String name = rs.getString("name");
+
+                ClassSchedule s = new ClassSchedule(classCode, courseNo, startTime, endTime, days, instructID, room);
+                s.setInstructorName(name);
+                list.add(s);
+            }
+            conn.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public ClassSchedule getClassSchedule(int code){
         ClassSchedule classSchedule = null;
 
@@ -103,7 +137,10 @@ public class DataAccess {
             String sql = "SELECT * FROM instructor WHERE name = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
 
+            stmt.setString(1, instructorName);
+
             ResultSet rs = stmt.executeQuery();
+
             if (rs.next()){
                 int instructID = rs.getInt("instructID");
                 String name = rs.getString("name");

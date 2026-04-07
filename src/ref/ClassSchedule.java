@@ -1,7 +1,6 @@
 package ref;
 
 import java.sql.Time;
-import java.time.LocalDateTime;
 
 public class ClassSchedule {
     private int classCode;
@@ -77,5 +76,13 @@ public class ClassSchedule {
 
     public void setRoom(String room) {
         this.room = room;
+    }
+
+    public String getInstructorName() {
+        return instructorName;
+    }
+
+    public void setInstructorName(String instructorName) {
+        this.instructorName = instructorName;
     }
 }
