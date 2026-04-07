@@ -105,9 +105,8 @@ public class Main {
                     2. Check attendance records
                     3. Log out
                     """);
-            System.out.print("Enter action to be executed: ");
 
-            int choice = validChoice(1, 3);
+            int choice = validChoice(1, 3, "Enter action to be executed: ");
 
             switch (choice){
                 case 1 -> {
@@ -118,8 +117,7 @@ public class Main {
                             4. Checkers
                             5. Go Back
                             """);
-                    System.out.print("Select category to view: ");
-                    int category = validChoice(1, 5);
+                    int category = validChoice(1, 5, "Select category to view: ");
 
                     switch (category) {
                         case 1 -> {
@@ -130,8 +128,7 @@ public class Main {
                                 System.out.println(count + ". " + name);
                                 count++;
                             }
-                            System.out.print("Select number of instructor to view: ");
-                            int instructChoice = Integer.parseInt(input.nextLine());
+                            int instructChoice = validChoice(1, instructorList.size(), "Select number of instructor to view: ");
 
                             Instructor temp = access.getInstructorDetails(instructorList.get(instructChoice - 1));
 
@@ -148,8 +145,7 @@ public class Main {
                                 System.out.println(count + ". " + dept);
                                 count++;
                             }
-                            System.out.print("Select number of department to view: ");
-                            int deptChoice = Integer.parseInt(input.nextLine());
+                            int deptChoice = validChoice(1, deptNames.size(), "Select number of department to view: ");
 
                             SystemUser deptHead = access.getDeptHead(deptNames.get(deptChoice - 1));
 
@@ -166,8 +162,7 @@ public class Main {
                                 System.out.println(count + ". " + dept);
                                 count++;
                             }
-                            System.out.print("Select number of department to view its secretary: ");
-                            int secChoice = Integer.parseInt(input.nextLine());
+                            int secChoice = validChoice(1, deptList.size(), "Select number of department to view its secretary: ");
 
                             SystemUser secretary = access.getSecretary(deptList.get(secChoice - 1));
 
@@ -184,8 +179,7 @@ public class Main {
                                 System.out.println(count + ": " + temp.getName());
                                 count++;
                             }
-                            System.out.print("Select number of checker you want to view: ");
-                            int checkerChoice = Integer.parseInt(input.nextLine());
+                            int checkerChoice = validChoice(1, checkerList.size(), "Select number of checker you want to view: ");
                             SystemUser checker = checkerList.get(checkerChoice - 1);
 
                             System.out.println(checker.toString());
@@ -204,8 +198,8 @@ public class Main {
                         System.out.println(count + ". " + name);
                         count++;
                     }
-                    System.out.print("Select number of instructor to view attendance: ");
-                    int instructChoice = validChoice(1, instructorList.size());
+
+                    int instructChoice = validChoice(1, instructorList.size(), "Select number of instructor to view attendance: ");
 
                     Instructor temp = access.getInstructorDetails(instructorList.get(instructChoice - 1));
 
@@ -256,9 +250,8 @@ public class Main {
                     2. View attendance records
                     3. Log out
                     """);
-            System.out.print("Enter action to be executed: ");
 
-            int choice = validChoice(1, 3);
+            int choice = validChoice(1, 3, "Enter action to be executed: ");
 
             switch (choice){
                 case 1 -> {
@@ -270,11 +263,10 @@ public class Main {
                             2. View leave request per instructor
                             3. Go Back
                             """);
-                    System.out.print("Select option to view leave requests: ");
-                    int viewChoice = validChoice(1, 3);
+                    int viewChoice = validChoice(1, 3, "Select option to view leave requests: ");
 
                     switch (viewChoice){
-                        case 1 -> {}
+                        case 1 -> getLeaveByStatus(user);
                         case 2 -> getLeaveForInstructor(user);
                         case 3 -> {}
                     }
@@ -289,8 +281,7 @@ public class Main {
                         System.out.println(count + ". " + name);
                         count++;
                     }
-                    System.out.print("Select number of instructor to view attendance: ");
-                    int instructChoice = Integer.parseInt(input.nextLine());
+                    int instructChoice = validChoice(1, instructorList.size(), "Select number of instructor to view attendance: ");
 
                     Instructor temp = access.getInstructorDetails(instructorList.get(instructChoice - 1));
 
@@ -326,76 +317,6 @@ public class Main {
         }
     }
 
-    public static void getLeaveForInstructor(SystemUser user){
-        List<Instructor> instructorList = access.getListOfProfLeave();
-        int count = 1;
-
-        for (Instructor instructor : instructorList){
-            System.out.println(count + ". " + instructor.getName());
-            count++;
-        }
-        System.out.print("Select instructor to view leave details: ");
-        int instructorChoice = Integer.parseInt(input.nextLine());
-
-        Instructor selected = instructorList.get(instructorChoice - 1);
-
-        System.out.println("--- Instructor Filed Leave Requests ---");
-        List<LeaveRequest> requests = access.getLeaveRequestPerProf(selected);
-
-        for (LeaveRequest leave : requests){
-            System.out.println(leave.toString());
-            System.out.println();
-        }
-
-        System.out.print("Press enter key to continue...");
-        input.nextLine();
-    }
-
-    public static void getLeaveByStatus(SystemUser user){
-        System.out.println("""
-                1. Allowed
-                2. Pending
-                3. Unauthorized
-                4. Go back
-                """);
-        System.out.print("Enter status to view: ");
-        int choice = validChoice(1, 4);
-
-        switch (choice){
-            case 1 -> {
-                System.out.println("--- Allowed Leave Requests ---");
-                for (LeaveRequest request : access.getLeaveRequestsByStatus("Allowed")){
-                    System.out.println(request.toString());
-                    System.out.println();
-                }
-
-                System.out.print("Press enter key to continue...");
-                input.nextLine();
-            }
-            case 2 -> {
-                System.out.println("--- Pending Leave Requests ---");
-                for (LeaveRequest request : access.getLeaveRequestsByStatus("Pending")){
-                    System.out.println(request.toString());
-                    System.out.println();
-                }
-
-                System.out.print("Press enter key to continue...");
-                input.nextLine();
-            }
-            case 3 -> {
-                System.out.println("--- Unauthorized Leave Requests ---");
-                for (LeaveRequest request : access.getLeaveRequestsByStatus("Unauthorized")){
-                    System.out.println(request.toString());
-                    System.out.println();
-                }
-
-                System.out.print("Press enter key to continue...");
-                input.nextLine();
-            }
-            case 4 -> {}
-        }
-    }
-
     public static void deptHeadDashboard(SystemUser user){
         /*
             DEPT HEAD ACTIONS
@@ -413,9 +334,8 @@ public class Main {
                     3. View class schedules
                     4. Log out
                     """);
-            System.out.print("Enter action to be executed: ");
 
-            int choice = validChoice(1, 4);
+            int choice = validChoice(1, 4, "Enter action to be executed: ");
 
             switch (choice){
                 case 1 -> {}
@@ -440,9 +360,8 @@ public class Main {
                     2. View attendance records
                     3. Log out
                     """);
-            System.out.print("Enter action to be executed: ");
 
-            int choice = validChoice(1, 3);
+            int choice = validChoice(1, 3, "Enter action to be executed: ");
 
             switch (choice){
                 case 1 -> viewClassSchedules(user);
@@ -493,10 +412,11 @@ public class Main {
         System.out.println("=".repeat(85));
     }
 
-    public static int validChoice(int min, int max) {
+    public static int validChoice(int min, int max, String prompt) {
         int choice;
         while (true){
             try{
+                System.out.print(prompt);
                 choice = Integer.parseInt(input.nextLine());
 
                 if (choice < min || choice > max) {
@@ -544,5 +464,74 @@ public class Main {
         }
 
         return record;
+    }
+
+
+    public static void getLeaveForInstructor(SystemUser user){
+        List<Instructor> instructorList = access.getListOfProfLeave();
+        int count = 1;
+
+        for (Instructor instructor : instructorList){
+            System.out.println(count + ". " + instructor.getName());
+            count++;
+        }
+        int instructorChoice = validChoice(1, instructorList.size(), "Select instructor to view leave details: ");
+
+        Instructor selected = instructorList.get(instructorChoice - 1);
+
+        System.out.println("--- Instructor Filed Leave Requests ---");
+        List<LeaveRequest> requests = access.getLeaveRequestPerProf(selected);
+
+        for (LeaveRequest leave : requests){
+            System.out.println(leave.toString());
+            System.out.println();
+        }
+
+        System.out.print("Press enter key to continue...");
+        input.nextLine();
+    }
+
+    public static void getLeaveByStatus(SystemUser user){
+        System.out.println("""
+                1. Allowed
+                2. Pending
+                3. Unauthorized
+                4. Go back
+                """);
+        int choice = validChoice(1, 4, "Enter status to view: ");
+
+        switch (choice){
+            case 1 -> {
+                System.out.println("--- Allowed Leave Requests ---");
+                for (LeaveRequest request : access.getLeaveRequestsByStatus("Allowed")){
+                    System.out.println(request.toString());
+                    System.out.println();
+                }
+
+                System.out.print("Press enter key to continue...");
+                input.nextLine();
+            }
+            case 2 -> {
+                System.out.println("--- Pending Leave Requests ---");
+                for (LeaveRequest request : access.getLeaveRequestsByStatus("Pending")){
+                    System.out.println(request.toString());
+                    System.out.println();
+                }
+
+                System.out.print("Press enter key to continue...");
+                input.nextLine();
+            }
+            case 3 -> {
+                System.out.println("--- Unauthorized Leave Requests ---");
+                for (LeaveRequest request : access.getLeaveRequestsByStatus("Unauthorized")){
+                    System.out.println(request.toString());
+                    System.out.println();
+                }
+
+                System.out.print("Press enter key to continue...");
+                input.nextLine();
+            }
+            case 4 -> {}
+        }
     }
 }
