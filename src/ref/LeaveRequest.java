@@ -3,7 +3,7 @@ package ref;
 import java.sql.Date;
 
 public class LeaveRequest {
-    private int leaveRegID;
+    private int leaveReqID;
     private int instructID;
     private String leaveType;
     private Date startDate;
@@ -12,7 +12,7 @@ public class LeaveRequest {
     private int filedBy;
 
     public LeaveRequest(int leaveReqID, int instructID, String leaveType, Date startDate, Date endDate, String status, int filedBy) {
-        this.leaveRegID = leaveReqID;
+        this.leaveReqID = leaveReqID;
         this.instructID = instructID;
         this.leaveType = leaveType;
         this.startDate = startDate;
@@ -23,7 +23,7 @@ public class LeaveRequest {
     }
 
     public int getLeaveRegID() {
-        return leaveRegID;
+        return leaveReqID;
     }
     public int getInstructID() {
         return instructID;
@@ -45,7 +45,7 @@ public class LeaveRequest {
     }
 
     public void setLeaveRegID(int leaveRegID) {
-        this.leaveRegID = leaveRegID;
+        this.leaveReqID = leaveRegID;
     }
 
     public void setInstructID(int instructID) {
@@ -70,5 +70,19 @@ public class LeaveRequest {
 
     public void setFiledBy(int filedBy) {
         this.filedBy = filedBy;
+    }
+
+    @Override
+    public String toString() {
+        return String.format(
+                "Leave Request ID : %d%n" +
+                "Instructor ID    : %d%n" +
+                "Leave Type       : %s%n" +
+                "Start Date       : %s%n" +
+                "End Date         : %s%n" +
+                "Status           : %s%n" +
+                "Filed By (userID): %d",
+                leaveReqID, instructID, leaveType, startDate, endDate, status, filedBy
+        );
     }
 }

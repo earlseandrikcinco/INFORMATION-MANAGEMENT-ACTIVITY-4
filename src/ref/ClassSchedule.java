@@ -12,13 +12,14 @@ public class ClassSchedule {
     private String instructorName;
     private String room;
 
-    public ClassSchedule(int classCode, String courseNo, Time startTime, Time endTime, String days, int instructID, String room){
+    public ClassSchedule(int classCode, String courseNo, Time startTime, Time endTime, String days, int instructID, String instructorName, String room) {
         this.classCode = classCode;
         this.courseNo = courseNo;
         this.startTime = startTime;
         this.endTime = endTime;
         this.days = days;
         this.instructID = instructID;
+        this.instructorName = instructorName;
         this.room = room;
     }
 
@@ -84,5 +85,19 @@ public class ClassSchedule {
 
     public void setInstructorName(String instructorName) {
         this.instructorName = instructorName;
+    }
+
+    @Override
+    public String toString() {
+        String instrDisplay = (instructorName != null) ? instructorName : ("ID " + instructID);
+        return String.format(
+                "Class Code : %d%n" +
+                        "Course No  : %s%n" +
+                        "Instructor : %s%n" +
+                        "Room       : %s%n" +
+                        "Days       : %s%n" +
+                        "Time       : %s - %s",
+                classCode, courseNo, instrDisplay, room, days, startTime, endTime
+        );
     }
 }

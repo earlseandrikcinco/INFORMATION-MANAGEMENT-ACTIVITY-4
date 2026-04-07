@@ -36,7 +36,7 @@ public class Substitute {
         this.substituteInstructID = substituteInstructID;
     }
     public void setPlanned(boolean planned) {
-        isPlanned = planned;
+        this.isPlanned = planned;
     }
 }
 

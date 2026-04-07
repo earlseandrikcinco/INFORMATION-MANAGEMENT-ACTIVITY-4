@@ -1,7 +1,8 @@
 package ref;
 
 import java.time.LocalDateTime;
-import java.util.Date;
+//import java.util.Date;
+import java.sql.Date;
 
 public class Attendance {
     private int attendID;
@@ -15,8 +16,8 @@ public class Attendance {
     private int leaveInstructorID;
     private int substituteID;
 
-    private Attendance(int attendID, Date date, String status, String absenceReason, boolean isAsynchronous, int classCode,
-                       int checkerID, int leaveReqID, int leaveInstructorID, int substituteID){
+    public Attendance(int attendID, Date date, String status, String absenceReason, boolean isAsynchronous, int classCode,
+                      int checkerID, int leaveReqID, int leaveInstructorID, int substituteID){
         this.attendID = attendID;
         this.date = date;
         this.status = status;
@@ -107,5 +108,20 @@ public class Attendance {
 
     public void setSubstituteID(int substituteID) {
         this.substituteID = substituteID;
+    }
+
+    @Override
+    public String toString() {
+        String async = isAsynchronous ? "Yes" : "No";
+        String reason = (absenceReason != null && !absenceReason.isEmpty()) ? absenceReason : "N/A";
+        return String.format(
+                "Attendance ID   : %d%n" +
+                "Date            : %s%n" +
+                "Status          : %s%n" +
+                "Absence Reason  : %s%n" +
+                "Asynchronous    : %s%n" +
+                "Class Code      : %d",
+                attendID, date, status, reason, async, classCode
+        );
     }
 }
