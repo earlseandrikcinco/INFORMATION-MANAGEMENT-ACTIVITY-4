@@ -1,49 +1,40 @@
 package ref;
-
-import jdk.jfr.DataAmount;
-
-import java.time.LocalDateTime;
-//import java.util.Date;
 import java.sql.Date;
 
 public class Attendance {
-    private int attendID;
-    private Date date;
-    private String status;
-    private String absenceReason;
-    private boolean isAsynchronous;
     private int classCode;
+    private Integer instructID;
+    private Date date;
+    private String instructorStatus;
     private int checkerID;
-    private int leaveReqID;
-    private int leaveInstructorID;
-    private int substituteID;
-    private Instructor instructor;
-    private Instructor substitute;
-    private ClassSchedule classSchedule;
+    private Integer leaveReqID; // Nullable
+    private boolean isSubstitute;
 
-    public Attendance(int attendID, Date date, String status, String absenceReason, boolean isAsynchronous, int classCode,
-                      int checkerID, int leaveReqID, int leaveInstructorID, int substituteID){
-        this.attendID = attendID;
-        this.date = date;
-        this.status = status;
-        this.absenceReason = absenceReason;
-        this.isAsynchronous = isAsynchronous;
+    public Attendance(int classCode, Integer instructID, Date date, String instructorStatus, int checkerID, Integer leaveReqID, boolean isSubstitute) {
         this.classCode = classCode;
+        this.instructID = instructID;
+        this.date = date;
+        this.instructorStatus = instructorStatus;
         this.checkerID = checkerID;
         this.leaveReqID = leaveReqID;
-        this.leaveInstructorID = leaveInstructorID;
-        this.substituteID = substituteID;
-        this.instructor = null;
-        this.classSchedule = null;
-        this.substitute = null;
+        this.isSubstitute = isSubstitute;
+    }
+    // Getters and Setters
+
+    public int getClassCode() {
+        return classCode;
     }
 
-    public int getAttendID() {
-        return attendID;
+    public void setClassCode(int classCode) {
+        this.classCode = classCode;
     }
 
-    public void setAttendID(int attendID) {
-        this.attendID = attendID;
+    public int getInstructID() {
+        return instructID;
+    }
+
+    public void setInstructID(int instructID) {
+        this.instructID = instructID;
     }
 
     public Date getDate() {
@@ -54,36 +45,12 @@ public class Attendance {
         this.date = date;
     }
 
-    public String getStatus() {
-        return status;
+    public String getInstructorStatus() {
+        return instructorStatus;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getAbsenceReason() {
-        return absenceReason;
-    }
-
-    public void setAbsenceReason(String absenceReason) {
-        this.absenceReason = absenceReason;
-    }
-
-    public boolean isAsynchronous() {
-        return isAsynchronous;
-    }
-
-    public void setAsynchronous(boolean asynchronous) {
-        isAsynchronous = asynchronous;
-    }
-
-    public int getClassCode() {
-        return classCode;
-    }
-
-    public void setClassCode(int classCode) {
-        this.classCode = classCode;
+    public void setInstructorStatus(String instructorStatus) {
+        this.instructorStatus = instructorStatus;
     }
 
     public int getCheckerID() {
@@ -94,68 +61,19 @@ public class Attendance {
         this.checkerID = checkerID;
     }
 
-    public int getLeaveReqID() {
+    public Integer getLeaveReqID() {
         return leaveReqID;
     }
 
-    public void setLeaveReqID(int leaveReqID) {
+    public void setLeaveReqID(Integer leaveReqID) {
         this.leaveReqID = leaveReqID;
     }
 
-    public int getLeaveInstructorID() {
-        return leaveInstructorID;
+    public boolean isSubstitute() {
+        return isSubstitute;
     }
 
-    public void setLeaveInstructorID(int leaveInstructorID) {
-        this.leaveInstructorID = leaveInstructorID;
-    }
-
-    public int getSubstituteID() {
-        return substituteID;
-    }
-
-    public void setSubstituteID(int substituteID) {
-        this.substituteID = substituteID;
-    }
-
-    public Instructor getInstructor() {
-        return instructor;
-    }
-
-    public void setInstructor(Instructor instructor) {
-        this.instructor = instructor;
-    }
-
-    public ClassSchedule getClassSchedule() {
-        return classSchedule;
-    }
-
-    public void setClassSchedule(ClassSchedule classSchedule) {
-        this.classSchedule = classSchedule;
-    }
-
-    public Instructor getSubstitute() {
-        return substitute;
-    }
-
-    public void setSubstitute(Instructor substitute) {
-        this.substitute = substitute;
-    }
-
-    @Override
-    public String toString() {
-        String async = isAsynchronous ? "Yes" : "No";
-        String reason = (absenceReason != null && !absenceReason.isEmpty()) ? absenceReason : "N/A";
-        String substituteName = substituteID != 0 ? "N/A" : substitute.getName();
-        return String.format(
-                "Attendance ID   : %d%n" +
-                "Date            : %s%n" +
-                "Status          : %s%n" +
-                "Absence Reason  : %s%n" +
-                "Asynchronous    : %s%n" +
-                "Class Code      : %d" +
-                "Substitute      : %s",
-                attendID, date, status, reason, async, classCode, substituteName
-        );
+    public void setSubstitute(boolean substitute) {
+        isSubstitute = substitute;
     }
 }

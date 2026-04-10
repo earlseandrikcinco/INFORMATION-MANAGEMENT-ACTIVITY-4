@@ -1,5 +1,4 @@
 package ref;
-
 import java.sql.Date;
 
 public class LeaveRequest {
@@ -9,20 +8,20 @@ public class LeaveRequest {
     private Date startDate;
     private Date endDate;
     private String status;
-    private int filedBy;
+    private Integer approvedBy; // Foreign Key to SystemUser
 
-    public LeaveRequest(int leaveReqID, int instructID, String leaveType, Date startDate, Date endDate, String status, int filedBy) {
+    public LeaveRequest(int leaveReqID, int instructID, String leaveType, Date startDate, Date endDate, String status, Integer approvedBy) {
         this.leaveReqID = leaveReqID;
         this.instructID = instructID;
         this.leaveType = leaveType;
         this.startDate = startDate;
         this.endDate = endDate;
         this.status = status;
-        this.filedBy = filedBy;
-
+        this.approvedBy = approvedBy;
     }
 
-    public int getLeaveRegID() {
+    // Getters and Setters
+    public int getLeaveReqID() {
         return leaveReqID;
     }
     public int getInstructID() {
@@ -40,11 +39,9 @@ public class LeaveRequest {
     public String getStatus() {
         return status;
     }
-    public int getFiledBy() {
-        return filedBy;
-    }
+    public int getApprovedBy() {return approvedBy;}
 
-    public void setLeaveRegID(int leaveRegID) {
+    public void setLeaveReqID(int leaveRegID) {
         this.leaveReqID = leaveRegID;
     }
 
@@ -68,21 +65,7 @@ public class LeaveRequest {
         this.status = status;
     }
 
-    public void setFiledBy(int filedBy) {
-        this.filedBy = filedBy;
-    }
-
-    @Override
-    public String toString() {
-        return String.format(
-                "Leave Request ID : %d%n" +
-                "Instructor ID    : %d%n" +
-                "Leave Type       : %s%n" +
-                "Start Date       : %s%n" +
-                "End Date         : %s%n" +
-                "Status           : %s%n" +
-                "Filed By (userID): %d",
-                leaveReqID, instructID, leaveType, startDate, endDate, status, filedBy
-        );
+    public void setApprovedBy(int approvedBy) {
+        this.approvedBy = approvedBy;
     }
 }

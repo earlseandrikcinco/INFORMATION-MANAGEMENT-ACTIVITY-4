@@ -8,20 +8,21 @@ public class ClassSchedule {
     private Time startTime;
     private Time endTime;
     private String days;
-    private int instructID;
-    private String instructorName;
-    private String room;
+    private Integer roomID; // Nullable in schema
+    private Integer instructID; // Nullable in schema
+    private String instructorName; // Helper for UI
 
-    public ClassSchedule(int classCode, String courseNo, Time startTime, Time endTime, String days, int instructID, String instructorName, String room) {
+    public ClassSchedule(int classCode, String courseNo, Time startTime, Time endTime, String days, Integer roomID, Integer instructID) {
         this.classCode = classCode;
         this.courseNo = courseNo;
         this.startTime = startTime;
         this.endTime = endTime;
         this.days = days;
+        this.roomID = roomID;
         this.instructID = instructID;
-        this.instructorName = instructorName;
-        this.room = room;
     }
+
+    // Getters and Setters
 
     public int getClassCode() {
         return classCode;
@@ -63,41 +64,27 @@ public class ClassSchedule {
         this.days = days;
     }
 
-    public int getInstructID() {
+    public Integer getRoomID() {
+        return roomID;
+    }
+
+    public Integer getInstructID() {
         return instructID;
-    }
-
-    public void setInstructID(int instructID) {
-        this.instructID = instructID;
-    }
-
-    public String getRoom() {
-        return room;
-    }
-
-    public void setRoom(String room) {
-        this.room = room;
     }
 
     public String getInstructorName() {
         return instructorName;
     }
 
+    public void setRoomID(Integer roomID) {
+        this.roomID = roomID;
+    }
+
     public void setInstructorName(String instructorName) {
         this.instructorName = instructorName;
     }
 
-    @Override
-    public String toString() {
-        String instrDisplay = (instructorName != null) ? instructorName : ("ID " + instructID);
-        return String.format(
-                "Class Code : %d%n" +
-                        "Course No  : %s%n" +
-                        "Instructor : %s%n" +
-                        "Room       : %s%n" +
-                        "Days       : %s%n" +
-                        "Time       : %s - %s",
-                classCode, courseNo, instrDisplay, room, days, startTime, endTime
-        );
+    public void setInstructID(Integer instructID) {
+        this.instructID = instructID;
     }
 }

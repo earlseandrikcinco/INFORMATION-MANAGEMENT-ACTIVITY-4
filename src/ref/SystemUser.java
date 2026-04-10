@@ -3,20 +3,20 @@ package ref;
 public class SystemUser {
     private int userID;
     private String name;
-    private String userName;
+    private String username;
+    private String email;
     private String password;
     private String role;
-    private String email;
+    private Integer createdBy; // Uses Integer to allow null
 
-    public SystemUser() {}
-
-    public SystemUser(int userID, String name, String userName, String password, String role, String email) {
+    public SystemUser (int userID, String name, String username, String email, String password, String role, Integer createdBy) {
         this.userID = userID;
         this.name = name;
-        this.userName = userName;
+        this.username = username;
+        this.email = email;
         this.password = password;
         this.role = role;
-        this.email = email;
+        this.createdBy = createdBy;
     }
 
     public int getUserID(){
@@ -25,8 +25,8 @@ public class SystemUser {
     public String getName() {
         return name;
     }
-    public String getUserName(){
-        return userName;
+    public String getUsername(){
+        return username;
     }
     public String getPassword(){
         return password;
@@ -37,9 +37,18 @@ public class SystemUser {
     public String getEmail(){
         return email;
     }
+    public Integer getCreatedBy() {return createdBy;}
+
+    public void setUserID(int userID) {this.userID = userID;}
+    public void setName(String name) {this.name = name;}
+    public void setUsername(String username) {this.username = username;}
+    public void setPassword(String password) {this.password = password;}
+    public void setRole(String role) {this.role = role;}
+    public void setEmail(String email) {this.email = email;}
+    public void setCreatedBy(Integer createdBy) {this.createdBy = createdBy;}
 
     @Override
     public String toString(){
-        return "User ID: " + userID + "\nUsername: " + userName + "\nRole: " + role + "\nEmail: " + email;
+        return "User ID: " + userID + "\nUsername: " + username + "\nRole: " + role + "\nEmail: " + email;
     }
 }

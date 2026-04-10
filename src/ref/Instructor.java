@@ -3,22 +3,12 @@ package ref;
 public class Instructor {
     private int instructorID;
     private String name;
-    private String department;
+    private int departmentID;
 
-    public Instructor(int instructorID, String name, String department){
+    public Instructor(int instructorID, String name, int departmentID) {
         this.instructorID = instructorID;
         this.name = name;
-        this.department = department;
-    }
-
-    public void setInstructorID(int instructorID){
-        this.instructorID = instructorID;
-    }
-    public void setName(String name){
-        this.name = name;
-    }
-    public void setDepartment(String department){
-        this.department = department;
+        this.departmentID = departmentID;
     }
 
     public int getInstructorID(){
@@ -27,12 +17,17 @@ public class Instructor {
     public String getName(){
         return name;
     }
-    public String getDepartment(){
-        return department;
+    public int getDepartment(){
+        return departmentID;
     }
 
-    @Override
-    public String toString(){
-        return "Instructor ID: " + instructorID + "\nName: " + name + "\nDepartment: " + department;
+    public void setInstructorID(int instructorID){
+        this.instructorID = instructorID;
+    }
+    public void setName(String name){
+        this.name = name;
+    }
+    public void setDepartment(int departmentID){
+        this.departmentID = departmentID;
     }
 }
