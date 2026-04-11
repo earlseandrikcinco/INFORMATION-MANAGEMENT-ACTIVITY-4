@@ -14,7 +14,7 @@ public class DataAccess {
     public SystemUser getUser(String key) {
         String sql = "SELECT u.*, c.floor, d.departmentID AS deptHeadID, " +
                 "s.departmentID AS secDeptID, a.approvalCode " +
-                "FROM SYSTEMUSER u " +
+                "FROM SYSTEM_USER u " +
                 "LEFT JOIN CHECKER c ON u.userID = c.checkerID " +
                 "LEFT JOIN DEPTHEAD d ON u.userID = d.deptheadID " +
                 "LEFT JOIN SECRETARY s ON u.userID = s.secretaryID " +
@@ -181,7 +181,7 @@ public class DataAccess {
     public List<ClassSchedule> getAllClassSchedules() {
         List<ClassSchedule> list = new ArrayList<>();
         String sql = "SELECT s.*, i.name AS instructorName " +
-                "FROM CLASSSCHEDULE s " +
+                "FROM CLASS_SCHEDULE s " +
                 "LEFT JOIN INSTRUCTOR i ON s.instructID = i.instructID " +
                 "ORDER BY s.startTime";
 
@@ -388,7 +388,7 @@ public class DataAccess {
 
     public List<LeaveRequest> getPendingLeavesByDept(int deptID) {
         List<LeaveRequest> list = new ArrayList<>();
-        String sql = "SELECT lr.* FROM LEAVEREQUEST lr " +
+        String sql = "SELECT lr.* FROM LEAVER_EQUEST lr " +
                 "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
                 "WHERE lr.status = 'Pending' AND i.departmentID = ?";
 
@@ -413,7 +413,7 @@ public class DataAccess {
     public List<LeaveRequest> getPendingLeaves() {
         List<LeaveRequest> list = new ArrayList<>();
         String sql = "SELECT lr.*, i.name AS instructorName " +
-                "FROM LEAVEREQUEST lr " +
+                "FROM LEAVE_REQUEST lr " +
                 "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
                 "WHERE lr.status = 'Pending' " +
                 "ORDER BY lr.startDate ASC";
@@ -439,7 +439,7 @@ public class DataAccess {
     public List<LeaveRequest> getAllowedLeaves() {
         List<LeaveRequest> list = new ArrayList<>();
         String sql = "SELECT lr.*, i.name AS instructorName " +
-                "FROM LEAVEREQUEST lr " +
+                "FROM LEAVE_REQUEST lr " +
                 "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
                 "WHERE lr.status = 'Allowed' " +
                 "ORDER BY lr.startDate DESC";
@@ -465,7 +465,7 @@ public class DataAccess {
     public List<LeaveRequest> getUnauthorizedLeaves() {
         List<LeaveRequest> list = new ArrayList<>();
         String sql = "SELECT lr.*, i.name AS instructorName " +
-                "FROM LEAVEREQUEST lr " +
+                "FROM LEAVE_REQUEST lr " +
                 "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
                 "WHERE lr.status = 'Unauthorized' " +
                 "ORDER BY lr.startDate DESC";
@@ -619,7 +619,7 @@ public class DataAccess {
     }
 
     public boolean insertLeaveRequest(LeaveRequest lr) {
-        String sql = "INSERT INTO LEAVEREQUEST (instructID, leaveType, startDate, endDate, status, approvedBy) " +
+        String sql = "INSERT INTO LEAVE_REQUEST (instructID, leaveType, startDate, endDate, status, approvedBy) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DataPB.getConnection();
@@ -658,7 +658,7 @@ public class DataAccess {
     }
 
     public boolean resolveLeaveRequest(int leaveReqID, String newStatus, int reviewerID) {
-        String sql = "UPDATE LEAVEREQUEST SET status = ?, approvedBy = ? WHERE leaveReqID = ?";
+        String sql = "UPDATE LEAVE_REQUEST SET status = ?, approvedBy = ? WHERE leaveReqID = ?";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
