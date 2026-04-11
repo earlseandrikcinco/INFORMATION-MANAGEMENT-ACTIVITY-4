@@ -315,6 +315,37 @@ public class DataAccess {
         return list;
     }
 
+    public List<ClassSchedule> getSchedulesByTimeRange(String dayCode, Time start, Time end) {
+        List<ClassSchedule> list = new ArrayList<>();
+        String sql = "SELECT s.*, i.name AS instructorName " +
+                "FROM CLASSSCHEDULE s " +
+                "LEFT JOIN INSTRUCTOR i ON s.instructID = i.instructID " +
+                "WHERE s.days REGEXP ? AND s.startTime >= ? AND s.endTime <= ? " +
+                "ORDER BY s.startTime";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, dayCode);
+            stmt.setTime(2, start);
+            stmt.setTime(3, end);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    ClassSchedule cs = new ClassSchedule(
+                            rs.getInt("classCode"), rs.getString("courseNo"),
+                            rs.getTime("startTime"), rs.getTime("endTime"),
+                            rs.getString("days"), (Integer) rs.getObject("roomID"),
+                            (Integer) rs.getObject("instructID")
+                    );
+                    cs.setInstructorName(rs.getString("instructorName"));
+                    list.add(cs);
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return list;
+    }
+
     public List<String> getInstructorList() {
         List<String> instructors = new ArrayList<>();
         String sql = "SELECT name FROM INSTRUCTOR ORDER BY name";
@@ -350,6 +381,29 @@ public class DataAccess {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public List<LeaveRequest> getPendingLeaves() {
+        List<LeaveRequest> list = new ArrayList<>();
+        String sql = "SELECT lr.*, i.name AS instructorName " +
+                "FROM LEAVEREQUEST lr " +
+                "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
+                "WHERE lr.status = 'Pending'";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(new LeaveRequest(
+                        rs.getInt("leaveReqID"), rs.getInt("instructID"),
+                        rs.getString("leaveType"), rs.getDate("startDate"),
+                        rs.getDate("endDate"), rs.getString("status"),
+                        (Integer) rs.getObject("approvedBy")
+                ));
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return list;
     }
 
     public LeaveRequest getActiveLeave(int instructID, Date date) {
