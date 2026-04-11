@@ -9,6 +9,7 @@ public class LeaveRequest {
     private Date endDate;
     private String status;
     private Integer approvedBy; // Foreign Key to SystemUser
+    private String instructorName; // Helper for UI
 
     public LeaveRequest(int leaveReqID, int instructID, String leaveType, Date startDate, Date endDate, String status, Integer approvedBy) {
         this.leaveReqID = leaveReqID;
@@ -40,32 +41,29 @@ public class LeaveRequest {
         return status;
     }
     public int getApprovedBy() {return approvedBy;}
+    public String getInstructorName() {return instructorName;}
 
     public void setLeaveReqID(int leaveRegID) {
         this.leaveReqID = leaveRegID;
     }
-
     public void setInstructID(int instructID) {
         this.instructID = instructID;
     }
-
     public void setLeaveType(String leaveType) {
         this.leaveType = leaveType;
     }
-
     public void setStartDate(Date startDate) {
         this.startDate = startDate;
     }
-
     public void setEndDate(Date endDate) {
         this.endDate = endDate;
     }
-
     public void setStatus(String status) {
         this.status = status;
     }
-
     public void setApprovedBy(int approvedBy) {
         this.approvedBy = approvedBy;
     }
+    public void setApprovedBy(Integer approvedBy) {this.approvedBy = approvedBy;}
+    public void setInstructorName(String instructorName) {this.instructorName = instructorName;}
 }
