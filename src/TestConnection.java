@@ -2,6 +2,6 @@
 //
 //public class TestConnection {
 //    public static void main(String[] args) {
-//        DataPB.setConnection();
+//        app.DataPB.setConnection();
 //    }
 //}
