@@ -2,8 +2,7 @@ package gui;
 
 import app.AppController;
 import app.DataAccess;
-import ref.Instructor;
-import ref.LeaveRequest;
+import ref.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -12,6 +11,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class LeaveRequestPanel extends BasePanel {
 
@@ -22,10 +22,18 @@ public class LeaveRequestPanel extends BasePanel {
     private List<Instructor> instructors;
     private List<LeaveRequest> currentList = new ArrayList<>();
     private JTable table;
+    private SystemUser currentUser;
+    private int deptID;
 
-    public LeaveRequestPanel(AppController controller, DataAccess db) {
+    public LeaveRequestPanel(AppController controller, DataAccess db, SystemUser user) {
         super(controller);
         this.db = db;
+        this.currentUser = user;
+        if (currentUser instanceof Secretary) {
+            deptID = ((Secretary) currentUser).getDepartmentID();
+        } else {
+            deptID = ((DeptHead) currentUser).getDepartmentID();
+        }
         buildUI();
     }
 
@@ -91,18 +99,18 @@ public class LeaveRequestPanel extends BasePanel {
         reasonBtn.addActionListener(e -> showReasonDialog());
         add(bottomBar(reasonBtn), BorderLayout.SOUTH);
 
-        loadRequests(db.getAllLeaveRequests());
+        loadRequests(db.getLeaveRequestsByDept(deptID));
     }
 
     private void updateValueCombo() {
         String sel = (String) filterCombo.getSelectedItem();
         valueCombo.removeAllItems();
         if ("By Status".equals(sel)) {
-            for (String s : new String[]{"Pending", "Approved", "Unauthorized"})
+            for (String s : new String[]{"Pending", "Approved", "Rejected"})
                 valueCombo.addItem(s);
             valueCombo.setVisible(true);
         } else if ("By Instructor".equals(sel)) {
-            instructors = db.getAllInstructors();
+            instructors = db.getInstructorsByDept(deptID);
             for (Instructor i : instructors) valueCombo.addItem(i.getName());
             valueCombo.setVisible(true);
         } else {
@@ -112,15 +120,22 @@ public class LeaveRequestPanel extends BasePanel {
 
     private void applyFilter() {
         String mode = (String) filterCombo.getSelectedItem();
+
         if ("By Status".equals(mode)) {
             String status = (String) valueCombo.getSelectedItem();
-            if (status != null) loadRequests(db.getLeaveRequestsByStatus(status));
+            if (status != null) {
+
+                loadRequests(db.getLeaveRequestsByStatusAndDept(status, deptID));
+            }
         } else if ("By Instructor".equals(mode)) {
             int idx = valueCombo.getSelectedIndex();
-            if (idx >= 0 && instructors != null)
-                loadRequests(db.getLeaveRequestsByInstructor(instructors.get(idx).getInstructorID()));
+            if (idx >= 0 && instructors != null) {
+
+                loadRequests(db.getLeaveRequestsByInstructorAndDept(
+                        instructors.get(idx).getInstructorID(), deptID));
+            }
         } else {
-            loadRequests(db.getAllLeaveRequests());
+            loadRequests(db.getLeaveRequestsByDept(deptID));
         }
     }
 

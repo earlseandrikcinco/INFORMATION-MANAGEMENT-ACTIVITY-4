@@ -2,7 +2,6 @@ package app;
 
 import ref.*;
 
-import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -467,74 +466,42 @@ public class DataAccess {
         return users;
     }
 
-    public List<Instructor> getAllInstructors() {
-
+    public List<Instructor> getInstructorsByDept(int deptID) {
         List<Instructor> list = new ArrayList<>();
 
-        String sql = "SELECT * FROM instructor";
-
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-
-                list.add(new Instructor(
-                        rs.getInt("instructID"),
-                        rs.getString("name"),
-                        rs.getInt("departmentID")
-                ));
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<LeaveRequest> getAllLeaveRequests() {
-        List<LeaveRequest> list = new ArrayList<>();
-
-        String sql = "SELECT lr.*, i.name AS instructorName " +
-                "FROM leave_request lr " +
-                "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
-                "ORDER BY lr.startDate DESC";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                LeaveRequest lr = new LeaveRequest(
-                        rs.getInt("leaveReqNo"),
-                        rs.getInt("instructID"),
-                        rs.getString("leaveType"),
-                        rs.getDate("startDate"),
-                        rs.getDate("endDate"),
-                        rs.getString("status"),
-                        rs.getInt("approvedBy")
-                );
-                lr.setInstructorName(rs.getString("instructorName"));
-                lr.setLeaveReason(rs.getString("leaveReason"));
-                list.add(lr);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<LeaveRequest> getLeaveRequestsByStatus(String status) {
-        List<LeaveRequest> list = new ArrayList<>();
-        String sql = "SELECT lr.*, i.name AS instructorName " +
-                "FROM leave_request lr " +
-                "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
-                "WHERE lr.status = ? ORDER BY lr.startDate DESC";
+        String sql = "SELECT * FROM INSTRUCTOR WHERE departmentID = ? ORDER BY name ASC";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, status);
+            stmt.setInt(1, deptID);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new Instructor(
+                            rs.getInt("instructID"),
+                            rs.getString("name"),
+                            rs.getInt("departmentID")
+                    ));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<LeaveRequest> getLeaveRequestsByInstructor(int instructorID) {
+        List<LeaveRequest> list = new ArrayList<>();
+        String sql = "SELECT lr.*, i.name AS instructorName " +
+                "FROM leave_request lr " +
+                "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
+                "WHERE lr.instructID = ? ORDER BY lr.startDate DESC";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, instructorID);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     LeaveRequest lr = new LeaveRequest(
@@ -557,17 +524,79 @@ public class DataAccess {
         return list;
     }
 
-    public List<LeaveRequest> getLeaveRequestsByInstructor(int instructorID) {
+    public List<LeaveRequest> getLeaveRequestsByDept(int deptID) {
         List<LeaveRequest> list = new ArrayList<>();
         String sql = "SELECT lr.*, i.name AS instructorName " +
                 "FROM leave_request lr " +
                 "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
-                "WHERE lr.instructID = ? ORDER BY lr.startDate DESC";
+                "WHERE i.departmentID = ? " +
+                "ORDER BY lr.startDate DESC";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, deptID);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    LeaveRequest lr = new LeaveRequest(
+                            rs.getInt("leaveReqNo"), rs.getInt("instructID"),
+                            rs.getString("leaveType"), rs.getDate("startDate"),
+                            rs.getDate("endDate"), rs.getString("status"),
+                            rs.getInt("approvedBy")
+                    );
+                    lr.setInstructorName(rs.getString("instructorName"));
+                    lr.setLeaveReason(rs.getString("leaveReason"));
+                    list.add(lr);
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return list;
+    }
+
+    public List<LeaveRequest> getLeaveRequestsByStatusAndDept(String status, int deptID) {
+        List<LeaveRequest> list = new ArrayList<>();
+        String sql = "SELECT lr.*, i.name AS instructorName " +
+                "FROM leave_request lr " +
+                "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
+                "WHERE lr.status = ? AND i.departmentID = ? " +
+                "ORDER BY lr.startDate DESC";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, status);
+            stmt.setInt(2, deptID);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    LeaveRequest lr = new LeaveRequest(
+                            rs.getInt("leaveReqNo"), rs.getInt("instructID"),
+                            rs.getString("leaveType"), rs.getDate("startDate"),
+                            rs.getDate("endDate"), rs.getString("status"),
+                            rs.getInt("approvedBy")
+                    );
+                    lr.setInstructorName(rs.getString("instructorName"));
+                    lr.setLeaveReason(rs.getString("leaveReason"));
+                    list.add(lr);
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return list;
+    }
+
+    public List<LeaveRequest> getLeaveRequestsByInstructorAndDept(int instructorID, int deptID) {
+        List<LeaveRequest> list = new ArrayList<>();
+        String sql = "SELECT lr.*, i.name AS instructorName " +
+                "FROM leave_request lr " +
+                "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
+                "WHERE lr.instructID = ? AND i.departmentID = ? " +
+                "ORDER BY lr.startDate DESC";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, instructorID);
+            stmt.setInt(2, deptID);
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     LeaveRequest lr = new LeaveRequest(
@@ -782,7 +811,7 @@ public class DataAccess {
             return true;
 
         } catch (SQLException e) {
-            if (conn != null) try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
             e.printStackTrace();
             return false;
         } finally {

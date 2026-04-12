@@ -4,6 +4,7 @@ import gui.*;
 import ref.*;
 
 import javax.swing.*;
+import java.util.Objects;
 
 public class AppController {
 
@@ -16,9 +17,7 @@ public class AppController {
         db = new DataAccess();
     }
 
-    // -------------------------------------------------
     // START APPLICATION
-    // -------------------------------------------------
 
     public void start() {
         frame = new MainFrame(this);
@@ -27,9 +26,7 @@ public class AppController {
         frame.showPanel(new LoginPanel(this));
     }
 
-    // -------------------------------------------------
     // USER SESSION
-    // -------------------------------------------------
 
     public SystemUser getCurrentUser() {
         return currentUser;
@@ -56,9 +53,7 @@ public class AppController {
         frame.showPanel(new LoginPanel(this));
     }
 
-    // -------------------------------------------------
     // DASHBOARD ROUTING
-    // -------------------------------------------------
 
     public void showDashboard() {
 
@@ -91,17 +86,13 @@ public class AppController {
         }
     }
 
-    // -------------------------------------------------
     // ADMIN FEATURES
-    // -------------------------------------------------
 
     public void showAccountList() {
         frame.showPanel(new AccountListPanel(this, db));
     }
 
-    // -------------------------------------------------
     // ATTENDANCE
-    // -------------------------------------------------
 
     public void showAttendanceInstructorList() {
         frame.showPanel(new AttendanceInstructorListPanel(this, db));
@@ -111,17 +102,20 @@ public class AppController {
         frame.showPanel(new AttendanceDetailPanel(this, db, instructor));
     }
 
-    // -------------------------------------------------
     // LEAVE REQUESTS
-    // -------------------------------------------------
 
     public void showLeaveRequests() {
-        frame.showPanel(new LeaveRequestPanel(this, db));
+        String role = currentUser.getRole();
+
+        if (!role.equals("Secretary") && !role.equals("DeptHead")) {
+            frame.showError("Insufficient privileges. This feature is for Secretaries and Department Heads only.");
+            return;
+        }
+
+        frame.showPanel(new LeaveRequestPanel(this, db, currentUser));
     }
 
-    // -------------------------------------------------
     // CLASS SCHEDULE
-    // -------------------------------------------------
 
     public void showClassSchedules() {
         frame.showPanel(new ClassSchedulePanel(this, db));
