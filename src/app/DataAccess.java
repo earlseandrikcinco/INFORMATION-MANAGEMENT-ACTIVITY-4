@@ -386,108 +386,6 @@ public class DataAccess {
         return null;
     }
 
-    public List<LeaveRequest> getPendingLeavesByDept(int deptID) {
-        List<LeaveRequest> list = new ArrayList<>();
-        String sql = "SELECT lr.* FROM LEAVER_EQUEST lr " +
-                "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
-                "WHERE lr.status = 'Pending' AND i.departmentID = ?";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, deptID);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    list.add(new LeaveRequest(
-                            rs.getInt("leaveReqNo"), rs.getInt("instructID"),
-                            rs.getString("leaveType"), rs.getDate("startDate"),
-                            rs.getDate("endDate"), rs.getString("status"),
-                            (Integer) rs.getObject("approvedBy")
-                    ));
-                }
-            }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return list;
-    }
-
-    public List<LeaveRequest> getPendingLeaves() {
-        List<LeaveRequest> list = new ArrayList<>();
-        String sql = "SELECT lr.*, i.name AS instructorName " +
-                "FROM LEAVE_REQUEST lr " +
-                "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
-                "WHERE lr.status = 'Pending' " +
-                "ORDER BY lr.startDate ASC";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                LeaveRequest lr = new LeaveRequest(
-                        rs.getInt("leaveReqNo"), rs.getInt("instructID"),
-                        rs.getString("leaveType"), rs.getDate("startDate"),
-                        rs.getDate("endDate"), rs.getString("status"),
-                        (Integer) rs.getObject("approvedBy")
-                );
-                lr.setInstructorName(rs.getString("instructorName"));
-                list.add(lr);
-            }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return list;
-    }
-
-    public List<LeaveRequest> getAllowedLeaves() {
-        List<LeaveRequest> list = new ArrayList<>();
-        String sql = "SELECT lr.*, i.name AS instructorName " +
-                "FROM LEAVE_REQUEST lr " +
-                "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
-                "WHERE lr.status = 'Allowed' " +
-                "ORDER BY lr.startDate DESC";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                LeaveRequest lr = new LeaveRequest(
-                        rs.getInt("leaveReqNo"), rs.getInt("instructID"),
-                        rs.getString("leaveType"), rs.getDate("startDate"),
-                        rs.getDate("endDate"), rs.getString("status"),
-                        (Integer) rs.getObject("approvedBy")
-                );
-                lr.setInstructorName(rs.getString("instructorName"));
-                list.add(lr);
-            }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return list;
-    }
-
-    public List<LeaveRequest> getUnauthorizedLeaves() {
-        List<LeaveRequest> list = new ArrayList<>();
-        String sql = "SELECT lr.*, i.name AS instructorName " +
-                "FROM LEAVE_REQUEST lr " +
-                "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
-                "WHERE lr.status = 'Unauthorized' " +
-                "ORDER BY lr.startDate DESC";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                LeaveRequest lr = new LeaveRequest(
-                        rs.getInt("leaveReqNo"), rs.getInt("instructID"),
-                        rs.getString("leaveType"), rs.getDate("startDate"),
-                        rs.getDate("endDate"), rs.getString("status"),
-                        (Integer) rs.getObject("approvedBy")
-                );
-                lr.setInstructorName(rs.getString("instructorName"));
-                list.add(lr);
-            }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return list;
-    }
-
     public List<Attendance> getUnauthorizedAbsences(int instructID) {
         List<Attendance> list = new ArrayList<>();
         String sql = "SELECT * FROM ATTENDANCE " +
@@ -541,6 +439,301 @@ public class DataAccess {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return list;
+    }
+
+    public List<SystemUser> getAllAccounts() {
+        List<SystemUser> users = new ArrayList<>();
+        String sql = "SELECT * FROM SYSTEM_USER";
+
+        try (Connection conn = DataPB.getConnection()) {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                users.add(new SystemUser(
+                        rs.getInt("userID"),
+                        rs.getString("name"),
+                        rs.getString("username"),
+                        rs.getString("email"),
+                        rs.getString("password"),
+                        rs.getString("role"),
+                        rs.getInt("createdBy")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    public List<Instructor> getAllInstructors() {
+
+        List<Instructor> list = new ArrayList<>();
+
+        String sql = "SELECT * FROM instructor";
+
+        try (Connection conn = DataPB.getConnection()) {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+
+                list.add(new Instructor(
+                        rs.getInt("instructID"),
+                        rs.getString("name"),
+                        rs.getInt("departmentID")
+                ));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<LeaveRequest> getAllLeaveRequests() {
+        List<LeaveRequest> list = new ArrayList<>();
+
+        String sql = "SELECT lr.*, i.name AS instructorName " +
+                "FROM leave_request lr " +
+                "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
+                "ORDER BY lr.startDate DESC";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                LeaveRequest lr = new LeaveRequest(
+                        rs.getInt("leaveReqNo"),
+                        rs.getInt("instructID"),
+                        rs.getString("leaveType"),
+                        rs.getDate("startDate"),
+                        rs.getDate("endDate"),
+                        rs.getString("status"),
+                        rs.getInt("approvedBy")
+                );
+                lr.setInstructorName(rs.getString("instructorName"));
+                list.add(lr);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<LeaveRequest> getLeaveRequestsByStatus(String status) {
+        List<LeaveRequest> list = new ArrayList<>();
+        String sql = "SELECT lr.*, i.name AS instructorName " +
+                "FROM leave_request lr " +
+                "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
+                "WHERE lr.status = ? ORDER BY lr.startDate DESC";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, status);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    LeaveRequest lr = new LeaveRequest(
+                            rs.getInt("leaveReqNo"),
+                            rs.getInt("instructID"),
+                            rs.getString("leaveType"),
+                            rs.getDate("startDate"),
+                            rs.getDate("endDate"),
+                            rs.getString("status"),
+                            rs.getInt("approvedBy")
+                    );
+                    lr.setInstructorName(rs.getString("instructorName"));
+                    list.add(lr);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<LeaveRequest> getLeaveRequestsByInstructor(int instructorID) {
+        List<LeaveRequest> list = new ArrayList<>();
+        String sql = "SELECT lr.*, i.name AS instructorName " +
+                "FROM leave_request lr " +
+                "JOIN INSTRUCTOR i ON lr.instructID = i.instructID " +
+                "WHERE lr.instructID = ? ORDER BY lr.startDate DESC";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, instructorID);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    LeaveRequest lr = new LeaveRequest(
+                            rs.getInt("leaveReqNo"),
+                            rs.getInt("instructID"),
+                            rs.getString("leaveType"),
+                            rs.getDate("startDate"),
+                            rs.getDate("endDate"),
+                            rs.getString("status"),
+                            rs.getInt("approvedBy")
+                    );
+                    lr.setInstructorName(rs.getString("instructorName"));
+                    list.add(lr);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<Attendance> getAttendanceByInstructor(int instructorID) {
+        List<Attendance> list = new ArrayList<>();
+        String sql = "SELECT * FROM attendance WHERE instructID = ?";
+
+        try (Connection conn = DataPB.getConnection()) {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, instructorID);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                list.add(new Attendance(
+                        rs.getInt("classCode"),
+                        rs.getInt("instructID"),
+                        rs.getDate("date"),
+                        rs.getString("instructorStatus"),
+                        rs.getInt("checkerID"),
+                        rs.getInt("leaveReqNo"),
+                        rs.getBoolean("isSubstitute")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<ClassSchedule> getClassSchedules() {
+        List<ClassSchedule> list = new ArrayList<>();
+        String sql = "SELECT * FROM class_schedule";
+
+        try (Connection conn = DataPB.getConnection()) {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery(sql);
+
+            while (rs.next()) {
+                list.add(new ClassSchedule(
+                        rs.getInt("classCode"),
+                        rs.getString("courseNo"),
+                        rs.getTime("startTime"),
+                        rs.getTime("endTime"),
+                        rs.getString("days"),
+                        rs.getInt("roomID"),
+                        rs.getInt("instructID")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<ClassSchedule> getClassSchedulesByInstructor(int instructorID) {
+        List<ClassSchedule> list = new ArrayList<>();
+        String sql = "SELECT * FROM class_schedule WHERE instructID = ?";
+
+        try (Connection conn = DataPB.getConnection()) {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, instructorID);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                list.add(new ClassSchedule(
+                        rs.getInt("classCode"),
+                        rs.getString("courseNo"),
+                        rs.getTime("startTime"),
+                        rs.getTime("endTime"),
+                        rs.getString("days"),
+                        rs.getInt("roomID"),
+                        rs.getInt("instructID")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public int getPresentCount(int instructorID) {
+
+        String sql = "SELECT COUNT(*) AS total FROM attendance " +
+                "WHERE instructID = ? AND instructorStatus = 'Present'";
+
+        try (Connection conn = DataPB.getConnection()) {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, instructorID);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+    public int getAbsenceCount(int instructorID) {
+
+        String sql = "SELECT COUNT(*) AS total FROM attendance " +
+                "WHERE instructID = ? AND instructorStatus = 'Absent'";
+
+        try (Connection conn = DataPB.getConnection()) {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, instructorID);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+    public List<Instructor> getInstructorsWithLeaveRequests() {
+
+        List<Instructor> list = new ArrayList<>();
+
+        String sql = "SELECT DISTINCT i.instructID, i.name, i.departmentID " +
+                "FROM instructor i " +
+                "JOIN leave_request lr ON i.instructID = lr.instructID " +
+                "ORDER BY i.name";
+
+        try (Connection conn = DataPB.getConnection()) {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+
+                list.add(new Instructor(
+                        rs.getInt("instructID"),
+                        rs.getString("name"),
+                        rs.getInt("departmentID")
+                ));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         return list;
     }
 
@@ -690,282 +883,5 @@ public class DataAccess {
             e.printStackTrace();
             return false;
         }
-    }
-
-    public List<SystemUser> getAllAccounts() {
-        List<SystemUser> users = new ArrayList<>();
-        String sql = "SELECT * FROM SYSTEM_USER";
-
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                users.add(new SystemUser(
-                        rs.getInt("userID"),
-                        rs.getString("name"),
-                        rs.getString("username"),
-                        rs.getString("email"),
-                        rs.getString("password"),
-                        rs.getString("role"),
-                        rs.getInt("createdBy")
-                ));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return users;
-    }
-
-    public List<Instructor> getAllInstructors() {
-
-        List<Instructor> list = new ArrayList<>();
-
-        String sql = "SELECT * FROM instructor";
-
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-
-                list.add(new Instructor(
-                        rs.getInt("instructID"),
-                        rs.getString("name"),
-                        rs.getInt("departmentID")
-                ));
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<LeaveRequest> getAllLeaveRequests() {
-        List<LeaveRequest> list = new ArrayList<>();
-        String sql = "SELECT * FROM leave_request ORDER BY startDate DESC";
-
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                list.add(new LeaveRequest(
-                        rs.getInt("leaveReqNo"),
-                        rs.getInt("instructID"),
-                        rs.getString("leaveType"),
-                        rs.getDate("startDate"),
-                        rs.getDate("endDate"),
-                        rs.getString("status"),
-                        rs.getInt("approvedBy")
-                ));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<LeaveRequest> getLeaveRequestsByStatus(String status) {
-        List<LeaveRequest> list = new ArrayList<>();
-        String sql = "SELECT * FROM leave_request WHERE status = ? ORDER BY startDate DESC";
-
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setString(1, status);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                list.add(new LeaveRequest(
-                        rs.getInt("leaveReqNo"),
-                        rs.getInt("instructID"),
-                        rs.getString("leaveType"),
-                        rs.getDate("startDate"),
-                        rs.getDate("endDate"),
-                        rs.getString("status"),
-                        rs.getInt("approvedBy")
-                ));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<LeaveRequest> getLeaveRequestsByInstructor(int instructorID) {
-        List<LeaveRequest> list = new ArrayList<>();
-        String sql = "SELECT * FROM leave_request WHERE instructID = ? ORDER BY startDate DESC";
-
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, instructorID);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                list.add(new LeaveRequest(
-                        rs.getInt("leaveReqNo"),
-                        rs.getInt("instructID"),
-                        rs.getString("leaveType"),
-                        rs.getDate("startDate"),
-                        rs.getDate("endDate"),
-                        rs.getString("status"),
-                        rs.getInt("approvedBy")
-                ));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<Attendance> getAttendanceByInstructor(int instructorID) {
-        List<Attendance> list = new ArrayList<>();
-        String sql = "SELECT * FROM attendance WHERE instructID = ?";
-
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, instructorID);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                list.add(new Attendance(
-                        rs.getInt("classCode"),
-                        rs.getInt("instructID"),
-                        rs.getDate("date"),
-                        rs.getString("instructorStatus"),
-                        rs.getInt("checkerID"),
-                        rs.getInt("leaveReqNo"),
-                        rs.getBoolean("isSubstitute")
-                ));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<ClassSchedule> getClassSchedules() {
-        List<ClassSchedule> list = new ArrayList<>();
-        String sql = "SELECT * FROM class_schedule";
-
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery(sql);
-
-            while (rs.next()) {
-                list.add(new ClassSchedule(
-                        rs.getInt("classCode"),
-                        rs.getString("courseNo"),
-                        rs.getTime("startTime"),
-                        rs.getTime("endTime"),
-                        rs.getString("days"),
-                        rs.getInt("roomID"),
-                        rs.getInt("instructID")
-                ));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<ClassSchedule> getClassSchedulesByInstructor(int instructorID) {
-        List<ClassSchedule> list = new ArrayList<>();
-        String sql = "SELECT * FROM class_schedule WHERE instructID = ?";
-
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, instructorID);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                list.add(new ClassSchedule(
-                        rs.getInt("classCode"),
-                        rs.getString("courseNo"),
-                        rs.getTime("startTime"),
-                        rs.getTime("endTime"),
-                        rs.getString("days"),
-                        rs.getInt("roomID"),
-                        rs.getInt("instructID")
-                ));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public int getPresentCount(int instructorID) {
-
-        String sql = "SELECT COUNT(*) AS total FROM attendance " +
-                "WHERE instructID = ? AND instructorStatus = 'Present'";
-
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, instructorID);
-
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                return rs.getInt("total");
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return 0;
-    }
-
-    public int getAbsenceCount(int instructorID) {
-
-        String sql = "SELECT COUNT(*) AS total FROM attendance " +
-                "WHERE instructID = ? AND instructorStatus = 'Absent'";
-
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, instructorID);
-
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                return rs.getInt("total");
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return 0;
-    }
-
-    public List<Instructor> getInstructorsWithLeaveRequests() {
-
-        List<Instructor> list = new ArrayList<>();
-
-        String sql = "SELECT DISTINCT i.instructID, i.name, i.departmentID " +
-                        "FROM instructor i " +
-                        "JOIN leave_request lr ON i.instructID = lr.instructID " +
-                        "ORDER BY i.name";
-
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-
-                list.add(new Instructor(
-                        rs.getInt("instructID"),
-                        rs.getString("name"),
-                        rs.getInt("departmentID")
-                ));
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return list;
     }
 }
