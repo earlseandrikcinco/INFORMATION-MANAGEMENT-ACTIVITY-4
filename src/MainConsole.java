@@ -203,7 +203,7 @@ public class MainConsole {
         while (true) {
             try {
                 int choice = Integer.parseInt(input.nextLine());
-                if (choice < min || choice > max) return choice;
+                if (choice >= min || choice <= max) return choice;
                 System.out.println("Invalid choice. Please select between " + min + " and " + max);
             } catch (Exception e) {
                 System.out.println("Invalid input. Please enter a number.");

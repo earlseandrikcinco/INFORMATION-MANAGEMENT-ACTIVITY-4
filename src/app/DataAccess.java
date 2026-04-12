@@ -55,7 +55,7 @@ public class DataAccess {
     }
 
     public SystemUser getDeptHead(int deptID) {
-        String sql = "SELECT u.username FROM SYSTEMUSER u " +
+        String sql = "SELECT u.username FROM SYSTEM_USER u " +
                 "JOIN DEPTHEAD dh ON u.userID = dh.deptheadID " +
                 "WHERE dh.departmentID = ?";
 
@@ -75,7 +75,7 @@ public class DataAccess {
     }
 
     public SystemUser getSecretary(int deptID) {
-        String sql = "SELECT u.username FROM SYSTEMUSER u " +
+        String sql = "SELECT u.username FROM SYSTEM_USER u " +
                 "JOIN SECRETARY s ON u.userID = s.secretaryID " +
                 "WHERE s.departmentID = ?";
 
@@ -97,7 +97,7 @@ public class DataAccess {
     public List<SystemUser> getCheckers() {
         List<SystemUser> checkers = new ArrayList<>();
 
-        String sql = "SELECT username FROM SYSTEMUSER WHERE role = 'Checker' ORDER BY name";
+        String sql = "SELECT username FROM SYSTEM_USER WHERE role = 'Checker' ORDER BY name";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -547,7 +547,7 @@ public class DataAccess {
     // CREATE
 
     public boolean addSystemUser(SystemUser user, Object extra) {
-        String sqlUser = "INSERT INTO SYSTEMUSER (name, username, email, password, role, createdBy) VALUES (?, ?, ?, ?, ?, ?)";
+        String sqlUser = "INSERT INTO SYSTEM_USER (name, username, email, password, role, createdBy) VALUES (?, ?, ?, ?, ?, ?)";
         Connection conn = null;
 
         try {
@@ -694,7 +694,7 @@ public class DataAccess {
 
     public List<SystemUser> getAllAccounts() {
         List<SystemUser> users = new ArrayList<>();
-        String sql = "SELECT * FROM system_user";
+        String sql = "SELECT * FROM SYSTEM_USER";
 
         try (Connection conn = DataPB.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement(sql);
