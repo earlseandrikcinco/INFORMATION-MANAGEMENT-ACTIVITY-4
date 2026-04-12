@@ -748,12 +748,12 @@ public class DataAccess {
 
         try (Connection conn = DataPB.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery(sql);
+            ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
                 list.add(new LeaveRequest(
-                        rs.getInt("instructID"),
                         rs.getInt("leaveReqNo"),
+                        rs.getInt("instructID"),
                         rs.getString("leaveType"),
                         rs.getDate("startDate"),
                         rs.getDate("endDate"),
@@ -778,8 +778,8 @@ public class DataAccess {
 
             while (rs.next()) {
                 list.add(new LeaveRequest(
-                        rs.getInt("instructID"),
                         rs.getInt("leaveReqNo"),
+                        rs.getInt("instructID"),
                         rs.getString("leaveType"),
                         rs.getDate("startDate"),
                         rs.getDate("endDate"),
@@ -804,8 +804,8 @@ public class DataAccess {
 
             while (rs.next()) {
                 list.add(new LeaveRequest(
-                        rs.getInt("instructID"),
                         rs.getInt("leaveReqNo"),
+                        rs.getInt("instructID"),
                         rs.getString("leaveType"),
                         rs.getDate("startDate"),
                         rs.getDate("endDate"),

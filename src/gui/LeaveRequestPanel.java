@@ -56,7 +56,7 @@ public class LeaveRequestPanel extends BasePanel {
         filterBar.add(applyBtn);
 
         // ── Table ──────────────────────────────────────────────────────────────
-        String[] cols = {"Req ID", "Instructor ID", "Leave Type", "Start Date", "End Date", "Status"};
+        String[] cols = {"Request ID", "Instructor ID", "Leave Type", "Start Date", "End Date", "Status"};
         tableModel = new DefaultTableModel(cols, 0);
         JTable table = UIHelper.makeTable(tableModel);
         table.getColumnModel().getColumn(0).setPreferredWidth(55);
@@ -109,9 +109,12 @@ public class LeaveRequestPanel extends BasePanel {
         tableModel.setRowCount(0);
         for (LeaveRequest lr : list) {
             tableModel.addRow(new Object[]{
-                    lr.getLeaveReqID(), lr.getInstructID(),
-                    lr.getLeaveType(), lr.getStartDate(),
-                    lr.getEndDate(), lr.getStatus()
+                    lr.getLeaveReqID(),
+                    lr.getInstructID(),
+                    lr.getLeaveType(),
+                    lr.getStartDate(),
+                    lr.getEndDate(),
+                    lr.getStatus()
             });
         }
     }
