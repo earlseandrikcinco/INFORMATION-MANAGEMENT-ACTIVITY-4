@@ -8,6 +8,9 @@ import ref.LeaveRequest;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.List;
 
 public class LeaveRequestPanel extends BasePanel {
@@ -17,6 +20,8 @@ public class LeaveRequestPanel extends BasePanel {
     private JComboBox<String> filterCombo;
     private JComboBox<String> valueCombo;
     private List<Instructor> instructors;
+    private List<LeaveRequest> currentList = new ArrayList<>();
+    private JTable table;
 
     public LeaveRequestPanel(AppController controller, DataAccess db) {
         super(controller);
@@ -56,12 +61,22 @@ public class LeaveRequestPanel extends BasePanel {
         filterBar.add(applyBtn);
 
         // ── Table ──────────────────────────────────────────────────────────────
-        String[] cols = {"Request ID", "Instructor ID", "Leave Type", "Start Date", "End Date", "Status"};
+        String[] cols = {"Request ID", "Instructor", "Leave Type", "Start Date", "End Date", "Status"};
         tableModel = new DefaultTableModel(cols, 0);
-        JTable table = UIHelper.makeTable(tableModel);
-        table.getColumnModel().getColumn(0).setPreferredWidth(55);
+        table = UIHelper.makeTable(tableModel);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.getColumnModel().getColumn(0).setPreferredWidth(80);
+        table.getColumnModel().getColumn(1).setPreferredWidth(160);
         table.getColumnModel().getColumn(2).setPreferredWidth(130);
         table.getColumnModel().getColumn(5).setPreferredWidth(110);
+
+        // Double-click row opens the reason popup
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) showReasonDialog();
+            }
+        });
 
         JPanel body = new JPanel(new BorderLayout());
         body.setBackground(UIHelper.BG);
@@ -70,7 +85,11 @@ public class LeaveRequestPanel extends BasePanel {
         body.add(UIHelper.scroll(table), BorderLayout.CENTER);
 
         add(body, BorderLayout.CENTER);
-        add(bottomBar(), BorderLayout.SOUTH);
+
+        // "View Reason" button in the bottom bar
+        JButton reasonBtn = UIHelper.button("View Reason");
+        reasonBtn.addActionListener(e -> showReasonDialog());
+        add(bottomBar(reasonBtn), BorderLayout.SOUTH);
 
         loadRequests(db.getAllLeaveRequests());
     }
@@ -106,16 +125,113 @@ public class LeaveRequestPanel extends BasePanel {
     }
 
     private void loadRequests(List<LeaveRequest> list) {
+        currentList = list;
         tableModel.setRowCount(0);
         for (LeaveRequest lr : list) {
             tableModel.addRow(new Object[]{
                     lr.getLeaveReqID(),
-                    lr.getInstructID(),
+                    lr.getInstructorName() != null ? lr.getInstructorName() : lr.getInstructID(),
                     lr.getLeaveType(),
                     lr.getStartDate(),
                     lr.getEndDate(),
                     lr.getStatus()
             });
         }
+    }
+
+    // ── Reason popup ───────────────────────────────────────────────────────────
+
+    private void showReasonDialog() {
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Please select a leave request first.",
+                    "No Selection", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        LeaveRequest lr = currentList.get(row);
+        String reason = lr.getLeaveReason();
+        boolean hasReason = reason != null && !reason.isBlank();
+
+        // ── Dialog shell ───────────────────────────────────────────────────────
+        JDialog dialog = new JDialog(
+                SwingUtilities.getWindowAncestor(this),
+                "Leave Reason  —  Request #" + lr.getLeaveReqID(),
+                java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setSize(480, 340);
+        dialog.setResizable(false);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+
+        // ── Accent header ──────────────────────────────────────────────────────
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(UIHelper.ACCENT);
+        header.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
+        JLabel headerTitle = new JLabel("Leave Reason");
+        headerTitle.setFont(UIHelper.FONT_TITLE);
+        headerTitle.setForeground(Color.WHITE);
+        header.add(headerTitle, BorderLayout.WEST);
+
+        // ── Meta grid (one field per row) ─────────────────────────────────────
+        JPanel meta = new JPanel(new GridLayout(4, 2, 6, 4));
+        meta.setBackground(UIHelper.BG);
+        meta.setBorder(BorderFactory.createEmptyBorder(10, 16, 8, 16));
+
+        meta.add(makeMetaLabel("Instructor:"));
+        meta.add(makeMetaValue(lr.getInstructorName() != null
+                ? lr.getInstructorName() : "ID " + lr.getInstructID()));
+        meta.add(makeMetaLabel("Type / Status:"));
+        meta.add(makeMetaValue(lr.getLeaveType() + "  ·  " + lr.getStatus()));
+        meta.add(makeMetaLabel("Start Date:"));
+        meta.add(makeMetaValue(lr.getStartDate().toString()));
+        meta.add(makeMetaLabel("End Date:"));
+        meta.add(makeMetaValue(lr.getEndDate().toString()));
+
+        // ── Reason text area ──────────────────────────────────────────────────
+        JTextArea textArea = new JTextArea(hasReason ? reason : "(No reason provided)");
+        textArea.setFont(hasReason ? UIHelper.FONT_SUB
+                : UIHelper.FONT_SUB.deriveFont(Font.ITALIC));
+        textArea.setForeground(hasReason ? UIHelper.TEXT_DARK : UIHelper.TEXT_MID);
+        textArea.setBackground(UIHelper.SURFACE);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
+        textArea.setEditable(false);
+        textArea.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
+
+        JScrollPane textScroll = new JScrollPane(textArea);
+        textScroll.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIHelper.BORDER));
+
+        // ── Close button ──────────────────────────────────────────────────────
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 8));
+        footer.setBackground(UIHelper.BG);
+        footer.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIHelper.BORDER));
+        JButton closeBtn = UIHelper.secondaryButton("Close");
+        closeBtn.addActionListener(e -> dialog.dispose());
+        footer.add(closeBtn);
+
+        // ── Assemble ──────────────────────────────────────────────────────────
+        JPanel centre = new JPanel(new BorderLayout());
+        centre.add(meta, BorderLayout.NORTH);
+        centre.add(textScroll, BorderLayout.CENTER);
+
+        dialog.add(header, BorderLayout.NORTH);
+        dialog.add(centre, BorderLayout.CENTER);
+        dialog.add(footer, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+
+    private JLabel makeMetaLabel(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(UIHelper.FONT_LABEL);
+        l.setForeground(UIHelper.TEXT_MID);
+        return l;
+    }
+
+    private JLabel makeMetaValue(String text) {
+        JLabel l = new JLabel(text);
+        l.setFont(UIHelper.FONT_SUB);
+        l.setForeground(UIHelper.TEXT_DARK);
+        return l;
     }
 }

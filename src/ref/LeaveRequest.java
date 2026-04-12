@@ -11,6 +11,7 @@ public class LeaveRequest {
     private String status;
     private int approvedBy;
     private String instructorName;
+    private String leaveReason;
 
     public LeaveRequest(int leaveReqID, int instructID, String leaveType,
                         Date startDate, Date endDate, String status, int approvedBy) {
@@ -32,4 +33,6 @@ public class LeaveRequest {
     public int getApprovedBy() { return approvedBy; }
     public String getInstructorName() { return instructorName; }
     public void setInstructorName(String instructorName) { this.instructorName = instructorName; }
+    public String getLeaveReason() { return leaveReason; }
+    public void setLeaveReason(String leaveReason) { this.leaveReason = leaveReason; }
 }

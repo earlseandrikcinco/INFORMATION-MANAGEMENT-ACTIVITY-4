@@ -515,6 +515,7 @@ public class DataAccess {
                         rs.getInt("approvedBy")
                 );
                 lr.setInstructorName(rs.getString("instructorName"));
+                lr.setLeaveReason(rs.getString("leaveReason"));
                 list.add(lr);
             }
         } catch (SQLException e) {
@@ -546,6 +547,7 @@ public class DataAccess {
                             rs.getInt("approvedBy")
                     );
                     lr.setInstructorName(rs.getString("instructorName"));
+                    lr.setLeaveReason(rs.getString("leaveReason"));
                     list.add(lr);
                 }
             }
@@ -578,6 +580,7 @@ public class DataAccess {
                             rs.getInt("approvedBy")
                     );
                     lr.setInstructorName(rs.getString("instructorName"));
+                    lr.setLeaveReason(rs.getString("leaveReason"));
                     list.add(lr);
                 }
             }
