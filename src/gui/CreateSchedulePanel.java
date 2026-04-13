@@ -94,7 +94,7 @@ public class CreateSchedulePanel extends BasePanel {
 
         int deptID = getDeptID();
         List<Instructor> instructors =
-                deptID > 0 ? db.getInstructorsByDept(deptID) : db.getAllInstructors();
+                deptID > 0 ? db.getInstructorsByDept(deptID) : db.getInstructors();
 
         for (Instructor i : instructors) instructorCombo.addItem(i);
 

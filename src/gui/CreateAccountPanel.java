@@ -33,12 +33,13 @@ public class CreateAccountPanel extends BasePanel {
     private JTextField floorField;           // Checker
     private JComboBox<Department> deptCombo; // Secretary / DeptHead
     private JTextField approvalCodeField;    // Admin
-
     private List<Department> departments;
+    private final int adminID;
 
-    public CreateAccountPanel(AppController controller, DataAccess db) {
+    public CreateAccountPanel(AppController controller, DataAccess db, Admin admin) {
         super(controller);
         this.db = db;
+        this.adminID = admin.getUserID();
         buildUI();
     }
 
@@ -220,7 +221,7 @@ public class CreateAccountPanel extends BasePanel {
             default          -> null;
         };
 
-        return db.addSystemUser(user, extra);
+        return db.addSystemUser(user, extra, adminID);
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────

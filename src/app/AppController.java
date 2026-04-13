@@ -93,7 +93,7 @@ public class AppController {
     }
 
     public void showCreateAccount() {
-        frame.showPanel(new CreateAccountPanel(this, db));
+        frame.showPanel(new CreateAccountPanel(this, db, (Admin) currentUser));
     }
 
     // ATTENDANCE

@@ -11,7 +11,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class LeaveRequestPanel extends BasePanel {
 
@@ -216,10 +215,46 @@ public class LeaveRequestPanel extends BasePanel {
         JScrollPane textScroll = new JScrollPane(textArea);
         textScroll.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIHelper.BORDER));
 
-        // ── Close button ──────────────────────────────────────────────────────
+        // ── Footer Actions ──────────────────────────────────────────────────────────
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 8));
         footer.setBackground(UIHelper.BG);
         footer.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIHelper.BORDER));
+
+        if (currentUser instanceof DeptHead && lr.getStatus().equals("Pending")) {
+            // DEPT HEAD: Can Approve or Reject
+            JButton approveBtn = UIHelper.button("Approve");
+            JButton rejectBtn = UIHelper.secondaryButton("Reject");
+
+            approveBtn.addActionListener(e -> {
+                if (db.updateLeaveStatus(lr.getLeaveReqID(), "Approved", currentUser.getUserID())) {
+                    dialog.dispose();
+                    applyFilter(); // Refresh table
+                }
+            });
+
+            rejectBtn.addActionListener(e -> {
+                if (db.updateLeaveStatus(lr.getLeaveReqID(), "Rejected", currentUser.getUserID())) {
+                    dialog.dispose();
+                    applyFilter();
+                }
+            });
+
+            footer.add(rejectBtn);
+            footer.add(approveBtn);
+
+        } else if (currentUser instanceof Secretary && lr.getStatus().equals("Approved")) {
+            // SECRETARY: Can Sync to Attendance (Update absences filed in advance)
+            JButton syncBtn = UIHelper.button("Sync to Attendance");
+
+            syncBtn.addActionListener(e -> {
+                db.syncLeaveToAttendance(lr);
+                JOptionPane.showMessageDialog(dialog, "Absences updated in advance for this leave.");
+                dialog.dispose();
+            });
+
+            footer.add(syncBtn);
+        }
+
         JButton closeBtn = UIHelper.secondaryButton("Close");
         closeBtn.addActionListener(e -> dialog.dispose());
         footer.add(closeBtn);

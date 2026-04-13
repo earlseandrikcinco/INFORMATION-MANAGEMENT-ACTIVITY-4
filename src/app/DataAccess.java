@@ -631,7 +631,8 @@ public class DataAccess {
 
     public List<Attendance> getAttendanceByInstructor(int instructorID) {
         List<Attendance> list = new ArrayList<>();
-        String sql = "SELECT * FROM attendance WHERE instructID = ?";
+        String sql = "SELECT * FROM attendance WHERE instructID = ? " +
+                "ORDER BY date";
 
         try (Connection conn = DataPB.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -680,25 +681,27 @@ public class DataAccess {
         return list;
     }
 
-    public List<ClassSchedule> getClassSchedulesByInstructor(int instructorID) {
+    public List<ClassSchedule> getAllClassSchedulesByInstructor(int instructorID) {
         List<ClassSchedule> list = new ArrayList<>();
-        String sql = "SELECT * FROM class_schedule WHERE instructID = ?";
+        String sql = "SELECT * FROM CLASS_SCHEDULE WHERE instructID = ?";
 
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, instructorID);
-            ResultSet rs = stmt.executeQuery();
 
-            while (rs.next()) {
-                list.add(new ClassSchedule(
-                        rs.getInt("classCode"),
-                        rs.getString("courseNo"),
-                        rs.getTime("startTime"),
-                        rs.getTime("endTime"),
-                        rs.getString("days"),
-                        rs.getInt("roomID"),
-                        rs.getInt("instructID")
-                ));
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new ClassSchedule(
+                            rs.getInt("classCode"),
+                            rs.getString("courseNo"),
+                            rs.getTime("startTime"),
+                            rs.getTime("endTime"),
+                            rs.getString("days"),
+                            (Integer) rs.getObject("roomID"),
+                            (Integer) rs.getObject("instructID")
+                    ));
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -856,7 +859,7 @@ public class DataAccess {
 
     // CREATE
 
-    public boolean addSystemUser(SystemUser user, Object extra, SystemUser admin) {
+    public boolean addSystemUser(SystemUser user, Object extra, int adminID) {
         String sqlUser = "INSERT INTO SYSTEM_USER (name, username, email, password, role, createdBy) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DataPB.getConnection()) {
@@ -869,7 +872,7 @@ public class DataAccess {
                 stmtUser.setString(3, user.getEmail());
                 stmtUser.setString(4, user.getPassword());
                 stmtUser.setString(5, user.getRole());
-                stmtUser.setObject(6, admin.getUserID());
+                stmtUser.setObject(6, adminID);
 
                 if (stmtUser.executeUpdate() == 0) throw new SQLException("User insert failed.");
 
@@ -949,6 +952,20 @@ public class DataAccess {
 
     // UPDATE
 
+    public boolean updateLeaveStatus(int reqID, String status, int adminID) {
+        String sql = "UPDATE LEAVE_REQUEST SET status = ?, approvedBy = ? WHERE leaveReqNo = ?";
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, status);
+            stmt.setInt(2, adminID);
+            stmt.setInt(3, reqID);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public boolean assignInstructorToClass(int classCode, int instructID) {
         String sql = "UPDATE CLASSSCHEDULE SET instructID = ? WHERE classCode = ?";
 
@@ -999,8 +1016,59 @@ public class DataAccess {
             return false;
         }
     }
-    public List<Instructor> getAllInstructors() {
-        return getInstructors();
+
+    public void syncLeaveToAttendance(LeaveRequest leave) {
+        List<ClassSchedule> schedules = getAllClassSchedulesByInstructor(leave.getInstructID());
+
+        String sql = "INSERT INTO ATTENDANCE (classCode, instructID, date, instructorStatus, leaveReqNo) " +
+                "VALUES (?, ?, ?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE instructorStatus = VALUES(instructorStatus), leaveReqNo = VALUES(leaveReqNo)";
+
+        try (Connection conn = DataPB.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                java.util.Calendar cal = java.util.Calendar.getInstance();
+                cal.setTime(leave.getStartDate());
+
+                while (!cal.getTime().after(leave.getEndDate())) {
+                    java.sql.Date currentDate = new java.sql.Date(cal.getTimeInMillis());
+                    String currentDayLetter = getDayLetter(cal.get(java.util.Calendar.DAY_OF_WEEK));
+
+                    for (ClassSchedule s : schedules) {
+                        if (s.getDays().contains(currentDayLetter)) {
+                            stmt.setInt(1, s.getClassCode());
+                            stmt.setInt(2, leave.getInstructID());
+                            stmt.setDate(3, currentDate);
+                            stmt.setString(4, leave.getLeaveType());
+                            stmt.setInt(5, leave.getLeaveReqID());
+
+                            stmt.addBatch();
+                        }
+                    }
+                    cal.add(java.util.Calendar.DATE, 1);
+                }
+                stmt.executeBatch();
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String getDayLetter(int dayOfWeek) {
+        return switch (dayOfWeek) {
+            case java.util.Calendar.MONDAY -> "M";
+            case java.util.Calendar.TUESDAY -> "T";
+            case java.util.Calendar.WEDNESDAY -> "W";
+            case java.util.Calendar.THURSDAY -> "Th";
+            case java.util.Calendar.FRIDAY -> "F";
+            case java.util.Calendar.SATURDAY -> "S";
+            default -> "";
+        };
     }
 
     public List<ClassSchedule> findScheduleConflicts(
@@ -1013,56 +1081,70 @@ public class DataAccess {
     ) {
         List<ClassSchedule> conflicts = new ArrayList<>();
 
-        String sql =
-                "SELECT * FROM CLASS_SCHEDULE " +
-                        "WHERE (roomID = ? OR instructID = ?) " +
-                        "AND classCode <> ?";
+        String sql = "SELECT s.*, i.name AS instructorName " +
+                "FROM CLASS_SCHEDULE s " +
+                "LEFT JOIN INSTRUCTOR i ON s.instructID = i.instructID " +
+                "WHERE s.classCode <> ? " +
+                "AND ((s.roomID IS NOT NULL AND s.roomID = ?) " +
+                "     OR (s.instructID IS NOT NULL AND s.instructID = ?)) " +
+                "AND s.startTime < ? " +
+                "AND s.endTime > ?";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setObject(1, roomID);
-            stmt.setObject(2, instructorID);
-            stmt.setInt(3, classCode);
+            stmt.setInt(1, classCode);
+            stmt.setObject(2, roomID);
+            stmt.setObject(3, instructorID);
+            stmt.setTime(4, endTime);
+            stmt.setTime(5, startTime);
 
-            ResultSet rs = stmt.executeQuery();
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String existingDays = rs.getString("days");
 
-            while (rs.next()) {
-
-                String existingDays = rs.getString("days");
-                Time existingStart = rs.getTime("startTime");
-                Time existingEnd = rs.getTime("endTime");
-
-                if (daysOverlap(days, existingDays)
-                        && timeOverlap(startTime, endTime, existingStart, existingEnd)) {
-
-                    conflicts.add(new ClassSchedule(
-                            rs.getInt("classCode"),
-                            rs.getString("courseNo"),
-                            existingStart,
-                            existingEnd,
-                            existingDays,
-                            (Integer) rs.getObject("roomID"),
-                            (Integer) rs.getObject("instructID")
-                    ));
+                    if (daysOverlap(days, existingDays)) {
+                        ClassSchedule cs = new ClassSchedule(
+                                rs.getInt("classCode"),
+                                rs.getString("courseNo"),
+                                rs.getTime("startTime"),
+                                rs.getTime("endTime"),
+                                existingDays,
+                                (Integer) rs.getObject("roomID"),
+                                (Integer) rs.getObject("instructID")
+                        );
+                        cs.setInstructorName(rs.getString("instructorName"));
+                        conflicts.add(cs);
+                    }
                 }
             }
-
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
 
         return conflicts;
     }
-    private boolean timeOverlap(Time startA, Time endA, Time startB, Time endB) {
-        return startA.before(endB) && endA.after(startB);
-    }
-    private boolean daysOverlap(String d1, String d2) {
 
-        for (String day : new String[]{"M","T","W","Th","F","S"}) {
-            if (d1.contains(day) && d2.contains(day))
+    private boolean daysOverlap(String d1, String d2) {
+        if (d1 == null || d2 == null) return false;
+
+        String[] dayPatterns = {"M", "Th", "W", "F", "S", "T"};
+
+        for (String day : dayPatterns) {
+            if (hasDay(d1, day) && hasDay(d2, day)) {
                 return true;
+            }
         }
         return false;
+    }
+
+    private boolean hasDay(String schedule, String day) {
+        if (day.equals("Th")) return schedule.contains("Th");
+
+        if (day.equals("T")) {
+            return schedule.replace("Th", "").contains("T");
+        }
+
+        return schedule.contains(day);
     }
 }
