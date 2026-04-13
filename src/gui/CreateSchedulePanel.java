@@ -12,6 +12,7 @@ import java.sql.Time;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CreateSchedulePanel extends BasePanel {
@@ -50,22 +51,16 @@ public class CreateSchedulePanel extends BasePanel {
         card.setBorder(new EmptyBorder(24, 32, 24, 32));
         card.setMaximumSize(new Dimension(520, Integer.MAX_VALUE));
 
-        // ── CLASS CODE (MANUAL) ─────────────────────────────
         classCodeField = new JTextField();
-        classCodeField.setFont(UIHelper.FONT_SUB);
         card.add(formRow("Class Code", classCodeField));
         card.add(Box.createVerticalStrut(10));
 
-        // ── COURSE NO ────────────────────────────────────────
         courseNoField = new JTextField();
-        courseNoField.setFont(UIHelper.FONT_SUB);
         card.add(formRow("Course No.", courseNoField));
         card.add(Box.createVerticalStrut(10));
 
-        // ── TIME ─────────────────────────────────────────────
         startHourSpinner = hourSpinner();
         startMinSpinner = minuteSpinner();
-
         endHourSpinner = hourSpinner();
         endMinSpinner = minuteSpinner();
 
@@ -75,7 +70,6 @@ public class CreateSchedulePanel extends BasePanel {
         card.add(formRow("End Time", timeRow(endHourSpinner, endMinSpinner)));
         card.add(Box.createVerticalStrut(10));
 
-        // ── DAYS ─────────────────────────────────────────────
         daysPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         daysPanel.setOpaque(false);
 
@@ -89,18 +83,12 @@ public class CreateSchedulePanel extends BasePanel {
         card.add(formRow("Days", daysPanel));
         card.add(Box.createVerticalStrut(10));
 
-        // ── ROOM ─────────────────────────────────────────────
         roomCombo = new JComboBox<>();
         roomCombo.addItem(null);
-
-        for (Room r : db.getAllRooms()) {
-            roomCombo.addItem(r);
-        }
-
+        for (Room r : db.getAllRooms()) roomCombo.addItem(r);
         card.add(formRow("Room", roomCombo));
         card.add(Box.createVerticalStrut(10));
 
-        // ── INSTRUCTOR ───────────────────────────────────────
         instructorCombo = new JComboBox<>();
         instructorCombo.addItem(null);
 
@@ -108,18 +96,14 @@ public class CreateSchedulePanel extends BasePanel {
         List<Instructor> instructors =
                 deptID > 0 ? db.getInstructorsByDept(deptID) : db.getAllInstructors();
 
-        for (Instructor i : instructors) {
-            instructorCombo.addItem(i);
-        }
+        for (Instructor i : instructors) instructorCombo.addItem(i);
 
         card.add(formRow("Instructor", instructorCombo));
         card.add(Box.createVerticalStrut(10));
 
-        // ── STATUS ───────────────────────────────────────────
         JLabel statusLabel = new JLabel(" ");
         card.add(statusLabel);
 
-        // ── SUBMIT ───────────────────────────────────────────
         JButton submitBtn = UIHelper.button("Save Schedule");
         card.add(Box.createVerticalStrut(10));
         card.add(submitBtn);
@@ -133,7 +117,38 @@ public class CreateSchedulePanel extends BasePanel {
                 return;
             }
 
-            boolean ok = submit();
+            List<ClassSchedule> conflicts = new ArrayList<>();
+            boolean ok = submit(conflicts);
+
+            if (!ok && !conflicts.isEmpty()) {
+
+                StringBuilder msg = new StringBuilder("Schedule conflict detected:\n\n");
+
+                for (ClassSchedule c : conflicts) {
+                    msg.append("Class ")
+                            .append(c.getClassCode())
+                            .append(" | ")
+                            .append(c.getCourseNo())
+                            .append(" | ")
+                            .append(c.getDays())
+                            .append(" | ")
+                            .append(c.getStartTime())
+                            .append(" - ")
+                            .append(c.getEndTime())
+                            .append("\n");
+                }
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        msg.toString(),
+                        "Conflict Detected",
+                        JOptionPane.WARNING_MESSAGE
+                );
+
+                statusLabel.setForeground(Color.RED);
+                statusLabel.setText("Schedule conflict exists.");
+                return;
+            }
 
             if (ok) {
                 statusLabel.setForeground(new Color(0, 130, 0));
@@ -193,9 +208,6 @@ public class CreateSchedulePanel extends BasePanel {
         return null;
     }
 
-    // ─────────────────────────────────────────────
-    // CHECK DUPLICATE CLASS CODE
-    // ─────────────────────────────────────────────
     private boolean classCodeExists(int code) {
 
         String sql = "SELECT 1 FROM CLASS_SCHEDULE WHERE classCode = ?";
@@ -210,14 +222,14 @@ public class CreateSchedulePanel extends BasePanel {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return true; // fail-safe: block insert if DB check fails
+            return true;
         }
     }
 
     // ─────────────────────────────────────────────
-    // SUBMIT
+    // SUBMIT (UPDATED)
     // ─────────────────────────────────────────────
-    private boolean submit() {
+    private boolean submit(List<ClassSchedule> conflictsOut) {
 
         int classCode = Integer.parseInt(classCodeField.getText().trim());
 
@@ -246,7 +258,21 @@ public class CreateSchedulePanel extends BasePanel {
                 inst != null ? inst.getInstructorID() : null
         );
 
-        return db.insertClassSchedule(cs);
+        List<ClassSchedule> conflicts = db.findScheduleConflicts(
+                cs.getClassCode(),
+                cs.getRoomID(),
+                cs.getInstructID(),
+                cs.getDays(),
+                cs.getStartTime(),
+                cs.getEndTime()
+        );
+
+        if (!conflicts.isEmpty()) {
+            conflictsOut.addAll(conflicts);
+            return false;
+        }
+
+        return db.insertClassSchedule(cs, conflictsOut);
     }
 
     // ─────────────────────────────────────────────

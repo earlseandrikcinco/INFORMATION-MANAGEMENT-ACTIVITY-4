@@ -811,18 +811,22 @@ public class DataAccess {
         return list;
     }
 
-    public boolean insertClassSchedule(ClassSchedule cs) {
+    public boolean insertClassSchedule(ClassSchedule cs, List<ClassSchedule> conflictHolder) {
 
-        // 🔥 VALIDATE FIRST (THIS IS THE FEATURE YOU WANT)
-        if (hasScheduleConflict(
+        List<ClassSchedule> conflicts = findScheduleConflicts(
                 cs.getClassCode(),
                 cs.getRoomID(),
                 cs.getInstructID(),
                 cs.getDays(),
                 cs.getStartTime(),
                 cs.getEndTime()
-        )) {
-            System.out.println("Schedule conflict detected! Insert blocked.");
+        );
+
+        if (!conflicts.isEmpty()) {
+            if (conflictHolder != null) {
+                conflictHolder.clear();
+                conflictHolder.addAll(conflicts);
+            }
             return false;
         }
 
@@ -1001,27 +1005,27 @@ public class DataAccess {
         return getInstructors();
     }
 
-    public boolean hasScheduleConflict(
+    public List<ClassSchedule> findScheduleConflicts(
             int classCode,
             Integer roomID,
             Integer instructorID,
             String days,
-            java.sql.Time startTime,
-            java.sql.Time endTime
+            Time startTime,
+            Time endTime
     ) {
+        List<ClassSchedule> conflicts = new ArrayList<>();
 
         String sql =
-                "SELECT classCode, roomID, instructID, days, startTime, endTime " +
-                        "FROM CLASS_SCHEDULE " +
-                        "WHERE classCode <> ? " +
-                        "AND (roomID = ? OR instructID = ?)";
+                "SELECT * FROM CLASS_SCHEDULE " +
+                        "WHERE (roomID = ? OR instructID = ?) " +
+                        "AND classCode <> ?";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, classCode);
-            stmt.setObject(2, roomID);
-            stmt.setObject(3, instructorID);
+            stmt.setObject(1, roomID);
+            stmt.setObject(2, instructorID);
+            stmt.setInt(3, classCode);
 
             ResultSet rs = stmt.executeQuery();
 
@@ -1031,21 +1035,26 @@ public class DataAccess {
                 Time existingStart = rs.getTime("startTime");
                 Time existingEnd = rs.getTime("endTime");
 
+                if (daysOverlap(days, existingDays)
+                        && timeOverlap(startTime, endTime, existingStart, existingEnd)) {
 
-                if (!daysOverlap(days, existingDays))
-                    continue;
-
-
-                if (timeOverlap(startTime, endTime, existingStart, existingEnd))
-                    return true;
+                    conflicts.add(new ClassSchedule(
+                            rs.getInt("classCode"),
+                            rs.getString("courseNo"),
+                            existingStart,
+                            existingEnd,
+                            existingDays,
+                            (Integer) rs.getObject("roomID"),
+                            (Integer) rs.getObject("instructID")
+                    ));
+                }
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-            return true;
         }
 
-        return false;
+        return conflicts;
     }
     private boolean timeOverlap(Time startA, Time endA, Time startB, Time endB) {
         return startA.before(endB) && endA.after(startB);
