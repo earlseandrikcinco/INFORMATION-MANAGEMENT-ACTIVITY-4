@@ -27,4 +27,8 @@ public class Room {
     public void setFloor(int floor) {this.floor = floor;}
     public void setCapacity(int capacity) {this.capacity = capacity;}
     public void setRoomType(String roomType) {this.roomType = roomType;}
+    @Override
+    public String toString() {
+        return "Room " + roomID + " - " + building + " (F" + floor + ")";
+    }
 }

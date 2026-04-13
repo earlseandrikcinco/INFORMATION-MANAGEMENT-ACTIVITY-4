@@ -92,24 +92,8 @@ public class AppController {
         frame.showPanel(new AccountListPanel(this, db));
     }
 
-    public void showCreateUserForm() {
-        frame.showPanel(new CreateUserPanel(this, db));
-    }
-
-    public void createUser(SystemUser newUser, Object extra) {
-        if (!Objects.equals(currentUser.getRole(), "Admin")) {
-            frame.showError("Security Error: Only admins can create accounts.");
-            return;
-        }
-
-        boolean success = db.addSystemUser(newUser, extra, currentUser);
-
-        if (success) {
-            JOptionPane.showMessageDialog(frame, "User account created successfully!");
-            showAccountList();
-        } else {
-            frame.showError("Failed to create user. Ensure the inputs are correct.");
-        }
+    public void showCreateAccount() {
+        frame.showPanel(new CreateAccountPanel(this, db));
     }
 
     // ATTENDANCE
@@ -135,9 +119,17 @@ public class AppController {
         frame.showPanel(new LeaveRequestPanel(this, db, currentUser));
     }
 
+    public void showUpdateLeaveRequest() {
+        frame.showPanel(new UpdateLeaveRequestPanel(this, db, currentUser));
+    }
+
     // CLASS SCHEDULE
 
     public void showClassSchedules() {
         frame.showPanel(new ClassSchedulePanel(this, db, currentUser));
+    }
+
+    public void showCreateSchedule() {
+        frame.showPanel(new CreateSchedulePanel(this, db, currentUser));
     }
 }
