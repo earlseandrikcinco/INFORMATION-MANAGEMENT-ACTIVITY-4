@@ -92,6 +92,26 @@ public class AppController {
         frame.showPanel(new AccountListPanel(this, db));
     }
 
+    public void showCreateUserForm() {
+        frame.showPanel(new CreateUserPanel(this, db));
+    }
+
+    public void createUser(SystemUser newUser, Object extra) {
+        if (!Objects.equals(currentUser.getRole(), "Admin")) {
+            frame.showError("Security Error: Only admins can create accounts.");
+            return;
+        }
+
+        boolean success = db.addSystemUser(newUser, extra, currentUser);
+
+        if (success) {
+            JOptionPane.showMessageDialog(frame, "User account created successfully!");
+            showAccountList();
+        } else {
+            frame.showError("Failed to create user. Ensure the inputs are correct.");
+        }
+    }
+
     // ATTENDANCE
 
     public void showAttendanceInstructorList() {

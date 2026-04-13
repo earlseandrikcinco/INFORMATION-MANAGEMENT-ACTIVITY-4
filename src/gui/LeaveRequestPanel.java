@@ -40,7 +40,6 @@ public class LeaveRequestPanel extends BasePanel {
     private void buildUI() {
         add(UIHelper.topBar("Leave Requests", ""), BorderLayout.NORTH);
 
-        // ── Filter bar ─────────────────────────────────────────────────────────
         JPanel filterBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
         filterBar.setBackground(UIHelper.BG);
         filterBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UIHelper.BORDER));

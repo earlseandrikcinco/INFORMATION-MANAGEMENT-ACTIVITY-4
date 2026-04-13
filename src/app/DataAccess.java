@@ -813,51 +813,49 @@ public class DataAccess {
 
     // CREATE
 
-    public boolean addSystemUser(SystemUser user, Object extra) {
+    public boolean addSystemUser(SystemUser user, Object extra, SystemUser admin) {
         String sqlUser = "INSERT INTO SYSTEM_USER (name, username, email, password, role, createdBy) VALUES (?, ?, ?, ?, ?, ?)";
-        Connection conn = null;
 
-        try {
-            conn = DataPB.getConnection();
+        try (Connection conn = DataPB.getConnection()) {
             conn.setAutoCommit(false);
 
-            PreparedStatement stmtUser = conn.prepareStatement(sqlUser, Statement.RETURN_GENERATED_KEYS);
-            stmtUser.setString(1, user.getName());
-            stmtUser.setString(2, user.getUsername());
-            stmtUser.setString(3, user.getEmail());
-            stmtUser.setString(4, user.getPassword());
-            stmtUser.setString(5, user.getRole());
-            stmtUser.setObject(6, user.getCreatedBy());
+            int newID;
+            try (PreparedStatement stmtUser = conn.prepareStatement(sqlUser, Statement.RETURN_GENERATED_KEYS)) {
+                stmtUser.setString(1, user.getName());
+                stmtUser.setString(2, user.getUsername());
+                stmtUser.setString(3, user.getEmail());
+                stmtUser.setString(4, user.getPassword());
+                stmtUser.setString(5, user.getRole());
+                stmtUser.setObject(6, admin.getUserID());
 
-            int affectedRows = stmtUser.executeUpdate();
-            if (affectedRows == 0) throw new SQLException("Creating user failed.");
+                if (stmtUser.executeUpdate() == 0) throw new SQLException("User insert failed.");
 
-            ResultSet generatedKeys = stmtUser.getGeneratedKeys();
-            if (!generatedKeys.next()) throw new SQLException("No ID obtained.");
-            int newID = generatedKeys.getInt(1);
+                try (ResultSet generatedKeys = stmtUser.getGeneratedKeys()) {
+                    if (!generatedKeys.next()) throw new SQLException("No ID obtained.");
+                    newID = generatedKeys.getInt(1);
+                }
+            }
 
             String roleSql = switch (user.getRole()) {
-                case "Checker" -> "INSERT INTO CHECKER (checkerID, floor) VALUES (?, ?)";
+                case "Checker"   -> "INSERT INTO CHECKER (checkerID, floor) VALUES (?, ?)";
                 case "Secretary" -> "INSERT INTO SECRETARY (secretaryID, departmentID) VALUES (?, ?)";
-                case "DeptHead" -> "INSERT INTO DEPTHEAD (deptheadID, departmentID) VALUES (?, ?)";
-                case "Admin" -> "INSERT INTO ADMIN (adminID, approvalCode) VALUES (?, ?)";
-                default -> throw new SQLException("Invalid Role");
+                case "DeptHead"  -> "INSERT INTO DEPTHEAD (deptheadID, departmentID) VALUES (?, ?)";
+                case "Admin"     -> "INSERT INTO ADMIN (adminID, approvalCode) VALUES (?, ?)";
+                default          -> throw new SQLException("Invalid Role: " + user.getRole());
             };
 
-            PreparedStatement stmtRole = conn.prepareStatement(roleSql);
-            stmtRole.setInt(1, newID);
-            stmtRole.setObject(2, extra); // Pass floor(int), deptID(int), or code(String)
-            stmtRole.executeUpdate();
+            try (PreparedStatement stmtRole = conn.prepareStatement(roleSql)) {
+                stmtRole.setInt(1, newID);
+                stmtRole.setObject(2, extra);
+                stmtRole.executeUpdate();
+            }
 
-            conn.commit(); // Save everything
+            conn.commit();
             return true;
 
         } catch (SQLException e) {
-            try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
             e.printStackTrace();
             return false;
-        } finally {
-            if (conn != null) try { conn.close(); } catch (SQLException e) { e.printStackTrace(); }
         }
     }
 
