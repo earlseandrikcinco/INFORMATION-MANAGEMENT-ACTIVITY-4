@@ -811,6 +811,45 @@ public class DataAccess {
         return list;
     }
 
+    public boolean insertClassSchedule(ClassSchedule cs) {
+
+        // 🔥 VALIDATE FIRST (THIS IS THE FEATURE YOU WANT)
+        if (hasScheduleConflict(
+                cs.getClassCode(),
+                cs.getRoomID(),
+                cs.getInstructID(),
+                cs.getDays(),
+                cs.getStartTime(),
+                cs.getEndTime()
+        )) {
+            System.out.println("Schedule conflict detected! Insert blocked.");
+            return false;
+        }
+
+        String sql =
+                "INSERT INTO CLASS_SCHEDULE " +
+                        "(classCode, courseNo, startTime, endTime, days, roomID, instructID) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, cs.getClassCode());
+            stmt.setString(2, cs.getCourseNo());
+            stmt.setTime(3, cs.getStartTime());
+            stmt.setTime(4, cs.getEndTime());
+            stmt.setString(5, cs.getDays());
+            stmt.setObject(6, cs.getRoomID());
+            stmt.setObject(7, cs.getInstructID());
+
+            return stmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     // CREATE
 
     public boolean addSystemUser(SystemUser user, Object extra) {
@@ -957,5 +996,66 @@ public class DataAccess {
             e.printStackTrace();
             return false;
         }
+    }
+    public List<Instructor> getAllInstructors() {
+        return getInstructors();
+    }
+
+    public boolean hasScheduleConflict(
+            int classCode,
+            Integer roomID,
+            Integer instructorID,
+            String days,
+            java.sql.Time startTime,
+            java.sql.Time endTime
+    ) {
+
+        String sql =
+                "SELECT classCode, roomID, instructID, days, startTime, endTime " +
+                        "FROM CLASS_SCHEDULE " +
+                        "WHERE classCode <> ? " +
+                        "AND (roomID = ? OR instructID = ?)";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, classCode);
+            stmt.setObject(2, roomID);
+            stmt.setObject(3, instructorID);
+
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+
+                String existingDays = rs.getString("days");
+                Time existingStart = rs.getTime("startTime");
+                Time existingEnd = rs.getTime("endTime");
+
+
+                if (!daysOverlap(days, existingDays))
+                    continue;
+
+
+                if (timeOverlap(startTime, endTime, existingStart, existingEnd))
+                    return true;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return true;
+        }
+
+        return false;
+    }
+    private boolean timeOverlap(Time startA, Time endA, Time startB, Time endB) {
+        return startA.before(endB) && endA.after(startB);
+    }
+    private boolean daysOverlap(String d1, String d2) {
+
+        for (String day : new String[]{"M","T","W","Th","F","S"}) {
+            if (d1.contains(day) && d2.contains(day))
+                return true;
+        }
+        return false;
     }
 }

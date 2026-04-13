@@ -37,6 +37,8 @@ public class ClassSchedulePanel extends BasePanel {
             schedules = db.getAllClassSchedulesByDept(deptID);
 
 
+
+
         String[] cols = {"Class Code", "Course No.", "Days", "Start", "End", "Instructor", "Room"};
         DefaultTableModel model = new DefaultTableModel(cols, 0);
         for (ClassSchedule s : schedules) {

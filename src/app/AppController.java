@@ -92,6 +92,10 @@ public class AppController {
         frame.showPanel(new AccountListPanel(this, db));
     }
 
+    public void showCreateAccount() {
+        frame.showPanel(new CreateAccountPanel(this, db));
+    }
+
     // ATTENDANCE
 
     public void showAttendanceInstructorList() {
@@ -115,9 +119,17 @@ public class AppController {
         frame.showPanel(new LeaveRequestPanel(this, db, currentUser));
     }
 
+    public void showUpdateLeaveRequest() {
+        frame.showPanel(new UpdateLeaveRequestPanel(this, db, currentUser));
+    }
+
     // CLASS SCHEDULE
 
     public void showClassSchedules() {
         frame.showPanel(new ClassSchedulePanel(this, db, currentUser));
+    }
+
+    public void showCreateSchedule() {
+        frame.showPanel(new CreateSchedulePanel(this, db, currentUser));
     }
 }
