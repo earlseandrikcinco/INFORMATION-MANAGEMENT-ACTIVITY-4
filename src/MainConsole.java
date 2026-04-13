@@ -100,7 +100,7 @@ public class MainConsole {
 
                     switch (category) {
                         case 1 -> {
-                            List<String> instructorList = access.getInstructorList();
+                            List<String> instructorList = access.getInstructorNameList();
                             for (int i = 0; i < instructorList.size(); i++) {
                                 System.out.println((i + 1) + ". " + instructorList.get(i));
                             }

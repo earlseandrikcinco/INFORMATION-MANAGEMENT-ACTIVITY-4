@@ -207,6 +207,41 @@ public class DataAccess {
         return list;
     }
 
+    public List<ClassSchedule> getAllClassSchedulesByDept(int deptID) {
+        List<ClassSchedule> list = new ArrayList<>();
+
+        String sql = "SELECT s.*, i.name AS instructorName " +
+                "FROM CLASS_SCHEDULE s " +
+                "JOIN INSTRUCTOR i ON s.instructID = i.instructID " +
+                "WHERE i.departmentID = ? " +
+                "ORDER BY s.startTime";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, deptID);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    ClassSchedule cs = new ClassSchedule(
+                            rs.getInt("classCode"),
+                            rs.getString("courseNo"),
+                            rs.getTime("startTime"),
+                            rs.getTime("endTime"),
+                            rs.getString("days"),
+                            (Integer) rs.getObject("roomID"),
+                            (Integer) rs.getObject("instructID")
+                    );
+                    cs.setInstructorName(rs.getString("instructorName"));
+                    list.add(cs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public List<ClassSchedule> getSchedulesByDay(String dayCode) {
         List<ClassSchedule> list = new ArrayList<>();
 
@@ -348,7 +383,7 @@ public class DataAccess {
         return list;
     }
 
-    public List<String> getInstructorList() {
+    public List<String> getInstructorNameList() {
         List<String> instructors = new ArrayList<>();
         String sql = "SELECT name FROM INSTRUCTOR ORDER BY name";
 
@@ -464,31 +499,6 @@ public class DataAccess {
             e.printStackTrace();
         }
         return users;
-    }
-
-    public List<Instructor> getInstructorsByDept(int deptID) {
-        List<Instructor> list = new ArrayList<>();
-
-        String sql = "SELECT * FROM INSTRUCTOR WHERE departmentID = ? ORDER BY name ASC";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, deptID);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    list.add(new Instructor(
-                            rs.getInt("instructID"),
-                            rs.getString("name"),
-                            rs.getInt("departmentID")
-                    ));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
     }
 
     public List<LeaveRequest> getLeaveRequestsByInstructor(int instructorID) {
@@ -740,28 +750,60 @@ public class DataAccess {
         return 0;
     }
 
-    public List<Instructor> getInstructorsWithLeaveRequests() {
-
+    public List<Instructor> getInstructors() {
         List<Instructor> list = new ArrayList<>();
 
-        String sql = "SELECT DISTINCT i.instructID, i.name, i.departmentID " +
+        String sql = "SELECT DISTINCT i.instructID, i.name, i.departmentID, d.departmentName " +
                 "FROM instructor i " +
-                "JOIN leave_request lr ON i.instructID = lr.instructID " +
+                "JOIN department d ON d.departmentID = i.departmentID " +
                 "ORDER BY i.name";
 
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery();
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            while (rs.next()) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Instructor instructor = new Instructor(
+                            rs.getInt("instructID"),
+                            rs.getString("name"),
+                            rs.getInt("departmentID"));
 
-                list.add(new Instructor(
-                        rs.getInt("instructID"),
-                        rs.getString("name"),
-                        rs.getInt("departmentID")
-                ));
+                    instructor.setDepartmentName(rs.getString("departmentName"));
+                    list.add(instructor);
+                }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
+        return list;
+    }
+
+    public List<Instructor> getInstructorsByDept(int deptID) {
+        List<Instructor> list = new ArrayList<>();
+
+        String sql = "SELECT DISTINCT i.instructID, i.name, i.departmentID, d.departmentName " +
+                "FROM instructor i " +
+                "JOIN department d ON d.departmentID = i.departmentID " +
+                "WHERE i.departmentID = ? " +
+                "ORDER BY i.name";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, deptID);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Instructor instructor = new Instructor(
+                            rs.getInt("instructID"),
+                            rs.getString("name"),
+                            rs.getInt("departmentID"));
+
+                    instructor.setDepartmentName(rs.getString("departmentName"));
+                    list.add(instructor);
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -3,6 +3,8 @@ package gui;
 import app.AppController;
 import app.DataAccess;
 import ref.ClassSchedule;
+import ref.DeptHead;
+import ref.SystemUser;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -12,17 +14,28 @@ import java.util.List;
 public class ClassSchedulePanel extends BasePanel {
 
     private final DataAccess db;
+    private final int deptID;
 
-    public ClassSchedulePanel(AppController controller, DataAccess db) {
+    public ClassSchedulePanel(AppController controller, DataAccess db, SystemUser user) {
         super(controller);
         this.db = db;
+        if (user instanceof DeptHead deptHead) {
+            deptID = deptHead.getDepartmentID();
+        } else {
+            deptID = -1;
+        }
         buildUI();
     }
 
     private void buildUI() {
         add(UIHelper.topBar("Class Schedules", ""), BorderLayout.NORTH);
+        List<ClassSchedule> schedules;
 
-        List<ClassSchedule> schedules = db.getAllClassSchedules();
+        if (deptID == -1)
+            schedules = db.getAllClassSchedules();
+        else
+            schedules = db.getAllClassSchedulesByDept(deptID);
+
 
         String[] cols = {"Class Code", "Course No.", "Days", "Start", "End", "Instructor", "Room"};
         DefaultTableModel model = new DefaultTableModel(cols, 0);

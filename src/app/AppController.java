@@ -95,7 +95,7 @@ public class AppController {
     // ATTENDANCE
 
     public void showAttendanceInstructorList() {
-        frame.showPanel(new AttendanceInstructorListPanel(this, db));
+        frame.showPanel(new AttendanceInstructorListPanel(this, db, currentUser));
     }
 
     public void showAttendanceDetail(Instructor instructor) {
@@ -118,6 +118,6 @@ public class AppController {
     // CLASS SCHEDULE
 
     public void showClassSchedules() {
-        frame.showPanel(new ClassSchedulePanel(this, db));
+        frame.showPanel(new ClassSchedulePanel(this, db, currentUser));
     }
 }

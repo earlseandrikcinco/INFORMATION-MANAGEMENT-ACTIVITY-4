@@ -25,7 +25,7 @@ public class AttendanceDetailPanel extends BasePanel {
 
     private void buildUI() {
         add(UIHelper.topBar("Attendance Detail",
-                instructor.getName() + "  ·  " + instructor.getDepartment()), BorderLayout.NORTH);
+                instructor.getName() + "  ·  " + instructor.getDepartmentID()), BorderLayout.NORTH);
 
         JPanel body = new JPanel(new BorderLayout(0, 10));
         body.setBackground(UIHelper.BG);

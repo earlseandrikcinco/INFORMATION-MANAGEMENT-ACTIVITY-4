@@ -29,10 +29,10 @@ public class LeaveRequestPanel extends BasePanel {
         super(controller);
         this.db = db;
         this.currentUser = user;
-        if (currentUser instanceof Secretary) {
-            deptID = ((Secretary) currentUser).getDepartmentID();
-        } else {
-            deptID = ((DeptHead) currentUser).getDepartmentID();
+        if (currentUser instanceof Secretary secretary) {
+            deptID = secretary.getDepartmentID();
+        } else if (currentUser instanceof DeptHead deptHead) {
+            deptID = deptHead.getDepartmentID();
         }
         buildUI();
     }

@@ -4,6 +4,7 @@ public class Instructor {
     private int instructorID;
     private String name;
     private int departmentID;
+    private String departmentName;
 
     public Instructor(int instructorID, String name, int departmentID) {
         this.instructorID = instructorID;
@@ -17,9 +18,8 @@ public class Instructor {
     public String getName(){
         return name;
     }
-    public int getDepartment(){
-        return departmentID;
-    }
+    public int getDepartmentID(){return departmentID;}
+    public String getDepartmentName() {return departmentName;}
 
     public void setInstructorID(int instructorID){
         this.instructorID = instructorID;
@@ -27,7 +27,8 @@ public class Instructor {
     public void setName(String name){
         this.name = name;
     }
-    public void setDepartment(int departmentID){
+    public void setDepartmentID(int departmentID){
         this.departmentID = departmentID;
     }
+    public void setDepartmentName(String departmentName) {this.departmentName = departmentName;}
 }

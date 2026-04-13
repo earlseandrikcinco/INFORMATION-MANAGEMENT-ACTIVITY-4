@@ -2,7 +2,10 @@ package gui;
 
 import app.AppController;
 import app.DataAccess;
+import ref.DeptHead;
 import ref.Instructor;
+import ref.Secretary;
+import ref.SystemUser;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -16,29 +19,64 @@ public class AttendanceInstructorListPanel extends BasePanel {
     private final DataAccess db;
     private JTable table;
     private List<Instructor> instructors;
+    private final SystemUser currentUser;
+    private final int deptID;
 
-    public AttendanceInstructorListPanel(AppController controller, DataAccess db) {
+    public AttendanceInstructorListPanel(AppController controller, DataAccess db, SystemUser user) {
         super(controller);
         this.db = db;
+        this.currentUser = user;
+        if (currentUser instanceof Secretary secretary) {
+            deptID = (secretary).getDepartmentID();
+        } else if (currentUser instanceof DeptHead deptHead) {
+            deptID = (deptHead).getDepartmentID();
+        } else {
+            deptID = -1;
+        }
         buildUI();
     }
 
     private void buildUI() {
         add(UIHelper.topBar("Attendance Records", "Select an instructor to view details"), BorderLayout.NORTH);
 
-        instructors = db.getInstructorsWithLeaveRequests();
+        if (deptID == -1) {
+            instructors = db.getInstructors();
+        } else {
+            instructors = db.getInstructorsByDept(deptID);
+        }
 
-        String[] cols = {"ID", "Name", "Department"};
+        String[] cols;
+        if (deptID == -1) {
+            cols = new String[]{"ID", "Name", "Department"};
+        } else {
+            cols = new String[]{"ID", "Name"};
+        }
+
         DefaultTableModel model = new DefaultTableModel(cols, 0);
+
         for (Instructor i : instructors) {
-            model.addRow(new Object[]{i.getInstructorID(), i.getName(), i.getDepartment()});
+            if (deptID == -1) {
+                model.addRow(new Object[]{
+                        i.getInstructorID(),
+                        i.getName(),
+                        i.getDepartmentName()
+                });
+            } else {
+                model.addRow(new Object[]{
+                        i.getInstructorID(),
+                        i.getName()
+                });
+            }
         }
 
         table = UIHelper.makeTable(model);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.getColumnModel().getColumn(0).setPreferredWidth(50);
-        table.getColumnModel().getColumn(1).setPreferredWidth(200);
-        table.getColumnModel().getColumn(2).setPreferredWidth(220);
+
+        table.getColumnModel().getColumn(0).setPreferredWidth(60);
+        table.getColumnModel().getColumn(1).setPreferredWidth(250);
+        if (deptID == -1) {
+            table.getColumnModel().getColumn(2).setPreferredWidth(180);
+        }
 
         // Double-click to drill in
         table.addMouseListener(new MouseAdapter() {
@@ -51,16 +89,18 @@ public class AttendanceInstructorListPanel extends BasePanel {
         body.setBackground(UIHelper.BG);
         body.setBorder(BorderFactory.createEmptyBorder(12, 18, 10, 18));
 
-        JLabel hint = UIHelper.sub(instructors.isEmpty()
-                ? "No instructors with leave requests found."
-                : "Instructors with leave requests: " + instructors.size() + "  —  double-click or select and press View Details");
+        String hintText = instructors.isEmpty()
+                ? "No instructors found."
+                : "Instructors found: " + instructors.size() + "  —  double-click to view details";
+        JLabel hint = UIHelper.sub(hintText);
+
         body.add(hint, BorderLayout.NORTH);
         body.add(UIHelper.scroll(table), BorderLayout.CENTER);
 
         add(body, BorderLayout.CENTER);
 
         JButton viewBtn = UIHelper.button("View Details →");
-        viewBtn.addActionListener(e -> viewSelected());
+        viewBtn.addActionListener(_ -> viewSelected());
         add(bottomBar(viewBtn), BorderLayout.SOUTH);
     }
 
