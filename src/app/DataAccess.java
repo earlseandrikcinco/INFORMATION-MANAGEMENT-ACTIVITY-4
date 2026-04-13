@@ -210,11 +210,12 @@ public class DataAccess {
     public List<ClassSchedule> getAllClassSchedulesByDept(int deptID) {
         List<ClassSchedule> list = new ArrayList<>();
 
-        String sql = "SELECT s.*, i.name AS instructorName " +
-                "FROM CLASS_SCHEDULE s " +
-                "JOIN INSTRUCTOR i ON s.instructID = i.instructID " +
-                "WHERE i.departmentID = ? " +
-                "ORDER BY s.startTime";
+        String sql =
+                "SELECT s.*, i.name AS instructorName " +
+                        "FROM CLASS_SCHEDULE s " +
+                        "LEFT JOIN INSTRUCTOR i ON s.instructID = i.instructID " +
+                        "WHERE (i.departmentID = ? OR s.instructID IS NULL) " +
+                        "ORDER BY s.startTime";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
