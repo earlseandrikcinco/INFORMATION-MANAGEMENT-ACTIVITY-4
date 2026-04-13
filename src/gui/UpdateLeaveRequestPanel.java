@@ -37,7 +37,6 @@ public class UpdateLeaveRequestPanel extends BasePanel {
     private void buildUI() {
         add(UIHelper.topBar("Update Leave Request", "Department Head — Pending requests"), BorderLayout.NORTH);
 
-        // ── Table ──────────────────────────────────────────────────────────────
         String[] cols = {"Req No", "Instructor", "Leave Type", "Start Date", "End Date", "Status"};
         tableModel = new DefaultTableModel(cols, 0);
         table = UIHelper.makeTable(tableModel);
@@ -47,7 +46,6 @@ public class UpdateLeaveRequestPanel extends BasePanel {
         table.getColumnModel().getColumn(2).setPreferredWidth(120);
         table.getColumnModel().getColumn(5).setPreferredWidth(90);
 
-        // Double-click opens the action dialog
         table.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) showActionDialog();
@@ -64,7 +62,6 @@ public class UpdateLeaveRequestPanel extends BasePanel {
 
         add(body, BorderLayout.CENTER);
 
-        // ── Bottom bar buttons ─────────────────────────────────────────────────
         JButton approveBtn = UIHelper.button("✓ Approve");
         approveBtn.setBackground(new Color(40, 140, 70));
         approveBtn.addActionListener(e -> resolveSelected("Approved"));
@@ -78,11 +75,9 @@ public class UpdateLeaveRequestPanel extends BasePanel {
         loadRequests();
     }
 
-    // ── Data loading ───────────────────────────────────────────────────────────
 
     private void loadRequests() {
         int deptID = getDeptID();
-        // Show only Pending requests for this department
         List<LeaveRequest> all = db.getLeaveRequestsByStatusAndDept("Pending", deptID);
         currentList = all;
         tableModel.setRowCount(0);
@@ -102,8 +97,6 @@ public class UpdateLeaveRequestPanel extends BasePanel {
         if (currentUser instanceof DeptHead) return ((DeptHead) currentUser).getDepartmentID();
         return -1;
     }
-
-    // ── Action handling ────────────────────────────────────────────────────────
 
     private void resolveSelected(String newStatus) {
         int row = table.getSelectedRow();
@@ -136,7 +129,7 @@ public class UpdateLeaveRequestPanel extends BasePanel {
             JOptionPane.showMessageDialog(this,
                     "Leave request " + newStatus.toLowerCase() + " successfully.",
                     "Done", JOptionPane.INFORMATION_MESSAGE);
-            loadRequests(); // Refresh — resolved row disappears from Pending list
+            loadRequests();
         } else {
             JOptionPane.showMessageDialog(this,
                     "Failed to update the leave request. Please try again.",
@@ -159,7 +152,6 @@ public class UpdateLeaveRequestPanel extends BasePanel {
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
-        // Header
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(UIHelper.ACCENT);
         header.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
@@ -168,7 +160,6 @@ public class UpdateLeaveRequestPanel extends BasePanel {
         title.setForeground(Color.WHITE);
         header.add(title, BorderLayout.WEST);
 
-        // Details grid
         JPanel grid = new JPanel(new GridLayout(5, 2, 6, 6));
         grid.setBackground(UIHelper.BG);
         grid.setBorder(BorderFactory.createEmptyBorder(14, 18, 10, 18));
@@ -183,7 +174,6 @@ public class UpdateLeaveRequestPanel extends BasePanel {
         grid.add(metaLabel("Current Status:"));
         grid.add(metaValue(lr.getStatus()));
 
-        // Reason
         String reason = lr.getLeaveReason();
         boolean hasReason = reason != null && !reason.isBlank();
         JTextArea reasonArea = new JTextArea(hasReason ? reason : "(No reason provided)");
@@ -201,7 +191,6 @@ public class UpdateLeaveRequestPanel extends BasePanel {
         centre.add(grid, BorderLayout.NORTH);
         centre.add(reasonScroll, BorderLayout.CENTER);
 
-        // Footer buttons
         JPanel foot = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
         foot.setBackground(UIHelper.BG);
         foot.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIHelper.BORDER));

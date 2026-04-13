@@ -15,7 +15,6 @@ public class Room {
         this.roomType = roomType;
     }
 
-    // Getters and Setters
     public int getRoomID() { return roomID; }
     public String getBuilding() { return building; }
     public int getFloor() { return floor; }

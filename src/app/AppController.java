@@ -17,7 +17,6 @@ public class AppController {
         db = new DataAccess();
     }
 
-    // START APPLICATION
 
     public void start() {
         frame = new MainFrame(this);
@@ -26,7 +25,6 @@ public class AppController {
         frame.showPanel(new LoginPanel(this));
     }
 
-    // USER SESSION
 
     public SystemUser getCurrentUser() {
         return currentUser;
@@ -52,8 +50,6 @@ public class AppController {
         currentUser = null;
         frame.showPanel(new LoginPanel(this));
     }
-
-    // DASHBOARD ROUTING
 
     public void showDashboard() {
 
@@ -86,8 +82,6 @@ public class AppController {
         }
     }
 
-    // ADMIN FEATURES
-
     public void showAccountList() {
         frame.showPanel(new AccountListPanel(this, db));
     }
@@ -96,7 +90,6 @@ public class AppController {
         frame.showPanel(new CreateAccountPanel(this, db, (Admin) currentUser));
     }
 
-    // ATTENDANCE
 
     public void showAttendanceInstructorList() {
         frame.showPanel(new AttendanceInstructorListPanel(this, db, currentUser));
@@ -106,7 +99,6 @@ public class AppController {
         frame.showPanel(new AttendanceDetailPanel(this, db, instructor));
     }
 
-    // LEAVE REQUESTS
 
     public void showLeaveRequests() {
         String role = currentUser.getRole();
@@ -123,7 +115,6 @@ public class AppController {
         frame.showPanel(new UpdateLeaveRequestPanel(this, db, currentUser));
     }
 
-    // CLASS SCHEDULE
 
     public void showClassSchedules() {
         frame.showPanel(new ClassSchedulePanel(this, db, currentUser));

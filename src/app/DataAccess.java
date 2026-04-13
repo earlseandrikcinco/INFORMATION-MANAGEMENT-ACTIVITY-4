@@ -7,9 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DataAccess {
-
-    // DISPLAY
-
     public SystemUser getUser(String key) {
         String sql = "SELECT u.*, c.floor, d.departmentID AS deptHeadID, " +
                 "s.departmentID AS secDeptID, a.approvalCode " +
@@ -255,10 +252,9 @@ public class DataAccess {
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            // T and Th handling
             String regexPattern;
             if (dayCode.equals("T")) {
-                regexPattern = "T([^h]|$)"; // T followed by anything except h, or end of string
+                regexPattern = "T([^h]|$)";
             } else if (dayCode.equals("Th")) {
                 regexPattern = "Th";
             } else {
@@ -439,7 +435,7 @@ public class DataAccess {
                             rs.getDate("date"),
                             rs.getString("instructorStatus"),
                             rs.getInt("checkerID"),
-                            null, // leaveReqNo is null for unauthorized
+                            null,
                             rs.getBoolean("isSubstitute")
                     ));
                 }
@@ -858,8 +854,6 @@ public class DataAccess {
         }
     }
 
-    // CREATE
-
     public boolean addSystemUser(SystemUser user, Object extra, int adminID) {
         String sqlUser = "INSERT INTO SYSTEM_USER (name, username, email, password, role, createdBy) VALUES (?, ?, ?, ?, ?, ?)";
 
@@ -941,7 +935,7 @@ public class DataAccess {
             stmt.setString(2, lr.getLeaveType());
             stmt.setDate(3, lr.getStartDate());
             stmt.setDate(4, lr.getEndDate());
-            stmt.setString(5, lr.getStatus()); // Usually 'Pending' or 'Allowed'
+            stmt.setString(5, lr.getStatus());
             stmt.setObject(6, lr.getApprovedBy());
 
             return stmt.executeUpdate() > 0;
@@ -951,7 +945,6 @@ public class DataAccess {
         }
     }
 
-    // UPDATE
 
     public boolean updateLeaveStatus(int instructID, int reqID, String status, int adminID) {
         String sql = "UPDATE LEAVE_REQUEST SET status = ?, approvedBy = ? WHERE instructID = ? AND leaveReqNo = ?";

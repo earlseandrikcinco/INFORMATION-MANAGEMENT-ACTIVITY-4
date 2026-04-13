@@ -1,5 +1,5 @@
 import app.DataAccess;
-import ref.*; // Import all classes in ref package
+import ref.*;
 
 import java.util.List;
 import java.util.Scanner;
@@ -9,13 +9,9 @@ public class MainConsole {
     static DataAccess access = new DataAccess();
 
     public static void main(String[] args) {
-        // Removed the static Connection initialization here.
-        // app.DataAccess now manages connections via app.DataPB.getConnection() internally.
-
         while (true) {
             SystemUser user = null;
 
-            // Log-in validation
             String userName;
             do {
                 System.out.print("Enter user name: ");
@@ -25,7 +21,6 @@ public class MainConsole {
                     System.out.println("Invalid input, user name field cannot be empty!\n");
                 }
 
-                // app.DataAccess.getUser now returns the specific subclass (Checker, Admin, etc.)
                 SystemUser temp = access.getUser(userName);
                 if (temp != null) {
                     user = temp;

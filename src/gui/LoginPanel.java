@@ -88,7 +88,7 @@ public class LoginPanel extends JPanel {
         }
         errorLabel.setText(" ");
         controller.login(user, pass);
-        // If login failed, currentUser is still null
+
         if (controller.getCurrentUser() == null) {
             errorLabel.setText("Invalid username or password.");
             passField.setText("");

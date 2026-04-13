@@ -19,7 +19,6 @@ public class CreateAccountPanel extends BasePanel {
 
     private final DataAccess db;
 
-    // Form fields
     private JTextField nameField;
     private JTextField usernameField;
     private JTextField emailField;
@@ -27,12 +26,11 @@ public class CreateAccountPanel extends BasePanel {
     private JPasswordField confirmPasswordField;
     private JComboBox<String> roleCombo;
 
-    // Role-specific extra field
     private JPanel extraPanel;
     private JLabel extraLabel;
-    private JTextField floorField;           // Checker
-    private JComboBox<Department> deptCombo; // Secretary / DeptHead
-    private JTextField approvalCodeField;    // Admin
+    private JTextField floorField;
+    private JComboBox<Department> deptCombo;
+    private JTextField approvalCodeField;
     private List<Department> departments;
     private final int adminID;
 
@@ -46,24 +44,17 @@ public class CreateAccountPanel extends BasePanel {
     private void buildUI() {
         add(UIHelper.topBar("Create Account", "Admin"), BorderLayout.NORTH);
 
-        // ── Form card ──────────────────────────────────────────────────────────
         JPanel card = new JPanel();
         card.setBackground(UIHelper.SURFACE);
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBorder(new EmptyBorder(24, 32, 24, 32));
         card.setMaximumSize(new Dimension(480, Integer.MAX_VALUE));
 
-        // Name
         nameField = new JTextField();
-        // Username
         usernameField = new JTextField();
-        // Email
         emailField = new JTextField();
-        // Password
         passwordField = new JPasswordField();
-        // Confirm password
         confirmPasswordField = new JPasswordField();
-        // Role
         roleCombo = new JComboBox<>(new String[]{"— Select Role —", "Checker", "Secretary", "DeptHead", "Admin"});
         roleCombo.setFont(UIHelper.FONT_SUB);
 
@@ -80,7 +71,6 @@ public class CreateAccountPanel extends BasePanel {
         card.add(formRow("Role", roleCombo));
         card.add(Box.createVerticalStrut(10));
 
-        // ── Dynamic extra field ────────────────────────────────────────────────
         extraPanel = new JPanel(new BorderLayout(8, 0));
         extraPanel.setOpaque(false);
         extraPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
@@ -104,23 +94,19 @@ public class CreateAccountPanel extends BasePanel {
         card.add(extraPanel);
         card.add(Box.createVerticalStrut(4));
 
-        // ── Status label ───────────────────────────────────────────────────────
         JLabel statusLabel = new JLabel(" ");
         statusLabel.setFont(new Font("SansSerif", Font.PLAIN, 11));
         statusLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.add(statusLabel);
 
-        // ── Submit button ──────────────────────────────────────────────────────
         JButton submitBtn = UIHelper.button("Create Account");
         submitBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
         submitBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         card.add(Box.createVerticalStrut(10));
         card.add(submitBtn);
 
-        // Role change → show relevant extra field
         roleCombo.addActionListener(e -> updateExtraField());
 
-        // Submit
         submitBtn.addActionListener(e -> {
             statusLabel.setForeground(Color.RED);
             String err = validateForm();
@@ -135,15 +121,12 @@ public class CreateAccountPanel extends BasePanel {
             }
         });
 
-        // ── Center the card ────────────────────────────────────────────────────
         JPanel center = new JPanel(new GridBagLayout());
         center.setBackground(UIHelper.BG);
         center.add(card);
         add(center, BorderLayout.CENTER);
         add(bottomBar(), BorderLayout.SOUTH);
     }
-
-    // ── Dynamic extra field logic ──────────────────────────────────────────────
 
     private void updateExtraField() {
         String role = (String) roleCombo.getSelectedItem();
@@ -176,8 +159,6 @@ public class CreateAccountPanel extends BasePanel {
         repaint();
     }
 
-    // ── Validation ─────────────────────────────────────────────────────────────
-
     private String validateForm() {
         if (nameField.getText().isBlank())      return "Full name is required.";
         if (usernameField.getText().isBlank())  return "Username is required.";
@@ -196,8 +177,6 @@ public class CreateAccountPanel extends BasePanel {
             return "Approval code is required.";
         return null;
     }
-
-    // ── Submit ─────────────────────────────────────────────────────────────────
 
     private boolean submit() {
         String role = (String) roleCombo.getSelectedItem();
@@ -224,8 +203,6 @@ public class CreateAccountPanel extends BasePanel {
         return db.addSystemUser(user, extra, adminID);
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
-
     private void clearForm() {
         nameField.setText("");
         usernameField.setText("");
@@ -238,7 +215,6 @@ public class CreateAccountPanel extends BasePanel {
         extraPanel.setVisible(false);
     }
 
-    /** Label + input in a horizontal row. */
     private JPanel formRow(String labelText, JComponent input) {
         JPanel row = new JPanel(new BorderLayout(8, 0));
         row.setOpaque(false);

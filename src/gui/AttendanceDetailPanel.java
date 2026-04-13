@@ -50,7 +50,7 @@ public class AttendanceDetailPanel extends BasePanel {
         for (LeaveRequest lr : leaves) {
             lModel.addRow(new Object[]{
                     lr.getLeaveReqID(),
-                    lr.getLeaveType(), // SL, OB, PL
+                    lr.getLeaveType(),
                     lr.getStartDate(),
                     lr.getEndDate(),
                     lr.getStatus()
@@ -87,7 +87,6 @@ public class AttendanceDetailPanel extends BasePanel {
         attSection.add(attTitle, BorderLayout.NORTH);
         attSection.add(UIHelper.scroll(attTable), BorderLayout.CENTER);
 
-        // ── Layout Assembly ─────────────────────────────────────────────────────
         JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, leaveSection, attSection);
         split.setDividerLocation(200);
         split.setResizeWeight(0.5);
@@ -98,7 +97,6 @@ public class AttendanceDetailPanel extends BasePanel {
         body.add(split, BorderLayout.CENTER);
         add(body, BorderLayout.CENTER);
 
-        // Footer Bar
         JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
         bar.setBackground(UIHelper.BG);
         bar.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIHelper.BORDER));

@@ -78,7 +78,6 @@ public class AttendanceInstructorListPanel extends BasePanel {
             table.getColumnModel().getColumn(2).setPreferredWidth(180);
         }
 
-        // Double-click to drill in
         table.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) viewSelected();

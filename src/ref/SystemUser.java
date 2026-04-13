@@ -7,7 +7,7 @@ public class SystemUser {
     private String email;
     private String password;
     private String role;
-    private Integer createdBy; // Uses Integer to allow null
+    private Integer createdBy;
 
     public SystemUser (int userID, String name, String username, String email, String password, String role, Integer createdBy) {
         this.userID = userID;

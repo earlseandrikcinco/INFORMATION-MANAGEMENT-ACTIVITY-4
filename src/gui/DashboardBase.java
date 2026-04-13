@@ -11,7 +11,6 @@ public abstract class DashboardBase extends BasePanel {
     }
 
     protected void buildDashboard(String roleName, String userName, String[][] actions) {
-        // ── Header ─────────────────────────────────────────────────────────────
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(UIHelper.ACCENT);
         header.setBorder(BorderFactory.createEmptyBorder(16, 22, 16, 22));
@@ -35,7 +34,6 @@ public abstract class DashboardBase extends BasePanel {
         header.add(right, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
 
-        // ── Menu ───────────────────────────────────────────────────────────────
         JPanel menu = new JPanel();
         menu.setBackground(UIHelper.BG);
         menu.setLayout(new BoxLayout(menu, BoxLayout.Y_AXIS));

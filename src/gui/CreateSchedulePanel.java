@@ -168,9 +168,6 @@ public class CreateSchedulePanel extends BasePanel {
         add(bottomBar(), BorderLayout.SOUTH);
     }
 
-    // ─────────────────────────────────────────────
-    // VALIDATION
-    // ─────────────────────────────────────────────
     private String validateForm() {
 
         if (classCodeField.getText().isBlank())
@@ -226,9 +223,6 @@ public class CreateSchedulePanel extends BasePanel {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // SUBMIT (UPDATED)
-    // ─────────────────────────────────────────────
     private boolean submit(List<ClassSchedule> conflictsOut) {
 
         int classCode = Integer.parseInt(classCodeField.getText().trim());
@@ -275,9 +269,6 @@ public class CreateSchedulePanel extends BasePanel {
         return db.insertClassSchedule(cs, conflictsOut);
     }
 
-    // ─────────────────────────────────────────────
-    // HELPERS
-    // ─────────────────────────────────────────────
     private void clearForm() {
         classCodeField.setText("");
         courseNoField.setText("");

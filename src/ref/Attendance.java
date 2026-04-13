@@ -7,7 +7,7 @@ public class Attendance {
     private Date date;
     private String instructorStatus;
     private int checkerID;
-    private Integer leaveReqID; // Nullable
+    private Integer leaveReqID;
     private boolean isSubstitute;
 
     public Attendance(int classCode, Integer instructID, Date date, String instructorStatus, int checkerID, Integer leaveReqID, boolean isSubstitute) {
@@ -19,7 +19,6 @@ public class Attendance {
         this.leaveReqID = leaveReqID;
         this.isSubstitute = isSubstitute;
     }
-    // Getters and Setters
 
     public int getClassCode() {
         return classCode;

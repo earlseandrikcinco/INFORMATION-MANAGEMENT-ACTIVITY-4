@@ -8,9 +8,9 @@ public class ClassSchedule {
     private Time startTime;
     private Time endTime;
     private String days;
-    private Integer roomID; // Nullable in schema
-    private Integer instructID; // Nullable in schema
-    private String instructorName; // Helper for UI
+    private Integer roomID;
+    private Integer instructID;
+    private String instructorName;
 
     public ClassSchedule(int classCode, String courseNo, Time startTime, Time endTime, String days, Integer roomID, Integer instructID) {
         this.classCode = classCode;
@@ -21,8 +21,6 @@ public class ClassSchedule {
         this.roomID = roomID;
         this.instructID = instructID;
     }
-
-    // Getters and Setters
 
     public int getClassCode() {
         return classCode;

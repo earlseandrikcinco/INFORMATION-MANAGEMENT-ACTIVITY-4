@@ -66,7 +66,6 @@ public class LeaveRequestPanel extends BasePanel {
         filterBar.add(valueCombo);
         filterBar.add(applyBtn);
 
-        // ── Table ──────────────────────────────────────────────────────────────
         String[] cols = {"Request ID", "Instructor", "Leave Type", "Start Date", "End Date", "Status"};
         tableModel = new DefaultTableModel(cols, 0);
         table = UIHelper.makeTable(tableModel);
@@ -76,7 +75,6 @@ public class LeaveRequestPanel extends BasePanel {
         table.getColumnModel().getColumn(2).setPreferredWidth(130);
         table.getColumnModel().getColumn(5).setPreferredWidth(110);
 
-        // Double-click row opens the reason popup
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -92,7 +90,6 @@ public class LeaveRequestPanel extends BasePanel {
 
         add(body, BorderLayout.CENTER);
 
-        // "View Reason" button in the bottom bar
         JButton reasonBtn = UIHelper.button("View Reason");
         reasonBtn.addActionListener(e -> showReasonDialog());
         add(bottomBar(reasonBtn), BorderLayout.SOUTH);
@@ -152,8 +149,6 @@ public class LeaveRequestPanel extends BasePanel {
         }
     }
 
-    // ── Reason popup ───────────────────────────────────────────────────────────
-
     private void showReasonDialog() {
         int row = table.getSelectedRow();
         if (row < 0) {
@@ -167,7 +162,6 @@ public class LeaveRequestPanel extends BasePanel {
         String reason = lr.getLeaveReason();
         boolean hasReason = reason != null && !reason.isBlank();
 
-        // ── Dialog shell ───────────────────────────────────────────────────────
         JDialog dialog = new JDialog(
                 SwingUtilities.getWindowAncestor(this),
                 "Leave Reason  —  Request #" + lr.getLeaveReqID(),
@@ -177,7 +171,6 @@ public class LeaveRequestPanel extends BasePanel {
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
-        // ── Accent header ──────────────────────────────────────────────────────
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(UIHelper.ACCENT);
         header.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
@@ -186,7 +179,6 @@ public class LeaveRequestPanel extends BasePanel {
         headerTitle.setForeground(Color.WHITE);
         header.add(headerTitle, BorderLayout.WEST);
 
-        // ── Meta grid (one field per row) ─────────────────────────────────────
         JPanel meta = new JPanel(new GridLayout(4, 2, 6, 4));
         meta.setBackground(UIHelper.BG);
         meta.setBorder(BorderFactory.createEmptyBorder(10, 16, 8, 16));
@@ -201,7 +193,6 @@ public class LeaveRequestPanel extends BasePanel {
         meta.add(makeMetaLabel("End Date:"));
         meta.add(makeMetaValue(lr.getEndDate().toString()));
 
-        // ── Reason text area ──────────────────────────────────────────────────
         JTextArea textArea = new JTextArea(hasReason ? reason : "(No reason provided)");
         textArea.setFont(hasReason ? UIHelper.FONT_SUB
                 : UIHelper.FONT_SUB.deriveFont(Font.ITALIC));
@@ -215,13 +206,11 @@ public class LeaveRequestPanel extends BasePanel {
         JScrollPane textScroll = new JScrollPane(textArea);
         textScroll.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIHelper.BORDER));
 
-        // ── Footer Actions ──────────────────────────────────────────────────────────
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 8));
         footer.setBackground(UIHelper.BG);
         footer.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIHelper.BORDER));
 
         if (currentUser instanceof DeptHead && lr.getStatus().equals("Pending")) {
-            // DEPT HEAD: Can Approve or Reject
             JButton approveBtn = UIHelper.button("Approve");
             JButton rejectBtn = UIHelper.secondaryButton("Reject");
 
@@ -251,7 +240,6 @@ public class LeaveRequestPanel extends BasePanel {
             footer.add(approveBtn);
 
         } else if (currentUser instanceof Secretary && lr.getStatus().equals("Approved")) {
-            // SECRETARY: Can Sync to Attendance (Update absences filed in advance)
             JButton syncBtn = UIHelper.button("Sync to Attendance");
 
             syncBtn.addActionListener(e -> {
@@ -267,7 +255,6 @@ public class LeaveRequestPanel extends BasePanel {
         closeBtn.addActionListener(e -> dialog.dispose());
         footer.add(closeBtn);
 
-        // ── Assemble ──────────────────────────────────────────────────────────
         JPanel centre = new JPanel(new BorderLayout());
         centre.add(meta, BorderLayout.NORTH);
         centre.add(textScroll, BorderLayout.CENTER);
