@@ -952,13 +952,17 @@ public class DataAccess {
 
     // UPDATE
 
-    public boolean updateLeaveStatus(int reqID, String status, int adminID) {
-        String sql = "UPDATE LEAVE_REQUEST SET status = ?, approvedBy = ? WHERE leaveReqNo = ?";
+    public boolean updateLeaveStatus(int instructID, int reqID, String status, int adminID) {
+        String sql = "UPDATE LEAVE_REQUEST SET status = ?, approvedBy = ? WHERE instructID = ? AND leaveReqNo = ?";
+
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, status);
             stmt.setInt(2, adminID);
-            stmt.setInt(3, reqID);
+            stmt.setInt(3, instructID);
+            stmt.setInt(4, reqID);
+
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -982,15 +986,16 @@ public class DataAccess {
         }
     }
 
-    public boolean resolveLeaveRequest(int leaveReqNo, String newStatus, int reviewerID) {
-        String sql = "UPDATE LEAVE_REQUEST SET status = ?, approvedBy = ? WHERE leaveReqNo = ?";
+    public boolean resolveLeaveRequest(int instructID, int leaveReqNo, String newStatus, int reviewerID) {
+        String sql = "UPDATE LEAVE_REQUEST SET status = ?, approvedBy = ? WHERE instructID = ? AND leaveReqNo = ?";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, newStatus);
             stmt.setInt(2, reviewerID);
-            stmt.setInt(3, leaveReqNo);
+            stmt.setInt(3, instructID);
+            stmt.setInt(4, leaveReqNo);
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {

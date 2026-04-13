@@ -226,14 +226,22 @@ public class LeaveRequestPanel extends BasePanel {
             JButton rejectBtn = UIHelper.secondaryButton("Reject");
 
             approveBtn.addActionListener(e -> {
-                if (db.updateLeaveStatus(lr.getLeaveReqID(), "Approved", currentUser.getUserID())) {
+                if (db.updateLeaveStatus(
+                        lr.getInstructID(),
+                        lr.getLeaveReqID(),
+                        "Approved",
+                        currentUser.getUserID())) {
                     dialog.dispose();
-                    applyFilter(); // Refresh table
+                    applyFilter();
                 }
             });
 
             rejectBtn.addActionListener(e -> {
-                if (db.updateLeaveStatus(lr.getLeaveReqID(), "Rejected", currentUser.getUserID())) {
+                if (db.updateLeaveStatus(
+                        lr.getInstructID(),
+                        lr.getLeaveReqID(),
+                        "Rejected",
+                        currentUser.getUserID())) {
                     dialog.dispose();
                     applyFilter();
                 }

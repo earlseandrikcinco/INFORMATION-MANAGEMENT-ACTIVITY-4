@@ -6,14 +6,15 @@ public class DataPB {
     public static Connection getConnection() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            return DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/attendancechecker?useSSL=false&serverTimezone=UTC",
+            Connection conn = DriverManager.getConnection(
+                    "jdbc:mysql://127.0.0.1:3306/attendancechecker_updated(1)",
                     "root",
-                    "");
+                    ""
+            );
+            System.out.println("CONNECTED SUCCESSFULLY");
+            return conn;
         } catch (Exception e) {
-            System.err.println("Database connection failed!");
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException("DB CONNECTION FAILED", e);
         }
     }
 }

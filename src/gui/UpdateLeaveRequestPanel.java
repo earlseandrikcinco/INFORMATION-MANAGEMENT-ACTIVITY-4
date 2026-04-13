@@ -124,7 +124,14 @@ public class UpdateLeaveRequestPanel extends BasePanel {
                 JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
-        boolean ok = db.resolveLeaveRequest(lr.getLeaveReqID(), newStatus, currentUser.getUserID());
+        boolean ok = db.resolveLeaveRequest(
+                lr.getInstructID(),
+                lr.getLeaveReqID(),
+                newStatus,
+                currentUser.getUserID()
+        );
+
+
         if (ok) {
             JOptionPane.showMessageDialog(this,
                     "Leave request " + newStatus.toLowerCase() + " successfully.",
