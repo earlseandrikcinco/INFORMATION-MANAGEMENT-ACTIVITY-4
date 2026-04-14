@@ -7,7 +7,7 @@ public class DataPB {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             Connection conn = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/attendancechecker?useSSL=false&serverTimezone=UTC",
+                    "jdbc:mysql://localhost:3306/attendancechecker_updated(1)",
                     "root",
                     ""
             );

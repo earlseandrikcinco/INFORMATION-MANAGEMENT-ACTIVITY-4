@@ -68,7 +68,7 @@ public class UpdateLeaveRequestPanel extends BasePanel {
 
         JButton rejectBtn = UIHelper.button("✗ Reject");
         rejectBtn.setBackground(new Color(190, 50, 50));
-        rejectBtn.addActionListener(e -> resolveSelected("Unauthorized"));
+        rejectBtn.addActionListener(e -> resolveSelected("Rejected"));
 
         add(bottomBar(approveBtn, rejectBtn), BorderLayout.SOUTH);
 
@@ -203,7 +203,7 @@ public class UpdateLeaveRequestPanel extends BasePanel {
         rejectBtn.setPreferredSize(new Dimension(110, 32));
         rejectBtn.addActionListener(e -> {
             dialog.dispose();
-            resolveSelected("Unauthorized");
+            resolveSelected("Rejected");
         });
 
         JButton approveBtn = UIHelper.button("✓ Approve");
