@@ -244,7 +244,7 @@ public class DataAccess {
         List<ClassSchedule> list = new ArrayList<>();
 
         String sql = "SELECT s.*, i.name AS instructorName " +
-                "FROM CLASSSCHEDULE s " +
+                "FROM CLASS_SCHEDULE s " +
                 "LEFT JOIN INSTRUCTOR i ON s.instructID = i.instructID " +
                 "WHERE s.days REGEXP ? " +
                 "ORDER BY s.startTime";
@@ -287,7 +287,7 @@ public class DataAccess {
     public List<ClassSchedule> getSchedulesByRoom(int roomID) {
         List<ClassSchedule> list = new ArrayList<>();
         String sql = "SELECT s.*, i.name AS instructorName " +
-                "FROM CLASSSCHEDULE s " +
+                "FROM CLASS_SCHEDULE s " +
                 "LEFT JOIN INSTRUCTOR i ON s.instructID = i.instructID " +
                 "WHERE s.roomID = ? " +
                 "ORDER BY FIELD(s.days, 'M', 'T', 'W', 'Th', 'F', 'S'), s.startTime";
@@ -320,7 +320,7 @@ public class DataAccess {
     public List<ClassSchedule> getSchedulesByInstructor(int instructID) {
         List<ClassSchedule> list = new ArrayList<>();
         String sql = "SELECT s.*, r.building, r.floor " +
-                "FROM CLASSSCHEDULE s " +
+                "FROM CLASS_SCHEDULE s " +
                 "LEFT JOIN ROOM r ON s.roomID = r.roomID " +
                 "WHERE s.instructID = ? " +
                 "ORDER BY FIELD(s.days, 'M', 'T', 'W', 'Th', 'F', 'S'), s.startTime";
@@ -352,7 +352,7 @@ public class DataAccess {
     public List<ClassSchedule> getSchedulesByTimeRange(String dayCode, Time start, Time end) {
         List<ClassSchedule> list = new ArrayList<>();
         String sql = "SELECT s.*, i.name AS instructorName " +
-                "FROM CLASSSCHEDULE s " +
+                "FROM CLASS_SCHEDULE s " +
                 "LEFT JOIN INSTRUCTOR i ON s.instructID = i.instructID " +
                 "WHERE s.days REGEXP ? AND s.startTime >= ? AND s.endTime <= ? " +
                 "ORDER BY s.startTime";
@@ -518,7 +518,7 @@ public class DataAccess {
                             rs.getDate("startDate"),
                             rs.getDate("endDate"),
                             rs.getString("status"),
-                            rs.getInt("approvedBy")
+                            (Integer) rs.getObject("approvedBy")
                     );
                     lr.setInstructorName(rs.getString("instructorName"));
                     lr.setLeaveReason(rs.getString("leaveReason"));
@@ -549,7 +549,7 @@ public class DataAccess {
                             rs.getInt("leaveReqNo"), rs.getInt("instructID"),
                             rs.getString("leaveType"), rs.getDate("startDate"),
                             rs.getDate("endDate"), rs.getString("status"),
-                            rs.getInt("approvedBy")
+                            (Integer) rs.getObject("approvedBy")
                     );
                     lr.setInstructorName(rs.getString("instructorName"));
                     lr.setLeaveReason(rs.getString("leaveReason"));
@@ -579,7 +579,7 @@ public class DataAccess {
                             rs.getInt("leaveReqNo"), rs.getInt("instructID"),
                             rs.getString("leaveType"), rs.getDate("startDate"),
                             rs.getDate("endDate"), rs.getString("status"),
-                            rs.getInt("approvedBy")
+                            (Integer) rs.getObject("approvedBy")
                     );
                     lr.setInstructorName(rs.getString("instructorName"));
                     lr.setLeaveReason(rs.getString("leaveReason"));
@@ -643,7 +643,7 @@ public class DataAccess {
                         rs.getDate("date"),
                         rs.getString("instructorStatus"),
                         rs.getInt("checkerID"),
-                        rs.getInt("leaveReqNo"),
+                        (Integer) rs.getObject("leaveReqNo"),
                         rs.getBoolean("isSubstitute")
                 ));
             }
@@ -659,7 +659,7 @@ public class DataAccess {
 
         try (Connection conn = DataPB.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery(sql);
+            ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
                 list.add(new ClassSchedule(
@@ -965,7 +965,7 @@ public class DataAccess {
     }
 
     public boolean assignInstructorToClass(int classCode, int instructID) {
-        String sql = "UPDATE CLASSSCHEDULE SET instructID = ? WHERE classCode = ?";
+        String sql = "UPDATE CLASS_SCHEDULE SET instructID = ? WHERE classCode = ?";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -1039,7 +1039,7 @@ public class DataAccess {
                             stmt.setInt(1, s.getClassCode());
                             stmt.setInt(2, leave.getInstructID());
                             stmt.setDate(3, currentDate);
-                            stmt.setString(4, leave.getLeaveType());
+                            stmt.setString(4, "Absent");
                             stmt.setInt(5, leave.getLeaveReqID());
 
                             stmt.addBatch();

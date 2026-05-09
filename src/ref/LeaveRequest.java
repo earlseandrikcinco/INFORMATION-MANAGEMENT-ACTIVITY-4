@@ -9,12 +9,12 @@ public class LeaveRequest {
     private Date startDate;
     private Date endDate;
     private String status;
-    private int approvedBy;
+    private Integer approvedBy;
     private String instructorName;
     private String leaveReason;
 
     public LeaveRequest(int leaveReqID, int instructID, String leaveType,
-                        Date startDate, Date endDate, String status, int approvedBy) {
+                        Date startDate, Date endDate, String status, Integer approvedBy) {
         this.leaveReqID = leaveReqID;
         this.instructID = instructID;
         this.leaveType = leaveType;
@@ -30,7 +30,7 @@ public class LeaveRequest {
     public Date getStartDate() { return startDate; }
     public Date getEndDate() { return endDate; }
     public String getStatus() { return status; }
-    public int getApprovedBy() { return approvedBy; }
+    public Integer getApprovedBy() { return approvedBy; }
     public String getInstructorName() { return instructorName; }
     public void setInstructorName(String instructorName) { this.instructorName = instructorName; }
     public String getLeaveReason() { return leaveReason; }

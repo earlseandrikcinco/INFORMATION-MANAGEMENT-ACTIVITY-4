@@ -252,20 +252,6 @@ public class CreateSchedulePanel extends BasePanel {
                 inst != null ? inst.getInstructorID() : null
         );
 
-        List<ClassSchedule> conflicts = db.findScheduleConflicts(
-                cs.getClassCode(),
-                cs.getRoomID(),
-                cs.getInstructID(),
-                cs.getDays(),
-                cs.getStartTime(),
-                cs.getEndTime()
-        );
-
-        if (!conflicts.isEmpty()) {
-            conflictsOut.addAll(conflicts);
-            return false;
-        }
-
         return db.insertClassSchedule(cs, conflictsOut);
     }
 
