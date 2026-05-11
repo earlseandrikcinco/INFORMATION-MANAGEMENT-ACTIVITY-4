@@ -3,17 +3,45 @@ package gui;
 import app.AppController;
 
 public class AdminDashboard extends DashboardBase {
-    public AdminDashboard(AppController c) {
-        super(c);
-        buildDashboard("Admin", c.getCurrentUser().getName(), new String[][]{
-                {"View All Accounts",       "accounts"},
-                {"Create Account",          "createAccount"},
-                {"View Attendance Records", "attendance"},
-        });
+
+    public AdminDashboard(AppController controller) {
+
+        super(controller);
+
+        buildDashboard(
+                "Admin",
+                controller.getCurrentUser().getName(),
+                new String[][]{
+                        {"View All Accounts", "accounts"},
+                        {"Create Account", "createAccount"},
+                        {"View Attendance Records", "attendance"},
+                        {"View Class Schedules", "schedules"},
+                        {"Classes Needing Attention", "needsAttention"}
+                }
+        );
     }
-    @Override protected void handleAction(String cmd) {
-        if ("accounts".equals(cmd))      controller.showAccountList();
-        if ("createAccount".equals(cmd)) controller.showCreateAccount();
-        if ("attendance".equals(cmd))    controller.showAttendanceInstructorList();
+
+    @Override
+    protected void handleAction(String command) {
+
+        if ("accounts".equals(command)) {
+            controller.showAccountList();
+        }
+
+        if ("createAccount".equals(command)) {
+            controller.showCreateAccount();
+        }
+
+        if ("attendance".equals(command)) {
+            controller.showAttendanceInstructorList();
+        }
+
+        if ("schedules".equals(command)) {
+            controller.showClassSchedules();
+        }
+
+        if ("needsAttention".equals(command)) {
+            controller.showClassesNeedingAttention();
+        }
     }
 }

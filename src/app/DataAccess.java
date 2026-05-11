@@ -1146,4 +1146,133 @@ public class DataAccess {
 
         return schedule.contains(day);
     }
+
+    public ClassSchedule getScheduleWithDetails(String classCode) {
+
+        String sql =
+                "SELECT cs.*, " +
+                        "       i.name AS instructorName, " +
+                        "       su.name AS checkerName, " +
+                        "       r.building, r.floor, r.roomType " +
+                        "FROM classschedule cs " +
+                        "LEFT JOIN instructor i ON cs.instructID = i.instructID " +
+                        "LEFT JOIN checker ch ON cs.assignedChecker = ch.checkerID " +
+                        "LEFT JOIN systemuser su ON ch.checkerID = su.userID " +
+                        "LEFT JOIN room r ON cs.roomID = r.roomID " +
+                        "WHERE cs.classCode = ?";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, classCode);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+
+                if (rs.next()) {
+
+                    ClassSchedule cs = new ClassSchedule(
+                            rs.getInt("classCode"), // adjust if classCode becomes String
+                            rs.getString("courseNo"),
+                            rs.getTime("startTime"),
+                            rs.getTime("endTime"),
+                            rs.getString("days"),
+                            (Integer) rs.getObject("roomID"),
+                            (Integer) rs.getObject("instructID")
+                    );
+
+                    cs.setAssignedChecker((Integer) rs.getObject("assignedChecker"));
+                    cs.setInstructorName(rs.getString("instructorName"));
+                    cs.setCheckerName(rs.getString("checkerName"));
+
+                    // Room description
+                    String building = rs.getString("building");
+                    String floor = rs.getString("floor");
+                    String roomType = rs.getString("roomType");
+
+                    if (building != null) {
+                        cs.setRoomDescription(building + " – " + floor + " (" + roomType + ")");
+                    }
+
+                    return cs;
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public boolean updateClassScheduleAssignments(int classCode, Integer instructID, Integer checkerID) {
+        String sql = "UPDATE classschedule " +
+                "SET instructID = ?, assignedChecker = ? " +
+                "WHERE classCode = ?";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setObject(1, instructID);   // setObject handles null correctly
+            stmt.setObject(2, checkerID);
+            stmt.setInt(3, classCode);       // change to setString if classCode is VARCHAR
+
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private List<ClassSchedule> fetchNeedingAttention(String sql, Integer deptID) {
+        List<ClassSchedule> list = new ArrayList<>();
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            if (deptID != null) stmt.setInt(1, deptID);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    ClassSchedule cs = new ClassSchedule(
+                            rs.getInt("classCode"),
+                            rs.getString("courseNo"),
+                            rs.getTime("startTime"),
+                            rs.getTime("endTime"),
+                            rs.getString("days"),
+                            (Integer) rs.getObject("roomID"),
+                            (Integer) rs.getObject("instructID")
+                    );
+                    cs.setAssignedChecker((Integer) rs.getObject("assignedChecker"));
+                    cs.setInstructorName(rs.getString("instructorName"));
+                    list.add(cs);
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return list;
+    }
+
+
+    public List<ClassSchedule> getSchedulesNeedingAttention() {
+        return fetchNeedingAttention(
+                "SELECT cs.*, i.name AS instructorName " +
+                        "FROM   classschedule cs " +
+                        "LEFT JOIN instructor i ON cs.instructID = i.instructID " +
+                        "WHERE  cs.instructID IS NULL OR cs.assignedChecker IS NULL " +
+                        "ORDER BY cs.startTime",
+                null
+        );
+    }
+
+    public List<ClassSchedule> getSchedulesNeedingAttentionByDept(int deptID) {
+        return fetchNeedingAttention(
+                "SELECT cs.*, i.name AS instructorName " +
+                        "FROM   classschedule cs " +
+                        "LEFT JOIN instructor i ON cs.instructID = i.instructID " +
+                        "WHERE  (cs.instructID IS NULL OR cs.assignedChecker IS NULL) " +
+                        "  AND  (i.departmentID = ? OR cs.instructID IS NULL) " +
+                        "ORDER BY cs.startTime",
+                deptID
+        );
+    }
+
+
 }

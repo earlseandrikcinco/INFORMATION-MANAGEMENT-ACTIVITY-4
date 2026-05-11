@@ -3,6 +3,7 @@ package ref;
 import java.sql.Time;
 
 public class ClassSchedule {
+
     private int classCode;
     private String courseNo;
     private Time startTime;
@@ -10,9 +11,22 @@ public class ClassSchedule {
     private String days;
     private Integer roomID;
     private Integer instructID;
-    private String instructorName;
+    private Integer assignedChecker; // FK → checker.checkerID
 
-    public ClassSchedule(int classCode, String courseNo, Time startTime, Time endTime, String days, Integer roomID, Integer instructID) {
+    // Resolved display names (not stored in DB)
+    private String instructorName;
+    private String checkerName;
+    private String roomDescription;
+
+    public ClassSchedule(
+            int classCode,
+            String courseNo,
+            Time startTime,
+            Time endTime,
+            String days,
+            Integer roomID,
+            Integer instructID
+    ) {
         this.classCode = classCode;
         this.courseNo = courseNo;
         this.startTime = startTime;
@@ -20,46 +34,29 @@ public class ClassSchedule {
         this.days = days;
         this.roomID = roomID;
         this.instructID = instructID;
+        this.assignedChecker = null;
     }
+
+    // ── Getters ─────────────────────────────────────────
 
     public int getClassCode() {
         return classCode;
-    }
-
-    public void setClassCode(int classCode) {
-        this.classCode = classCode;
     }
 
     public String getCourseNo() {
         return courseNo;
     }
 
-    public void setCourseNo(String courseNo) {
-        this.courseNo = courseNo;
-    }
-
     public Time getStartTime() {
         return startTime;
-    }
-
-    public void setStartTime(Time startTime) {
-        this.startTime = startTime;
     }
 
     public Time getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(Time endTime) {
-        this.endTime = endTime;
-    }
-
     public String getDays() {
         return days;
-    }
-
-    public void setDays(String days) {
-        this.days = days;
     }
 
     public Integer getRoomID() {
@@ -70,19 +67,65 @@ public class ClassSchedule {
         return instructID;
     }
 
+    public Integer getAssignedChecker() {
+        return assignedChecker;
+    }
+
     public String getInstructorName() {
         return instructorName;
+    }
+
+    public String getCheckerName() {
+        return checkerName;
+    }
+
+    public String getRoomDescription() {
+        return roomDescription;
+    }
+
+    // ── Setters ─────────────────────────────────────────
+
+    public void setClassCode(int classCode) {
+        this.classCode = classCode;
+    }
+
+    public void setCourseNo(String courseNo) {
+        this.courseNo = courseNo;
+    }
+
+    public void setStartTime(Time startTime) {
+        this.startTime = startTime;
+    }
+
+    public void setEndTime(Time endTime) {
+        this.endTime = endTime;
+    }
+
+    public void setDays(String days) {
+        this.days = days;
     }
 
     public void setRoomID(Integer roomID) {
         this.roomID = roomID;
     }
 
-    public void setInstructorName(String instructorName) {
-        this.instructorName = instructorName;
-    }
-
     public void setInstructID(Integer instructID) {
         this.instructID = instructID;
+    }
+
+    public void setAssignedChecker(Integer checker) {
+        this.assignedChecker = checker;
+    }
+
+    public void setInstructorName(String name) {
+        this.instructorName = name;
+    }
+
+    public void setCheckerName(String name) {
+        this.checkerName = name;
+    }
+
+    public void setRoomDescription(String desc) {
+        this.roomDescription = desc;
     }
 }

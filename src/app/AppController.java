@@ -17,31 +17,18 @@ public class AppController {
         db = new DataAccess();
     }
 
-
     public void start() {
         frame = new MainFrame(this);
         frame.setVisible(true);
-
         frame.showPanel(new LoginPanel(this));
     }
 
-
-    public SystemUser getCurrentUser() {
-        return currentUser;
-    }
+    public SystemUser getCurrentUser() { return currentUser; }
 
     public void login(String username, String password) {
-
         SystemUser user = db.getUser(username);
-
-        if (user == null) {
-            return;
-        }
-
-        if (!user.getPassword().equals(password)) {
-            return;
-        }
-
+        if (user == null) return;
+        if (!user.getPassword().equals(password)) return;
         currentUser = user;
         showDashboard();
     }
@@ -52,33 +39,16 @@ public class AppController {
     }
 
     public void showDashboard() {
-
         if (currentUser == null) {
             frame.showPanel(new LoginPanel(this));
             return;
         }
-
-        String role = currentUser.getRole();
-
-        switch (role) {
-            case "Admin":
-                frame.showPanel(new AdminDashboard(this));
-                break;
-
-            case "Secretary":
-                frame.showPanel(new SecretaryDashboard(this));
-                break;
-
-            case "DeptHead":
-                frame.showPanel(new DeptHeadDashboard(this));
-                break;
-
-            case "Checker":
-                frame.showPanel(new CheckerDashboard(this));
-                break;
-
-            default:
-                frame.showError("Unknown role: " + role);
+        switch (currentUser.getRole()) {
+            case "Admin"     -> frame.showPanel(new AdminDashboard(this));
+            case "Secretary" -> frame.showPanel(new SecretaryDashboard(this));
+            case "DeptHead"  -> frame.showPanel(new DeptHeadDashboard(this));
+            case "Checker"   -> frame.showPanel(new CheckerDashboard(this));
+            default          -> frame.showError("Unknown role: " + currentUser.getRole());
         }
     }
 
@@ -90,7 +60,6 @@ public class AppController {
         frame.showPanel(new CreateAccountPanel(this, db, (Admin) currentUser));
     }
 
-
     public void showAttendanceInstructorList() {
         frame.showPanel(new AttendanceInstructorListPanel(this, db, currentUser));
     }
@@ -99,15 +68,12 @@ public class AppController {
         frame.showPanel(new AttendanceDetailPanel(this, db, instructor));
     }
 
-
     public void showLeaveRequests() {
         String role = currentUser.getRole();
-
         if (!role.equals("Secretary") && !role.equals("DeptHead")) {
-            frame.showError("Insufficient privileges. This feature is for Secretaries and Department Heads only.");
+            frame.showError("Insufficient privileges.");
             return;
         }
-
         frame.showPanel(new LeaveRequestPanel(this, db, currentUser));
     }
 
@@ -115,12 +81,16 @@ public class AppController {
         frame.showPanel(new UpdateLeaveRequestPanel(this, db, currentUser));
     }
 
-
     public void showClassSchedules() {
         frame.showPanel(new ClassSchedulePanel(this, db, currentUser));
     }
 
     public void showCreateSchedule() {
         frame.showPanel(new CreateSchedulePanel(this, db, currentUser));
+    }
+
+    /** NEW — shows classes that are missing instructor or checker */
+    public void showClassesNeedingAttention() {
+        frame.showPanel(new ClassesNeedingAttentionPanel(this, db, currentUser));
     }
 }
