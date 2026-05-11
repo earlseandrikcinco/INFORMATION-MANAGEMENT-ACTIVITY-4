@@ -1376,4 +1376,104 @@ public class DataAccess {
         } catch (SQLException e) { e.printStackTrace(); }
         return list;
     }
+
+    public boolean createUser(SystemUser user) {
+        String sql = "INSERT INTO SYSTEM_USER " +
+                "(name, username, email, password, role, createdBy) " +
+                "VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, user.getName());
+            stmt.setString(2, user.getUsername());
+            stmt.setString(3, user.getEmail());
+            stmt.setString(4, user.getPassword());
+            stmt.setString(5, user.getRole());
+
+            if (user.getCreatedBy() == null) {
+                stmt.setNull(6, Types.INTEGER);
+            } else {
+                stmt.setInt(6, user.getCreatedBy());
+            }
+
+            return stmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean usernameExists(String username) {
+        String sql = "SELECT userID FROM SYSTEM_USER WHERE username = ?";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, username);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public List<Attendance> getAttendanceRecords() {
+        List<Attendance> list = new ArrayList<>();
+
+        String sql = """
+            SELECT a.*,
+                   cs.courseNo,
+                   i.name AS instructorName,
+                   lr.leaveRequestID,
+                   lr.leaveType,
+                   lr.status AS leaveStatus,
+                   lr.reason
+            FROM ATTENDANCE a
+            JOIN CLASS_SCHEDULE cs
+                ON a.classCode = cs.classCode
+            LEFT JOIN INSTRUCTOR i
+                ON a.instructID = i.instructID
+            LEFT JOIN LEAVE_REQUEST lr
+                ON a.instructID = lr.instructID
+                AND a.date BETWEEN lr.startDate AND lr.endDate
+                AND lr.status = 'APPROVED'
+            ORDER BY a.date DESC
+            """;
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Attendance attendance = new Attendance(
+                        rs.getInt("classCode"),
+                        rs.getObject("instructID") != null ? rs.getInt("instructID") : null,
+                        rs.getDate("date"),
+                        rs.getString("instructorStatus"),
+                        rs.getInt("checkerID"),
+                        rs.getObject("leaveRequestID") != null ? rs.getInt("leaveRequestID") : null,
+                        rs.getBoolean("isSubstitute")
+                );
+
+                attendance.setCourseNo(rs.getString("courseNo"));
+                attendance.setInstructorName(rs.getString("instructorName"));
+                attendance.setLeaveType(rs.getString("leaveType"));
+                attendance.setLeaveStatus(rs.getString("leaveStatus"));
+                attendance.setLeaveReason(rs.getString("reason"));
+
+                list.add(attendance);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
 }

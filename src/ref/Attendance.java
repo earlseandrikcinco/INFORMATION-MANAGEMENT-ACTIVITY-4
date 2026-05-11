@@ -9,6 +9,11 @@ public class Attendance {
     private int checkerID;
     private Integer leaveReqID;
     private boolean isSubstitute;
+    private String courseNo;
+    private String instructorName;
+    private String leaveType;
+    private String leaveStatus;
+    private String leaveReason;
 
     public Attendance(int classCode, Integer instructID, Date date, String instructorStatus, int checkerID, Integer leaveReqID, boolean isSubstitute) {
         this.classCode = classCode;
@@ -74,5 +79,45 @@ public class Attendance {
 
     public void setSubstitute(boolean substitute) {
         isSubstitute = substitute;
+    }
+
+    public String getCourseNo() {
+        return courseNo;
+    }
+
+    public void setCourseNo(String courseNo) {
+        this.courseNo = courseNo;
+    }
+
+    public String getInstructorName() {
+        return instructorName;
+    }
+
+    public void setInstructorName(String instructorName) {
+        this.instructorName = instructorName;
+    }
+
+    public String getLeaveType() {
+        return leaveType;
+    }
+
+    public void setLeaveType(String leaveType) {
+        this.leaveType = leaveType;
+    }
+
+    public String getLeaveStatus() {
+        return leaveStatus;
+    }
+
+    public void setLeaveStatus(String leaveStatus) {
+        this.leaveStatus = leaveStatus;
+    }
+
+    public String getLeaveReason() {
+        return leaveReason;
+    }
+
+    public void setLeaveReason(String leaveReason) {
+        this.leaveReason = leaveReason;
     }
 }

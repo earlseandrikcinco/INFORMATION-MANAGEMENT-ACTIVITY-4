@@ -76,6 +76,9 @@ public class AppController {
         }
         frame.showPanel(new LeaveRequestPanel(this, db, currentUser));
     }
+    public void showAttendanceRecords() {
+        frame.showPanel(new AttendanceRecordsPanel(this, db));
+    }
 
     public void showUpdateLeaveRequest() {
         frame.showPanel(new UpdateLeaveRequestPanel(this, db, currentUser));

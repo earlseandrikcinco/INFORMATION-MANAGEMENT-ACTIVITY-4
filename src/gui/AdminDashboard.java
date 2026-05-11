@@ -15,6 +15,7 @@ public class AdminDashboard extends DashboardBase {
                         {"View All Accounts", "accounts"},
                         {"Create Account", "createAccount"},
                         {"View Attendance Records", "attendance"},
+                        {"View Attendance by Instructor", "attendanceByInstructor"},
                         {"View Class Schedules", "schedules"},
                         {"Classes Needing Attention", "needsAttention"}
                 }
@@ -33,6 +34,10 @@ public class AdminDashboard extends DashboardBase {
         }
 
         if ("attendance".equals(command)) {
+            controller.showAttendanceRecords();
+        }
+
+        if ("attendanceByInstructor".equals(command)) {
             controller.showAttendanceInstructorList();
         }
 
