@@ -92,8 +92,29 @@ public class LeaveRequestPanel extends BasePanel {
 
         JButton reasonBtn = UIHelper.button("View Reason");
         reasonBtn.addActionListener(e -> showReasonDialog());
-        add(bottomBar(reasonBtn), BorderLayout.SOUTH);
+//        add(bottomBar(reasonBtn), BorderLayout.SOUTH);
 
+
+        JButton affectedBtn = UIHelper.button("View Affected Classes →");
+        affectedBtn.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row < 0) {
+                JOptionPane.showMessageDialog(this,
+                        "Please select a leave request first.",
+                        "No Selection", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            LeaveRequest lr = currentList.get(row);
+            if (!"Approved".equals(lr.getStatus())) {
+                JOptionPane.showMessageDialog(this,
+                        "Only approved leave requests have affected classes.",
+                        "Not Approved", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            controller.showAffectedClasses(lr);
+        });
+
+        add(bottomBar(reasonBtn, affectedBtn), BorderLayout.SOUTH);
         loadRequests(db.getLeaveRequestsByDept(deptID));
     }
 

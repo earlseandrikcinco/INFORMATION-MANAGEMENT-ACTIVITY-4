@@ -1274,5 +1274,106 @@ public class DataAccess {
         );
     }
 
+    // fetches attendance rows linked to leave request
+    public List<AffectedClass> getAffectedClassesByLeave(int leaveRequestID) {
+        List<AffectedClass> list = new ArrayList<>();
+        String sql =
+                "SELECT a.attendanceID, a.startDate, a.instructorStatus, " +
+                        "       cs.courseNo, cs.startTime, cs.endTime, " +
+                        "       r.building, r.floor, " +
+                        "       sub.name AS substituteName " +
+                        "FROM attendance a " +
+                        "JOIN classschedule cs ON a.classCode = cs.classCode " +
+                        "LEFT JOIN room r ON cs.roomID = r.roomID " +
+                        "LEFT JOIN instructor sub ON a.actualInstructID = sub.instructID " +
+                        "WHERE a.leaveRequestID = ? " +
+                        "ORDER BY a.startDate, cs.startTime";
 
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, leaveRequestID);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new AffectedClass(
+                            rs.getInt("attendanceID"),
+                            rs.getDate("startDate"),
+                            rs.getString("courseNo"),
+                            rs.getTime("startTime"),
+                            rs.getTime("endTime"),
+                            rs.getString("building"),
+                            rs.getString("floor"),
+                            rs.getString("instructorStatus"),
+                            rs.getString("substituteName") // null if no substitute
+                    ));
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return list;
+    }
+
+    public boolean assignSubstitute(int attendanceID, int substituteInstructID) {
+        String sql =
+                "UPDATE attendance " +
+                        "SET actualInstructID = ?, instructorStatus = 'Substituted' " +
+                        "WHERE attendanceID = ?";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, substituteInstructID);
+            stmt.setInt(2, attendanceID);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+    public boolean makeClassAsynchronous(int attendanceID) {
+        String sql =
+                "UPDATE attendance " +
+                        "SET instructorStatus = 'Asynchronous', actualInstructID = NULL " +
+                        "WHERE attendanceID = ?";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, attendanceID);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // excludes instructor on leave so they wont appear in substiture picker
+    public List<Instructor> getAvailableSubstitutes(int excludeInstructID) {
+        List<Instructor> list = new ArrayList<>();
+        String sql =
+                "SELECT i.instructID, i.name, i.departmentID, d.departmentName " +
+                        "FROM instructor i " +
+                        "JOIN department d ON d.departmentID = i.departmentID " +
+                        "WHERE i.instructID <> ? " +
+                        "ORDER BY i.name";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, excludeInstructID);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Instructor i = new Instructor(
+                            rs.getInt("instructID"),
+                            rs.getString("name"),
+                            rs.getInt("departmentID")
+                    );
+                    i.setDepartmentName(rs.getString("departmentName"));
+                    list.add(i);
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return list;
+    }
 }

@@ -93,4 +93,8 @@ public class AppController {
     public void showClassesNeedingAttention() {
         frame.showPanel(new ClassesNeedingAttentionPanel(this, db, currentUser));
     }
+
+    public void showAffectedClasses(LeaveRequest lr) {
+        frame.showPanel(new AffectedClassesPanel(this, db, lr, currentUser));
+    }
 }
