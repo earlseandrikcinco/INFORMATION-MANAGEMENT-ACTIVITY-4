@@ -421,7 +421,7 @@ public class DataAccess {
         List<Attendance> list = new ArrayList<>();
         String sql = "SELECT * FROM ATTENDANCE " +
                 "WHERE instructID = ? AND instructorStatus = 'Absent' " +
-                "AND leaveReqNo IS NULL";
+                "AND leaveRequestID IS NULL";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -462,7 +462,7 @@ public class DataAccess {
                             rs.getDate("date"),
                             rs.getString("instructorStatus"),
                             rs.getInt("checkerID"),
-                            (Integer) rs.getObject("leaveReqNo"),
+                            (Integer) rs.getObject("leaveRequestID"),
                             rs.getBoolean("isSubstitute")
                     ));
                 }
@@ -512,7 +512,7 @@ public class DataAccess {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     LeaveRequest lr = new LeaveRequest(
-                            rs.getInt("leaveReqNo"),
+                            rs.getInt("leaveRequestID"),
                             rs.getInt("instructID"),
                             rs.getString("leaveType"),
                             rs.getDate("startDate"),
@@ -546,7 +546,7 @@ public class DataAccess {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     LeaveRequest lr = new LeaveRequest(
-                            rs.getInt("leaveReqNo"), rs.getInt("instructID"),
+                            rs.getInt("leaveRequestID"), rs.getInt("instructID"),
                             rs.getString("leaveType"), rs.getDate("startDate"),
                             rs.getDate("endDate"), rs.getString("status"),
                             (Integer) rs.getObject("approvedBy")
@@ -576,7 +576,7 @@ public class DataAccess {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     LeaveRequest lr = new LeaveRequest(
-                            rs.getInt("leaveReqNo"), rs.getInt("instructID"),
+                            rs.getInt("leaveRequestID"), rs.getInt("instructID"),
                             rs.getString("leaveType"), rs.getDate("startDate"),
                             rs.getDate("endDate"), rs.getString("status"),
                             (Integer) rs.getObject("approvedBy")
@@ -607,7 +607,7 @@ public class DataAccess {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     LeaveRequest lr = new LeaveRequest(
-                            rs.getInt("leaveReqNo"),
+                            rs.getInt("leaveRequestID"),
                             rs.getInt("instructID"),
                             rs.getString("leaveType"),
                             rs.getDate("startDate"),
@@ -643,7 +643,7 @@ public class DataAccess {
                         rs.getDate("date"),
                         rs.getString("instructorStatus"),
                         rs.getInt("checkerID"),
-                        (Integer) rs.getObject("leaveReqNo"),
+                        (Integer) rs.getObject("leaveRequestID"),
                         rs.getBoolean("isSubstitute")
                 ));
             }
@@ -902,7 +902,7 @@ public class DataAccess {
 
     public void logAttendance(Attendance att) {
         String sql = "INSERT INTO ATTENDANCE " +
-                "(classCode, instructID, date, instructorStatus, checkerID, leaveReqNo, isSubstitute) " +
+                "(classCode, instructID, date, instructorStatus, checkerID, leaveRequestID, isSubstitute) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DataPB.getConnection();
@@ -947,7 +947,7 @@ public class DataAccess {
 
 
     public boolean updateLeaveStatus(int instructID, int reqID, String status, int adminID) {
-        String sql = "UPDATE LEAVE_REQUEST SET status = ?, approvedBy = ? WHERE instructID = ? AND leaveReqNo = ?";
+        String sql = "UPDATE LEAVE_REQUEST SET status = ?, approvedBy = ? WHERE instructID = ? AND leaveRequestID = ?";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -980,8 +980,8 @@ public class DataAccess {
         }
     }
 
-    public boolean resolveLeaveRequest(int instructID, int leaveReqNo, String newStatus, int reviewerID) {
-        String sql = "UPDATE LEAVE_REQUEST SET status = ?, approvedBy = ? WHERE instructID = ? AND leaveReqNo = ?";
+    public boolean resolveLeaveRequest(int instructID, int leaveRequestID, String newStatus, int reviewerID) {
+        String sql = "UPDATE LEAVE_REQUEST SET status = ?, approvedBy = ? WHERE instructID = ? AND leaveRequestID = ?";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -989,7 +989,7 @@ public class DataAccess {
             stmt.setString(1, newStatus);
             stmt.setInt(2, reviewerID);
             stmt.setInt(3, instructID);
-            stmt.setInt(4, leaveReqNo);
+            stmt.setInt(4, leaveRequestID);
 
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -998,14 +998,14 @@ public class DataAccess {
         }
     }
 
-    public boolean linkAttendanceToLeave(int classCode, Date date, int leaveReqNo) {
-        String sql = "UPDATE ATTENDANCE SET leaveReqNo = ? " +
+    public boolean linkAttendanceToLeave(int classCode, Date date, int leaveRequestID) {
+        String sql = "UPDATE ATTENDANCE SET leaveRequestID = ? " +
                 "WHERE classCode = ? AND date = ?";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, leaveReqNo);
+            stmt.setInt(1, leaveRequestID);
             stmt.setInt(2, classCode);
             stmt.setDate(3, date);
 
@@ -1019,9 +1019,9 @@ public class DataAccess {
     public void syncLeaveToAttendance(LeaveRequest leave) {
         List<ClassSchedule> schedules = getAllClassSchedulesByInstructor(leave.getInstructID());
 
-        String sql = "INSERT INTO ATTENDANCE (classCode, instructID, date, instructorStatus, leaveReqNo) " +
+        String sql = "INSERT INTO ATTENDANCE (classCode, instructID, date, instructorStatus, leaveRequestID) " +
                 "VALUES (?, ?, ?, ?, ?) " +
-                "ON DUPLICATE KEY UPDATE instructorStatus = VALUES(instructorStatus), leaveReqNo = VALUES(leaveReqNo)";
+                "ON DUPLICATE KEY UPDATE instructorStatus = VALUES(instructorStatus), leaveRequestID = VALUES(leaveRequestID)";
 
         try (Connection conn = DataPB.getConnection()) {
             conn.setAutoCommit(false);
