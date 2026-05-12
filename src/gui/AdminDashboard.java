@@ -17,7 +17,8 @@ public class AdminDashboard extends DashboardBase {
                         {"View Attendance Records", "attendance"},
                         {"View Attendance by Instructor", "attendanceByInstructor"},
                         {"View Class Schedules", "schedules"},
-                        {"Classes Needing Attention", "needsAttention"}
+                        {"Classes Needing Attention", "needsAttention"},
+                        {"Manage Checker Details", "checkerDetails"}
                 }
         );
     }
@@ -47,6 +48,10 @@ public class AdminDashboard extends DashboardBase {
 
         if ("needsAttention".equals(command)) {
             controller.showClassesNeedingAttention();
+        }
+
+        if ("checkerDetails".equals(command)) {
+            controller.showCheckerDetails();
         }
     }
 }

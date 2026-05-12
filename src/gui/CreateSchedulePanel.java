@@ -169,21 +169,18 @@ public class CreateSchedulePanel extends BasePanel {
     }
 
     private String validateForm() {
+        // 1. Get the text from the field
+        String classCode = classCodeField.getText().trim();
 
-        if (classCodeField.getText().isBlank())
+        if (classCode.isBlank())
             return "Class code is required.";
 
-        int classCode;
-
-        try {
-            classCode = Integer.parseInt(classCodeField.getText().trim());
-        } catch (Exception e) {
-            return "Class code must be numeric.";
-        }
+        // We removed the Integer.parseInt block because the DB is VARCHAR
 
         if (courseNoField.getText().isBlank())
             return "Course number required.";
 
+        // 2. Now 'classCode' is defined as a String above, so this will work:
         if (classCodeExists(classCode))
             return "Class code already exists.";
 
@@ -205,14 +202,14 @@ public class CreateSchedulePanel extends BasePanel {
         return null;
     }
 
-    private boolean classCodeExists(int code) {
+    private boolean classCodeExists(String code) {
 
         String sql = "SELECT 1 FROM CLASS_SCHEDULE WHERE classCode = ?";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, code);
+            stmt.setString(1, code);
             ResultSet rs = stmt.executeQuery();
 
             return rs.next();
@@ -225,7 +222,7 @@ public class CreateSchedulePanel extends BasePanel {
 
     private boolean submit(List<ClassSchedule> conflictsOut) {
 
-        int classCode = Integer.parseInt(classCodeField.getText().trim());
+        String classCode = classCodeField.getText().trim();
 
         int sh = (int) startHourSpinner.getValue();
         int sm = (int) startMinSpinner.getValue();

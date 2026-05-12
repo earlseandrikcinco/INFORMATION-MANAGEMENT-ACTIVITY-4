@@ -2,7 +2,7 @@ package ref;
 import java.sql.Date;
 
 public class Attendance {
-    private int classCode;
+    private String classCode;
     private Integer instructID;
     private Date date;
     private String instructorStatus;
@@ -15,7 +15,7 @@ public class Attendance {
     private String leaveStatus;
     private String leaveReason;
 
-    public Attendance(int classCode, Integer instructID, Date date, String instructorStatus, int checkerID, Integer leaveReqID, boolean isSubstitute) {
+    public Attendance(String classCode, Integer instructID, Date date, String instructorStatus, int checkerID, Integer leaveReqID, boolean isSubstitute) {
         this.classCode = classCode;
         this.instructID = instructID;
         this.date = date;
@@ -25,11 +25,11 @@ public class Attendance {
         this.isSubstitute = isSubstitute;
     }
 
-    public int getClassCode() {
+    public String getClassCode() {
         return classCode;
     }
 
-    public void setClassCode(int classCode) {
+    public void setClassCode(String classCode) {
         this.classCode = classCode;
     }
 

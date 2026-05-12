@@ -4,7 +4,7 @@ import java.sql.Time;
 
 public class ClassSchedule {
 
-    private int classCode;
+    private String classCode;
     private String courseNo;
     private Time startTime;
     private Time endTime;
@@ -19,7 +19,7 @@ public class ClassSchedule {
     private String roomDescription;
 
     public ClassSchedule(
-            int classCode,
+            String classCode,
             String courseNo,
             Time startTime,
             Time endTime,
@@ -39,7 +39,7 @@ public class ClassSchedule {
 
     // ── Getters ─────────────────────────────────────────
 
-    public int getClassCode() {
+    public String getClassCode() {
         return classCode;
     }
 
@@ -85,7 +85,7 @@ public class ClassSchedule {
 
     // ── Setters ─────────────────────────────────────────
 
-    public void setClassCode(int classCode) {
+    public void setClassCode(String classCode) { // Changed int to String
         this.classCode = classCode;
     }
 

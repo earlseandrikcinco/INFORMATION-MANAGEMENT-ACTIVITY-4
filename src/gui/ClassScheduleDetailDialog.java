@@ -208,7 +208,11 @@ public class ClassScheduleDetailDialog extends JDialog {
             newCheckerID = (sel == null) ? null : sel.getUserID();
         }
 
-        boolean ok = db.updateClassScheduleAssignments(schedule.getClassCode(), newInstructID, newCheckerID);
+        boolean ok = db.updateClassScheduleAssignments(
+                schedule.getClassCode(),
+                newInstructID,
+                newCheckerID
+        );
 
         if (ok) {
             JOptionPane.showMessageDialog(this, "Schedule updated successfully.",
