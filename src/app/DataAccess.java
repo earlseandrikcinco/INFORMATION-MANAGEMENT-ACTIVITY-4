@@ -1622,9 +1622,7 @@ public class DataAccess {
         return list;
     }
 
-    // =========================================================================
-    // UPDATE ATTENDANCE – Member 3
-    // =========================================================================
+   // Update Attendance methods
 
     /** Returns class schedules assigned to the given checker (assignedChecker = checkerID). */
     public List<ClassSchedule> getSchedulesByCheckerID(int checkerID) {
