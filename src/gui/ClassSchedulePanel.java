@@ -21,21 +21,20 @@ import java.util.List;
 public class ClassSchedulePanel extends BasePanel {
 
     private final DataAccess db;
-    private final SystemUser user;
+    private final SystemUser currentUser;
     private final int deptID;           // -1 = Admin (sees all)
     private List<ClassSchedule> schedules;
 
-    public ClassSchedulePanel(AppController controller, DataAccess db, SystemUser user) {
+    public ClassSchedulePanel(AppController controller, DataAccess db, SystemUser currentUser) {
         super(controller);
         this.db   = db;
-        this.user = user;
+        this.currentUser = currentUser;
 
-        if (user instanceof DeptHead dh) {
-            deptID = dh.getDepartmentID();
-        } else if (user instanceof Secretary sec) {
-            deptID = sec.getDepartmentID();
+        if (currentUser.getRole().equalsIgnoreCase("Secretary")
+                || currentUser.getRole().equalsIgnoreCase("DeptHead")) {
+            deptID = currentUser.getDepartmentID();
         } else {
-            deptID = -1;   // Admin sees everything
+            deptID = -1;
         }
 
         buildUI();
@@ -77,7 +76,7 @@ public class ClassSchedulePanel extends BasePanel {
                 Window parent = SwingUtilities.getWindowAncestor(ClassSchedulePanel.this);
                 new ClassScheduleDetailDialog(
                         parent instanceof Frame ? (Frame) parent : null,
-                        db, user, selected,
+                        db, currentUser, selected,
                         ClassSchedulePanel.this::refresh
                 ).setVisible(true);
             }

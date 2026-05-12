@@ -28,10 +28,9 @@ public class LeaveRequestPanel extends BasePanel {
         super(controller);
         this.db = db;
         this.currentUser = user;
-        if (currentUser instanceof Secretary secretary) {
-            deptID = secretary.getDepartmentID();
-        } else if (currentUser instanceof DeptHead deptHead) {
-            deptID = deptHead.getDepartmentID();
+        if (currentUser.getRole().equalsIgnoreCase("Secretary")
+                || currentUser.getRole().equalsIgnoreCase("DeptHead")) {
+            deptID = currentUser.getDepartmentID();
         }
         buildUI();
     }
@@ -231,7 +230,7 @@ public class LeaveRequestPanel extends BasePanel {
         footer.setBackground(UIHelper.BG);
         footer.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIHelper.BORDER));
 
-        if (currentUser instanceof DeptHead && lr.getStatus().equals("Pending")) {
+        if (currentUser.getRole().equalsIgnoreCase("DeptHead") && lr.getStatus().equals("Pending")) {
             JButton approveBtn = UIHelper.button("Approve");
             JButton rejectBtn = UIHelper.secondaryButton("Reject");
 
@@ -260,7 +259,7 @@ public class LeaveRequestPanel extends BasePanel {
             footer.add(rejectBtn);
             footer.add(approveBtn);
 
-        } else if (currentUser instanceof Secretary && lr.getStatus().equals("Approved")) {
+        } else if (currentUser.getRole().equalsIgnoreCase("Secretary") && lr.getStatus().equals("Approved")) {
             JButton syncBtn = UIHelper.button("Sync to Attendance");
 
             syncBtn.addActionListener(e -> {

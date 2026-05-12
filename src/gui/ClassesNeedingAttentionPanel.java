@@ -23,13 +23,13 @@ import java.util.List;
 public class ClassesNeedingAttentionPanel extends BasePanel {
 
     private final DataAccess db;
-    private final SystemUser user;
+    private final SystemUser currentUser;
     private List<ClassSchedule> schedules;
 
-    public ClassesNeedingAttentionPanel(AppController controller, DataAccess db, SystemUser user) {
+    public ClassesNeedingAttentionPanel(AppController controller, DataAccess db, SystemUser currentUser) {
         super(controller);
         this.db   = db;
-        this.user = user;
+        this.currentUser = currentUser;
         buildUI();
     }
 
@@ -73,7 +73,7 @@ public class ClassesNeedingAttentionPanel extends BasePanel {
                 Window parent = SwingUtilities.getWindowAncestor(ClassesNeedingAttentionPanel.this);
                 new ClassScheduleDetailDialog(
                         parent instanceof Frame ? (Frame) parent : null,
-                        db, user, selected,
+                        db, currentUser, selected,
                         ClassesNeedingAttentionPanel.this::refresh
                 ).setVisible(true);
             }
@@ -102,8 +102,10 @@ public class ClassesNeedingAttentionPanel extends BasePanel {
     }
 
     private int getDeptID() {
-        if (user instanceof DeptHead dh)  return dh.getDepartmentID();
-        if (user instanceof Secretary sec) return sec.getDepartmentID();
+        if (currentUser.getRole().equalsIgnoreCase("Secretary")
+                || currentUser.getRole().equalsIgnoreCase("DeptHead")) {
+            return currentUser.getDepartmentID();
+        }
         return -1;
     }
 

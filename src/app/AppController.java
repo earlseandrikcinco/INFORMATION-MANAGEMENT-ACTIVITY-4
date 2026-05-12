@@ -56,7 +56,7 @@ public class AppController {
     }
 
     public void showCreateAccount() {
-        frame.showPanel(new CreateAccountPanel(this, db, (Admin) currentUser));
+        frame.showPanel(new CreateAccountPanel(this, db, currentUser));
     }
 
     public void showAttendanceInstructorList() {
@@ -101,7 +101,7 @@ public class AppController {
     }
 
     public void showUpdateAttendance() {
-        frame.showPanel(new UpdateAttendancePanel(this, db));
+        frame.showPanel(new UpdateAttendancePanel(this, db, currentUser));
     }
 
     /** Admin – manage checker detail records. */

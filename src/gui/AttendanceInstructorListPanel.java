@@ -24,10 +24,9 @@ public class AttendanceInstructorListPanel extends BasePanel {
         super(controller);
         this.db = db;
         this.currentUser = user;
-        if (currentUser instanceof Secretary secretary) {
-            deptID = (secretary).getDepartmentID();
-        } else if (currentUser instanceof DeptHead deptHead) {
-            deptID = (deptHead).getDepartmentID();
+        if (currentUser.getRole().equalsIgnoreCase("Secretary")
+                || currentUser.getRole().equalsIgnoreCase("DeptHead")) {
+            deptID = currentUser.getDepartmentID();
         } else {
             deptID = -1;
         }

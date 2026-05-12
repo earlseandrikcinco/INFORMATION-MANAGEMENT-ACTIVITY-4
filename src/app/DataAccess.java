@@ -35,13 +35,15 @@ public class DataAccess {
                     );
 
                     String role = baseUser.getRole();
-                    return switch (role) {
-                        case "Checker" -> new Checker(baseUser, 0 /* floor not in checker table */);
-                        case "DeptHead" -> new DeptHead(baseUser, rs.getInt("deptHeadID"));
-                        case "Secretary" -> new Secretary(baseUser, rs.getInt("secDeptID"));
-                        case "Admin" -> new Admin(baseUser, rs.getString("approvalCode"));
-                        default -> baseUser;
+                    switch (role) {
+                        case "Checker" -> baseUser.setBuilding(rs.getInt("building"));
+                        case "DeptHead", "Secretary" -> baseUser.setDepartmentID(rs.getInt("departmentID"));
+                        case "Admin" -> baseUser.setApprovalCode(rs.getString("approvalCode"));
+                        default -> {
+                        }
                     };
+
+                    return baseUser;
                 }
             }
         } catch (SQLException e) {

@@ -8,6 +8,7 @@ public class SystemUser {
     private String password;
     private String role;
     private Integer createdBy;
+    private int departmentID;
     private String approvalCode;    // For admin
     private int building;   // For checker
 
@@ -39,6 +40,7 @@ public class SystemUser {
     public String getEmail(){
         return email;
     }
+    public int getDepartmentID() {return departmentID;}
     public Integer getCreatedBy() {return createdBy;}
 
     public int getBuilding() {
@@ -56,6 +58,7 @@ public class SystemUser {
     public void setEmail(String email) {this.email = email;}
     public void setCreatedBy(Integer createdBy) {this.createdBy = createdBy;}
     public void setBuilding(int building) {this.building = building;}
+    public void setDepartmentID(int departmentID) {this.departmentID = departmentID;}
     public void setApprovalCode(String approvalCode) {this.approvalCode = approvalCode;}
 
     @Override

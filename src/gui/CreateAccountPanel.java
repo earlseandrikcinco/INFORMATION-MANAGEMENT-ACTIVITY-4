@@ -34,7 +34,7 @@ public class CreateAccountPanel extends BasePanel {
     private List<Department> departments;
     private final int adminID;
 
-    public CreateAccountPanel(AppController controller, DataAccess db, Admin admin) {
+    public CreateAccountPanel(AppController controller, DataAccess db, SystemUser admin) {
         super(controller);
         this.db = db;
         this.adminID = admin.getUserID();

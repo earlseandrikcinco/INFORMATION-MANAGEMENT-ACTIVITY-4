@@ -232,9 +232,9 @@ public class ClassScheduleDetailDialog extends JDialog {
     private List<Instructor> getInstructorList() {
         String role = currentUser.getRole();
         if (role.equals("DeptHead")) {
-            return db.getInstructorsByDept(((DeptHead) currentUser).getDepartmentID());
+            return db.getInstructorsByDept(currentUser.getDepartmentID());
         } else if (role.equals("Secretary")) {
-            return db.getInstructorsByDept(((Secretary) currentUser).getDepartmentID());
+            return db.getInstructorsByDept(currentUser.getDepartmentID());
         }
         return db.getInstructors();
     }

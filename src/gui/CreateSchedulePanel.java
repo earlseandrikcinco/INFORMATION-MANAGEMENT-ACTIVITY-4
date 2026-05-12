@@ -258,8 +258,8 @@ public class CreateSchedulePanel extends BasePanel {
     }
 
     private int getDeptID() {
-        if (currentUser instanceof DeptHead)
-            return ((DeptHead) currentUser).getDepartmentID();
+        if (currentUser.getRole().equalsIgnoreCase("DeptHead"))
+            return currentUser.getDepartmentID();
         return -1;
     }
 
