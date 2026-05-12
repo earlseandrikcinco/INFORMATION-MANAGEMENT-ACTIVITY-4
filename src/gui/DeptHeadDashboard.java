@@ -12,11 +12,12 @@ public class DeptHeadDashboard extends DashboardBase {
                 "Department Head",
                 controller.getCurrentUser().getName(),
                 new String[][]{
-                        {"View Leave Requests", "leave"},
-                        {"Update Leave Request", "updateLeave"},
-                        {"View Attendance Records", "attendance"},
-                        {"View Class Schedules", "schedules"},
-                        {"Create Class Schedule", "createSchedule"},
+                        {"View Leave Requests",       "leave"},
+                        {"Update Leave Request",      "updateLeave"},
+                        {"View Attendance Records",   "attendance"},
+                        {"Update Attendance",         "updateAttendance"},
+                        {"View Class Schedules",      "schedules"},
+                        {"Create Class Schedule",     "createSchedule"},
                         {"Classes Needing Attention", "needsAttention"}
                 }
         );
@@ -35,6 +36,10 @@ public class DeptHeadDashboard extends DashboardBase {
 
         if ("attendance".equals(command)) {
             controller.showAttendanceInstructorList();
+        }
+
+        if ("updateAttendance".equals(command)) {
+            controller.showUpdateAttendance();
         }
 
         if ("schedules".equals(command)) {

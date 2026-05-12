@@ -12,9 +12,10 @@ public class SecretaryDashboard extends DashboardBase {
                 "Secretary",
                 controller.getCurrentUser().getName(),
                 new String[][]{
-                        {"View Leave Requests", "leave"},
-                        {"View Attendance Records", "attendance"},
-                        {"View Class Schedules", "schedules"},
+                        {"View Leave Requests",       "leave"},
+                        {"View Attendance Records",   "attendance"},
+                        {"Update Attendance",         "updateAttendance"},
+                        {"View Class Schedules",      "schedules"},
                         {"Classes Needing Attention", "needsAttention"}
                 }
         );
@@ -29,6 +30,10 @@ public class SecretaryDashboard extends DashboardBase {
 
         if ("attendance".equals(command)) {
             controller.showAttendanceInstructorList();
+        }
+
+        if ("updateAttendance".equals(command)) {
+            controller.showUpdateAttendance();
         }
 
         if ("schedules".equals(command)) {

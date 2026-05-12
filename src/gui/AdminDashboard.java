@@ -12,13 +12,14 @@ public class AdminDashboard extends DashboardBase {
                 "Admin",
                 controller.getCurrentUser().getName(),
                 new String[][]{
-                        {"View All Accounts", "accounts"},
-                        {"Create Account", "createAccount"},
-                        {"View Attendance Records", "attendance"},
+                        {"View All Accounts",             "accounts"},
+                        {"Create Account",                "createAccount"},
+                        {"View Attendance Records",       "attendance"},
+                        {"Update Attendance",             "updateAttendance"},
                         {"View Attendance by Instructor", "attendanceByInstructor"},
-                        {"View Class Schedules", "schedules"},
-                        {"Classes Needing Attention", "needsAttention"},
-                        {"Manage Checker Details", "checkerDetails"}
+                        {"View Class Schedules",          "schedules"},
+                        {"Classes Needing Attention",     "needsAttention"},
+                        {"Manage Checker Details",        "checkerDetails"}
                 }
         );
     }
@@ -36,6 +37,10 @@ public class AdminDashboard extends DashboardBase {
 
         if ("attendance".equals(command)) {
             controller.showAttendanceRecords();
+        }
+
+        if ("updateAttendance".equals(command)) {
+            controller.showUpdateAttendance();
         }
 
         if ("attendanceByInstructor".equals(command)) {

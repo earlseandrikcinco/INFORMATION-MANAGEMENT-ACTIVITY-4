@@ -100,6 +100,10 @@ public class AppController {
         frame.showPanel(new AffectedClassesPanel(this, db, lr, currentUser));
     }
 
+    public void showUpdateAttendance() {
+        frame.showPanel(new UpdateAttendancePanel(this, db));
+    }
+
     /** Admin – manage checker detail records. */
     public void showCheckerDetails() {
         if (!"Admin".equals(currentUser.getRole())) {

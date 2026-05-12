@@ -1479,10 +1479,10 @@ public class DataAccess {
     public List<ref.CheckerDetail> getAllCheckerDetails() {
         List<ref.CheckerDetail> list = new ArrayList<>();
         String sql =
-            "SELECT cd.*, su.name AS checkerName " +
-            "FROM checkerdetails cd " +
-            "JOIN systemuser su ON cd.checkerID = su.userID " +
-            "ORDER BY su.name, cd.day, cd.shiftStart";
+                "SELECT cd.*, su.name AS checkerName " +
+                        "FROM checkerdetails cd " +
+                        "JOIN systemuser su ON cd.checkerID = su.userID " +
+                        "ORDER BY su.name, cd.day, cd.shiftStart";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -1490,13 +1490,13 @@ public class DataAccess {
 
             while (rs.next()) {
                 ref.CheckerDetail cd = new ref.CheckerDetail(
-                    rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0,
-                    rs.getInt("scheduleID"),
-                    rs.getString("shiftStart"),
-                    rs.getString("shiftEnd"),
-                    rs.getString("building"),
-                    rs.getString("floor"),
-                    rs.getString("day")
+                        rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0,
+                        rs.getInt("scheduleID"),
+                        rs.getString("shiftStart"),
+                        rs.getString("shiftEnd"),
+                        rs.getString("building"),
+                        rs.getString("floor"),
+                        rs.getString("day")
                 );
                 cd.setCheckerName(rs.getString("checkerName"));
                 list.add(cd);
@@ -1510,8 +1510,8 @@ public class DataAccess {
     /** Insert a new checker-detail row. Returns true on success. */
     public boolean createCheckerDetail(ref.CheckerDetail cd) {
         String sql =
-            "INSERT INTO checkerdetails (checkerID, scheduleID, shiftStart, shiftEnd, building, floor, day) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?)";
+                "INSERT INTO checkerdetails (checkerID, scheduleID, shiftStart, shiftEnd, building, floor, day) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -1534,9 +1534,9 @@ public class DataAccess {
     /** Update an existing checker-detail row (identified by checkerID + scheduleID). */
     public boolean updateCheckerDetail(ref.CheckerDetail cd) {
         String sql =
-            "UPDATE checkerdetails " +
-            "SET shiftStart = ?, shiftEnd = ?, building = ?, floor = ?, day = ? " +
-            "WHERE checkerID = ? AND scheduleID = ?";
+                "UPDATE checkerdetails " +
+                        "SET shiftStart = ?, shiftEnd = ?, building = ?, floor = ?, day = ? " +
+                        "WHERE checkerID = ? AND scheduleID = ?";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -1563,9 +1563,9 @@ public class DataAccess {
      */
     public boolean deleteCheckerDetail(int checkerID, int scheduleID) {
         String nullifySchedules =
-            "UPDATE classschedule SET assignedChecker = NULL WHERE assignedChecker = ?";
+                "UPDATE classschedule SET assignedChecker = NULL WHERE assignedChecker = ?";
         String deleteRow =
-            "DELETE FROM checkerdetails WHERE checkerID = ? AND scheduleID = ?";
+                "DELETE FROM checkerdetails WHERE checkerID = ? AND scheduleID = ?";
 
         try (Connection conn = DataPB.getConnection()) {
             conn.setAutoCommit(false);
@@ -1607,18 +1607,135 @@ public class DataAccess {
 
             while (rs.next()) {
                 list.add(new SystemUser(
-                    rs.getInt("userID"),
-                    rs.getString("name"),
-                    rs.getString("username"),
-                    rs.getString("email"),
-                    rs.getString("password"),
-                    rs.getString("role"),
-                    rs.getInt("createdBy")
+                        rs.getInt("userID"),
+                        rs.getString("name"),
+                        rs.getString("username"),
+                        rs.getString("email"),
+                        rs.getString("password"),
+                        rs.getString("role"),
+                        rs.getInt("createdBy")
                 ));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return list;
+    }
+
+    // =========================================================================
+    // UPDATE ATTENDANCE – Member 3
+    // =========================================================================
+
+    /** Returns class schedules assigned to the given checker (assignedChecker = checkerID). */
+    public List<ClassSchedule> getSchedulesByCheckerID(int checkerID) {
+        List<ClassSchedule> list = new ArrayList<>();
+        String sql = "SELECT s.*, i.name AS instructorName " +
+                "FROM classschedule s " +
+                "LEFT JOIN instructor i ON s.instructID = i.instructID " +
+                "WHERE s.assignedChecker = ? " +
+                "ORDER BY s.startTime";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, checkerID);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    ClassSchedule cs = new ClassSchedule(
+                            rs.getString("classCode"),
+                            rs.getString("courseNo"),
+                            rs.getTime("startTime"),
+                            rs.getTime("endTime"),
+                            rs.getString("days"),
+                            (Integer) rs.getObject("roomID"),
+                            (Integer) rs.getObject("assignedInstructID")
+                    );
+                    cs.setInstructorName(rs.getString("instructorName"));
+                    cs.setAssignedChecker(checkerID);
+                    list.add(cs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /** Returns the existing attendance record for a class on a given date, or null if none. */
+    public Attendance getAttendanceForClass(String classCode, java.sql.Date date) {
+        String sql = "SELECT * FROM attendance WHERE classCode = ? AND startDate = ? LIMIT 1";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, classCode);
+            stmt.setDate(2, date);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Attendance(
+                            rs.getString("classCode"),
+                            rs.getObject("assignedInstructID") != null ? rs.getInt("assignedInstructID") : null,
+                            rs.getDate("startDate"),
+                            rs.getString("instructorStatus"),
+                            rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0,
+                            rs.getObject("leaveRequestID") != null ? rs.getInt("leaveRequestID") : null,
+                            false
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Updates the status of an existing attendance record Or inserts a new one
+     * if no record exists for the given Class and date. Returns true on success.
+     */
+    public boolean upsertAttendance(String classCode, java.sql.Date date,
+                                    String status, int checkerID, Integer instructID) {
+        if (getAttendanceForClass(classCode, date) != null) {
+            // UPDATE existing record
+            String sql = "UPDATE attendance " +
+                    "SET instructorStatus = ?, checkedBy = ? " +
+                    "WHERE classCode = ? AND startDate = ?";
+
+            try (Connection conn = DataPB.getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                stmt.setString(1, status);
+                stmt.setInt(2, checkerID);
+                stmt.setString(3, classCode);
+                stmt.setDate(4, date);
+                return stmt.executeUpdate() > 0;
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
+        } else {
+            // INSERT new record
+            String sql = "INSERT INTO attendance " +
+                    "(classCode, assignedInstructID, startDate, endDate, instructorStatus, checkedBy) " +
+                    "VALUES (?, ?, ?, ?, ?, ?)";
+
+            try (Connection conn = DataPB.getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+                stmt.setString(1, classCode);
+                if (instructID != null) stmt.setInt(2, instructID);
+                else                    stmt.setNull(2, java.sql.Types.INTEGER);
+                stmt.setDate(3, date);
+                stmt.setDate(4, date); // endDate same as startDate for a single-day entry
+                stmt.setString(5, status);
+                stmt.setInt(6, checkerID);
+                return stmt.executeUpdate() > 0;
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
     }
 }
