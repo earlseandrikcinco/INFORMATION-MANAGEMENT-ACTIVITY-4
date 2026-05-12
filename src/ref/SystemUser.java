@@ -8,6 +8,8 @@ public class SystemUser {
     private String password;
     private String role;
     private Integer createdBy;
+    private String approvalCode;    // For admin
+    private int building;   // For checker
 
     public SystemUser (int userID, String name, String username, String email, String password, String role, Integer createdBy) {
         this.userID = userID;
@@ -39,6 +41,13 @@ public class SystemUser {
     }
     public Integer getCreatedBy() {return createdBy;}
 
+    public int getBuilding() {
+        return "Checker".equalsIgnoreCase(this.role) ? this.building : 0;
+    }
+    public String getApprovalCode() {
+        return "Admin".equalsIgnoreCase(this.role) ? this.approvalCode : null;
+    }
+
     public void setUserID(int userID) {this.userID = userID;}
     public void setName(String name) {this.name = name;}
     public void setUsername(String username) {this.username = username;}
@@ -46,6 +55,8 @@ public class SystemUser {
     public void setRole(String role) {this.role = role;}
     public void setEmail(String email) {this.email = email;}
     public void setCreatedBy(Integer createdBy) {this.createdBy = createdBy;}
+    public void setBuilding(int building) {this.building = building;}
+    public void setApprovalCode(String approvalCode) {this.approvalCode = approvalCode;}
 
     @Override
     public String toString(){

@@ -2,9 +2,7 @@ package gui;
 
 import app.AppController;
 import app.DataAccess;
-import ref.DeptHead;
 import ref.Instructor;
-import ref.Secretary;
 import ref.SystemUser;
 
 import javax.swing.*;

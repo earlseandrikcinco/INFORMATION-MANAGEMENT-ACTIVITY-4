@@ -10,8 +10,8 @@ public class LeaveRequest {
     private Date endDate;
     private String status;
     private Integer approvedBy;
-    private String instructorName;
     private String leaveReason;
+    private String instructorName;
 
     public LeaveRequest(int leaveReqID, int instructID, String leaveType,
                         Date startDate, Date endDate, String status, Integer approvedBy) {

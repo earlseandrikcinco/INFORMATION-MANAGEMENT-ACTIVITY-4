@@ -2,7 +2,6 @@ package gui;
 
 import app.AppController;
 import app.DataAccess;
-import ref.DeptHead;
 import ref.LeaveRequest;
 import ref.SystemUser;
 
