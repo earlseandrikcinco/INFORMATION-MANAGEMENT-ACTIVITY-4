@@ -630,28 +630,53 @@ BEGIN
     DECLARE v_end DATE;
     DECLARE v_instructID INT;
     DECLARE v_curr DATE;
+    DECLARE v_dayLetter VARCHAR(5);
 
-    SELECT startDate, endDate, instructID INTO v_start, v_end, v_instructID
-    FROM leaverequest WHERE leaveRequestID = p_leaveRequestID;
+    SELECT startDate, endDate, instructID
+    INTO v_start, v_end, v_instructID
+    FROM leaverequest
+    WHERE leaveRequestID = p_leaveRequestID;
 
     SET v_curr = v_start;
 
     WHILE v_curr <= v_end DO
-        -- Map day of week to your letter system (M, T, W, Th, F, S)
-        SET @dayLetter = CASE DAYOFWEEK(v_curr)
-            WHEN 2 THEN 'M' WHEN 3 THEN 'T' WHEN 4 THEN 'W'
-            WHEN 5 THEN 'Th' WHEN 6 THEN 'F' WHEN 7 THEN 'S'
-            ELSE '' END;
 
-        INSERT INTO attendance (classCode, instructID, startDate, endDate, instructorStatus, leaveRequestID)
-        SELECT classCode, v_instructID, v_curr, v_curr, 'Absent', p_leaveRequestID
-        FROM classschedule
-        WHERE instructID = v_instructID AND days LIKE CONCAT('%', @dayLetter, '%')
-        ON DUPLICATE KEY UPDATE 
-            instructorStatus = 'Absent', 
-            leaveRequestID = p_leaveRequestID;
+        SET v_dayLetter = CASE DAYOFWEEK(v_curr)
+            WHEN 2 THEN 'M'
+            WHEN 3 THEN 'T'
+            WHEN 4 THEN 'W'
+            WHEN 5 THEN 'Th'
+            WHEN 6 THEN 'F'
+            WHEN 7 THEN 'S'
+            ELSE ''
+        END;
+
+        INSERT INTO attendance
+        (
+            startDate,
+            endDate,
+            instructorStatus,
+            remarks,
+            classCode,
+            actualInstructID,
+            leaveRequestID,
+            checkedBy
+        )
+        SELECT
+            v_curr,
+            v_curr,
+            'Absent',
+            'Auto-generated from approved leave request',
+            cs.classCode,
+            NULL,
+            p_leaveRequestID,
+            NULL
+        FROM classschedule cs
+        WHERE cs.instructID = v_instructID
+          AND cs.days LIKE CONCAT('%', v_dayLetter, '%');
 
         SET v_curr = DATE_ADD(v_curr, INTERVAL 1 DAY);
+
     END WHILE;
 END ;;
 DELIMITER ;
@@ -671,17 +696,62 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_UpsertAttendance`(
     IN p_classCode VARCHAR(50),
-    IN p_instructID INT,
     IN p_date DATE,
     IN p_status VARCHAR(50),
-    IN p_checkerID INT
+    IN p_checkerID INT,
+    IN p_actualInstructorID INT,
+    IN p_leaveRequestID INT,
+    IN p_remarks TEXT
 )
 BEGIN
-    INSERT INTO attendance (classCode, instructID, startDate, endDate, instructorStatus, checkedBy)
-    VALUES (p_classCode, p_instructID, p_date, p_date, p_status, p_checkerID)
-    ON DUPLICATE KEY UPDATE 
-        instructorStatus = VALUES(instructorStatus),
-        checkedBy = VALUES(checkedBy);
+
+    DECLARE existing_count INT;
+
+    SELECT COUNT(*)
+    INTO existing_count
+    FROM attendance
+    WHERE classCode = p_classCode
+      AND startDate = p_date;
+
+    IF existing_count = 0 THEN
+
+        INSERT INTO attendance
+        (
+            startDate,
+            endDate,
+            instructorStatus,
+            remarks,
+            classCode,
+            actualInstructID,
+            leaveRequestID,
+            checkedBy
+        )
+        VALUES
+        (
+            p_date,
+            p_date,
+            p_status,
+            p_remarks,
+            p_classCode,
+            p_actualInstructorID,
+            p_leaveRequestID,
+            p_checkerID
+        );
+
+    ELSE
+
+        UPDATE attendance
+        SET
+            instructorStatus = p_status,
+            remarks = p_remarks,
+            actualInstructID = p_actualInstructorID,
+            leaveRequestID = p_leaveRequestID,
+            checkedBy = p_checkerID
+        WHERE classCode = p_classCode
+          AND startDate = p_date;
+
+    END IF;
+
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -698,4 +768,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-13 23:14:21
+-- Dump completed on 2026-05-13 23:59:42

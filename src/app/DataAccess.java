@@ -1115,48 +1115,6 @@ public class DataAccess {
         }
     }
 
-    public void syncLeaveToAttendance(LeaveRequest leave) {
-        List<ClassSchedule> schedules = getAllClassSchedulesByInstructor(leave.getInstructID());
-
-        String sql = "INSERT INTO attendance (classCode, startDate, endDate, instructorStatus, leaveRequestID) " +
-                "VALUES (?, ?, ?, ?, ?)" +
-                "ON DUPLICATE KEY UPDATE instructorStatus = VALUES(instructorStatus), leaveRequestID = VALUES(leaveRequestID)";
-
-        try (Connection conn = DataPB.getConnection()) {
-            conn.setAutoCommit(false);
-            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-                java.util.Calendar cal = java.util.Calendar.getInstance();
-                cal.setTime(leave.getStartDate());
-
-                while (!cal.getTime().after(leave.getEndDate())) {
-                    java.sql.Date currentDate = new java.sql.Date(cal.getTimeInMillis());
-                    String currentDayLetter = getDayLetter(cal.get(java.util.Calendar.DAY_OF_WEEK));
-
-                    for (ClassSchedule s : schedules) {
-                        if (s.getDays().contains(currentDayLetter)) {
-                            stmt.setString(1, s.getClassCode());
-                            stmt.setDate(2, currentDate);
-                            stmt.setDate(3, currentDate);
-                            stmt.setString(4, "Absent");
-                            stmt.setInt(5, leave.getLeaveRequestID());;
-
-                            stmt.addBatch();
-                        }
-                    }
-                    cal.add(java.util.Calendar.DATE, 1);
-                }
-                stmt.executeBatch();
-                conn.commit();
-            } catch (SQLException e) {
-                conn.rollback();
-                throw e;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
     private String getDayLetter(int dayOfWeek) {
         return switch (dayOfWeek) {
             case java.util.Calendar.MONDAY -> "M";
@@ -1221,29 +1179,42 @@ public class DataAccess {
         }
     }
 
-    public boolean upsertAttendance(String classCode,
-                                    Integer instructID,
-                                    Date date,
-                                    String status,
-                                    int checkerID) {
+    public boolean upsertAttendance(
+            String classCode,
+            Date date,
+            String status,
+            int checkerID,
+            Integer actualInstructorID,
+            Integer leaveRequestID,
+            String remarks) {
 
-        String sql = "{CALL sp_UpsertAttendance(?, ?, ?, ?, ?)}";
+        String sql = "{CALL sp_UpsertAttendance(?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection conn = DataPB.getConnection();
              CallableStatement stmt = conn.prepareCall(sql)) {
 
             stmt.setString(1, classCode);
 
-            if (instructID != null)
-                stmt.setInt(2, instructID);
-            else
-                stmt.setNull(2, Types.INTEGER);
+            stmt.setDate(2, date);
 
-            stmt.setDate(3, date);
-            stmt.setString(4, status);
-            stmt.setInt(5, checkerID);
+            stmt.setString(3, status);
+
+            stmt.setInt(4, checkerID);
+
+            if (actualInstructorID != null)
+                stmt.setInt(5, actualInstructorID);
+            else
+                stmt.setNull(5, Types.INTEGER);
+
+            if (leaveRequestID != null)
+                stmt.setInt(6, leaveRequestID);
+            else
+                stmt.setNull(6, Types.INTEGER);
+
+            stmt.setString(7, remarks);
 
             stmt.execute();
+
             return true;
 
         } catch (SQLException e) {
