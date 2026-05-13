@@ -93,7 +93,11 @@ public class UpdateLeaveRequestPanel extends BasePanel {
     }
 
     private int getDeptID() {
-        if (currentUser.getRole().equalsIgnoreCase("DeptHead")) return currentUser.getDepartmentID();
+        if (currentUser.getRole().equalsIgnoreCase("DeptHead")) {
+            Integer id = currentUser.getDepartmentID();
+
+            return (id != null) ? id : -1;
+        }
         return -1;
     }
 
