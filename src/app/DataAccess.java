@@ -9,7 +9,6 @@ import java.util.List;
 
 public class DataAccess {
     public SystemUser getUser(String username) {
-        // departmentID is now in systemuser
         String sql = "SELECT * FROM systemuser WHERE username = ?";
 
         try (Connection conn = DataPB.getConnection();

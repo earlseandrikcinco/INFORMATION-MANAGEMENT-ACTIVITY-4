@@ -49,7 +49,7 @@ public class SystemUser {
     public String getEmail(){
         return email;
     }
-    public int getDepartmentID() {return departmentID;}
+    public Integer getDepartmentID() {return departmentID;}
     public Integer getCreatedBy() {return createdBy;}
 
     public List<CheckerDetail> getCheckerDetails() {
@@ -67,7 +67,7 @@ public class SystemUser {
     public void setEmail(String email) {this.email = email;}
     public void setCreatedBy(Integer createdBy) {this.createdBy = createdBy;}
     public void setCheckerDetails(List<CheckerDetail> checkerDetails) {this.checkerDetails = checkerDetails;}
-    public void setDepartmentID(int departmentID) {this.departmentID = departmentID;}
+    public void setDepartmentID(Integer departmentID) {this.departmentID = departmentID;}
     public void setApprovalCode(String approvalCode) {this.approvalCode = approvalCode;}
 
     @Override

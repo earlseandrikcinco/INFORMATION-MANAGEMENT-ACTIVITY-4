@@ -42,11 +42,11 @@ public class AppController {
             frame.showPanel(new LoginPanel(this));
             return;
         }
-        switch (currentUser.getRole()) {
-            case "Admin"     -> frame.showPanel(new AdminDashboard(this));
-            case "Secretary" -> frame.showPanel(new SecretaryDashboard(this));
-            case "DeptHead"  -> frame.showPanel(new DeptHeadDashboard(this));
-            case "Checker"   -> frame.showPanel(new CheckerDashboard(this));
+        switch (currentUser.getRole().toUpperCase()) {
+            case "ADMIN"     -> frame.showPanel(new AdminDashboard(this));
+            case "SECRETARY" -> frame.showPanel(new SecretaryDashboard(this));
+            case "DEPTHEAD"  -> frame.showPanel(new DeptHeadDashboard(this));
+            case "CHECKER"   -> frame.showPanel(new CheckerDashboard(this));
             default          -> frame.showError("Unknown role: " + currentUser.getRole());
         }
     }
