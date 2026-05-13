@@ -1193,34 +1193,72 @@ public class DataAccess {
         try (Connection conn = DataPB.getConnection();
              CallableStatement stmt = conn.prepareCall(sql)) {
 
-            stmt.setString(1, classCode);
+                stmt.setString(1, classCode);
 
-            stmt.setDate(2, date);
+                stmt.setDate(2, date);
 
-            stmt.setString(3, status);
+                stmt.setString(3, status);
 
-            stmt.setInt(4, checkerID);
+                stmt.setInt(4, checkerID);
 
-            if (actualInstructorID != null)
-                stmt.setInt(5, actualInstructorID);
-            else
-                stmt.setNull(5, Types.INTEGER);
+                if (actualInstructorID != null)
+                    stmt.setInt(5, actualInstructorID);
+                else
+                    stmt.setNull(5, Types.INTEGER);
 
-            if (leaveRequestID != null)
-                stmt.setInt(6, leaveRequestID);
-            else
-                stmt.setNull(6, Types.INTEGER);
+                if (leaveRequestID != null)
+                    stmt.setInt(6, leaveRequestID);
+                else
+                    stmt.setNull(6, Types.INTEGER);
 
-            stmt.setString(7, remarks);
-
-            stmt.execute();
-
-            return true;
+                stmt.setString(7, remarks);
+                stmt.execute();
+                return true;
 
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public LeaveRequest getApprovedLeaveForInstructorOnDate(int instructorID, java.sql.Date date) {
+        String sql =
+                "SELECT lr.*, i.name AS instructorName " +
+                        "FROM   leaverequest lr " +
+                        "JOIN   instructor   i  ON lr.instructID = i.instructID " +
+                        "WHERE  lr.instructID = ? " +
+                        "  AND  lr.status     = 'Approved' " +
+                        "  AND  lr.startDate  <= ? " +
+                        "  AND  lr.endDate    >= ? " +
+                        "LIMIT 1";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, instructorID);
+            stmt.setDate(2, date);
+            stmt.setDate(3, date);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    LeaveRequest lr = new LeaveRequest(
+                            rs.getInt("leaveRequestID"),
+                            rs.getString("leaveType"),
+                            rs.getDate("startDate"),
+                            rs.getDate("endDate"),
+                            rs.getString("status"),
+                            rs.getString("leaveReason"),
+                            rs.getInt("instructID"),
+                            (Integer) rs.getObject("approvedBy")
+                    );
+                    lr.setInstructorName(rs.getString("instructorName"));
+                    return lr;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public double getInstructorAttendanceRate(int instructID) {

@@ -22,11 +22,25 @@ public class UpdateAttendancePanel extends BasePanel {
     private final DataAccess  db;
     private final SystemUser  currentUser;
 
-    private DefaultTableModel tableModel;
-    private JTable            table;
+    private DefaultTableModel   tableModel;
+    private JTable              table;
     private List<ClassSchedule> displayedSchedules;
-    private JButton           scopeBtn;
-    private boolean           showingAll = false;
+    private JButton             scopeBtn;
+    private boolean             showingAll = false;
+
+    // Status code ↔ label mapping (kept in one place so both arrays stay in sync)
+    private static final String[] STATUS_LABELS = {
+            "Present",
+            "Absent (Unexcused)",
+            "Sick Leave",
+            "Official Business",
+            "Personal Leave"
+    };
+    private static final String[] STATUS_CODES = {"P", "A", "SL", "OB", "PL"};
+
+    // Statuses that require a leave request lookup
+    private static final java.util.Set<String> LEAVE_STATUSES =
+            java.util.Set.of("SL", "OB", "PL");
 
     public UpdateAttendancePanel(AppController controller, DataAccess db, SystemUser currentUser) {
         super(controller);
@@ -34,6 +48,8 @@ public class UpdateAttendancePanel extends BasePanel {
         this.currentUser = currentUser;
         buildUI();
     }
+
+    // ── Panel scaffold ────────────────────────────────────────────────────────
 
     private void buildUI() {
         String subtitle = isChecker()
@@ -80,7 +96,6 @@ public class UpdateAttendancePanel extends BasePanel {
         body.add(UIHelper.scroll(table), BorderLayout.CENTER);
         add(body, BorderLayout.CENTER);
 
-        // Action buttons
         JButton markBtn = UIHelper.button("Mark Attendance →");
         markBtn.addActionListener(e -> markSelected());
         add(bottomBar(markBtn), BorderLayout.SOUTH);
@@ -123,16 +138,18 @@ public class UpdateAttendancePanel extends BasePanel {
         showMarkDialog(displayedSchedules.get(row));
     }
 
+    // ── Mark / edit dialog ────────────────────────────────────────────────────
+
     private void showMarkDialog(ClassSchedule cs) {
         JDialog dialog = new JDialog(
                 SwingUtilities.getWindowAncestor(this),
                 "Record Attendance  —  " + cs.getClassCode(),
                 java.awt.Dialog.ModalityType.APPLICATION_MODAL);
-        dialog.setSize(420, 290);
+        dialog.setSize(460, 400);
         dialog.setResizable(false);
         dialog.setLocationRelativeTo(this);
 
-        // Dialog header
+        // ── Header ──────────────────────────────────────────────────────────
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(UIHelper.ACCENT);
         header.setBorder(BorderFactory.createEmptyBorder(10, 14, 10, 14));
@@ -143,51 +160,91 @@ public class UpdateAttendancePanel extends BasePanel {
         subLbl.setFont(UIHelper.FONT_SUB);
         subLbl.setForeground(new Color(200, 210, 255));
         header.add(titleLbl, BorderLayout.WEST);
-        header.add(subLbl, BorderLayout.SOUTH);
+        header.add(subLbl,   BorderLayout.SOUTH);
 
-        // Form fields
-        JPanel grid = new JPanel(new GridLayout(3, 2, 6, 10));
-        grid.setBackground(UIHelper.BG);
-        grid.setBorder(BorderFactory.createEmptyBorder(16, 18, 8, 18));
+        // ── Form ────────────────────────────────────────────────────────────
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBackground(UIHelper.BG);
+        form.setBorder(BorderFactory.createEmptyBorder(16, 18, 8, 18));
+        GridBagConstraints lc = new GridBagConstraints();
+        lc.anchor = GridBagConstraints.WEST;
+        lc.insets = new Insets(5, 0, 5, 10);
+        lc.gridx  = 0;
+        GridBagConstraints fc = new GridBagConstraints();
+        fc.fill   = GridBagConstraints.HORIZONTAL;
+        fc.weightx = 1.0;
+        fc.insets  = new Insets(5, 0, 5, 0);
+        fc.gridx   = 1;
 
+        // Date spinner
         SpinnerDateModel dateModel = new SpinnerDateModel();
         JSpinner dateSpinner = new JSpinner(dateModel);
         dateSpinner.setEditor(new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd"));
 
-        String[] statusLabels = {"Present", "Absent (Unexcused)", "Sick Leave", "Official Business", "Personal Leave"};
-        JComboBox<String> statusCombo = new JComboBox<>(statusLabels);
+        // Status combo
+        JComboBox<String> statusCombo = new JComboBox<>(STATUS_LABELS);
 
+        // Existing-record note
         JLabel existingNote = new JLabel(" ");
         existingNote.setFont(UIHelper.FONT_SUB.deriveFont(Font.ITALIC));
 
-        grid.add(fieldLabel("Date:"));       grid.add(dateSpinner);
-        grid.add(fieldLabel("Status:"));     grid.add(statusCombo);
-        grid.add(new JLabel());              grid.add(existingNote);
+        // Remarks field  ← NEW
+        JTextArea remarksArea = new JTextArea(3, 20);
+        remarksArea.setLineWrap(true);
+        remarksArea.setWrapStyleWord(true);
+        remarksArea.setFont(UIHelper.FONT_SUB);
+        JScrollPane remarksScroll = new JScrollPane(remarksArea);
+        remarksScroll.setBorder(BorderFactory.createLineBorder(UIHelper.BORDER));
 
-        // Refresh existing record note whenever date changes
-        String[] statusCodes = {"P", "A", "SL", "OB", "PL"};
+        lc.gridy = 0; fc.gridy = 0;
+        form.add(fieldLabel("Date:"),    lc);
+        form.add(dateSpinner,            fc);
+
+        lc.gridy = 1; fc.gridy = 1;
+        form.add(fieldLabel("Status:"),  lc);
+        form.add(statusCombo,            fc);
+
+        lc.gridy = 2; fc.gridy = 2;
+        form.add(new JLabel(),           lc);
+        form.add(existingNote,           fc);
+
+        lc.gridy = 3; fc.gridy = 3;
+        lc.anchor = GridBagConstraints.NORTHWEST;
+        form.add(fieldLabel("Remarks:"), lc);
+        form.add(remarksScroll,          fc);
+        lc.anchor = GridBagConstraints.WEST; // reset
+
+        // ── Refresh note + pre-fill when date changes ────────────────────────
         Runnable refreshNote = () -> {
-            java.util.Date d = (java.util.Date) dateSpinner.getValue();
-            Date sqlDate = new Date(d.getTime());
+            java.util.Date d  = (java.util.Date) dateSpinner.getValue();
+            Date sqlDate       = new Date(d.getTime());
             Attendance existing = db.getAttendanceForClass(cs.getClassCode(), sqlDate);
+
             if (existing != null) {
                 existingNote.setText("⚠ Record exists (" + translateStatus(existing.getInstructorStatus()) + ") — will overwrite.");
                 existingNote.setForeground(new Color(180, 100, 0));
-                for (int i = 0; i < statusCodes.length; i++) {
-                    if (statusCodes[i].equals(existing.getInstructorStatus())) {
+
+                // Pre-fill status
+                for (int i = 0; i < STATUS_CODES.length; i++) {
+                    if (STATUS_CODES[i].equals(existing.getInstructorStatus())) {
                         statusCombo.setSelectedIndex(i);
                         break;
                     }
                 }
+                // Pre-fill remarks  ← NEW
+                remarksArea.setText(existing.getRemarks() != null ? existing.getRemarks() : "");
+
             } else {
                 existingNote.setText("No record yet — a new entry will be created.");
                 existingNote.setForeground(UIHelper.TEXT_MID);
+                remarksArea.setText("");
             }
         };
+
         dateSpinner.addChangeListener(e -> refreshNote.run());
         refreshNote.run();
 
-        // Footer buttons
+        // ── Footer ───────────────────────────────────────────────────────────
         JPanel foot = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
         foot.setBackground(UIHelper.BG);
         foot.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, UIHelper.BORDER));
@@ -197,14 +254,60 @@ public class UpdateAttendancePanel extends BasePanel {
 
         JButton saveBtn = UIHelper.button("Save");
         saveBtn.setPreferredSize(new Dimension(90, 34));
+
         saveBtn.addActionListener(e -> {
             java.util.Date d = (java.util.Date) dateSpinner.getValue();
             Date sqlDate     = new Date(d.getTime());
-            String code      = statusCodes[statusCombo.getSelectedIndex()];
+            String code      = STATUS_CODES[statusCombo.getSelectedIndex()];
+            String remarks   = remarksArea.getText().trim();   // ← from the new field
 
+            // ── Resolve leaveRequestID ────────────────────────────────────
+            //
+            // Strategy (pure panel-side, no changes to upsertAttendance):
+            //
+            // 1. If an existing attendance record already exists for this
+            //    class/date, reuse its leaveRequestID so we don't lose the link.
+            //
+            // 2. If the chosen status is a leave type (SL, OB, PL) and there
+            //    is no existing record (or it had no leaveRequestID), look up
+            //    an approved leave for the instructor that covers the chosen date.
+            //    This requires one small DataAccess method — see note below.
+            //
+            // 3. For "Present" (P) or "Absent unexcused" (A), leaveRequestID
+            //    is always null.
+
+            Integer leaveRequestID = null;
+
+            Attendance existing = db.getAttendanceForClass(cs.getClassCode(), sqlDate);
+
+            if (existing != null && existing.getLeaveRequestID() != null) {
+                // Case 1 — keep the existing link
+                leaveRequestID = existing.getLeaveRequestID();
+
+            } else if (LEAVE_STATUSES.contains(code) && cs.getInstructID() != null) {
+                // Case 2 — look up an approved leave that covers this date
+                // This calls the one new DataAccess method described below.
+                LeaveRequest matchedLeave = db.getApprovedLeaveForInstructorOnDate(
+                        cs.getInstructID(), sqlDate);
+                if (matchedLeave != null) {
+                    leaveRequestID = matchedLeave.getLeaveRequestID();
+                }
+                // If no approved leave found, leaveRequestID stays null.
+                // That's valid — a checker may record a leave status before
+                // the leave request is approved.
+            }
+            // Case 3 — P or A: leaveRequestID remains null (already set above)
+
+            // ── Call upsert ───────────────────────────────────────────────
             boolean ok = db.upsertAttendance(
-                    cs.getClassCode(), sqlDate, code,
-                    currentUser.getUserID(), cs.getInstructID());
+                    cs.getClassCode(),
+                    sqlDate,
+                    code,
+                    currentUser.getUserID(),    // checkerID
+                    cs.getInstructID(),         // actualInstructorID (assigned instructor)
+                    leaveRequestID,
+                    remarks.isEmpty() ? null : remarks
+            );
 
             if (ok) {
                 JOptionPane.showMessageDialog(dialog,
@@ -222,11 +325,12 @@ public class UpdateAttendancePanel extends BasePanel {
         foot.add(saveBtn);
 
         dialog.add(header, BorderLayout.NORTH);
-        dialog.add(grid,   BorderLayout.CENTER);
+        dialog.add(form,   BorderLayout.CENTER);
         dialog.add(foot,   BorderLayout.SOUTH);
         dialog.setVisible(true);
     }
 
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private boolean isChecker() {
         return "Checker".equals(currentUser.getRole());

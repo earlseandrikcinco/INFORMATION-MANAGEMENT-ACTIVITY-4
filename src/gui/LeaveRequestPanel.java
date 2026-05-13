@@ -263,7 +263,7 @@ public class LeaveRequestPanel extends BasePanel {
             JButton syncBtn = UIHelper.button("Sync to Attendance");
 
             syncBtn.addActionListener(e -> {
-                db.syncLeaveToAttendance(lr);
+                db.syncLeaveToAttendance(lr.getLeaveRequestID());
                 JOptionPane.showMessageDialog(dialog, "Absences updated in advance for this leave.");
                 dialog.dispose();
             });
