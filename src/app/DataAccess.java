@@ -169,31 +169,27 @@ public class DataAccess {
         return rooms;
     }
 
-    // TODO Make it a stored procedure
+    // Stored procedure: sp_GetAllClassSchedules
     public List<ClassSchedule> getAllClassSchedules() {
         List<ClassSchedule> list = new ArrayList<>();
-        String sql = "SELECT s.*, i.name AS instructorName " +
-                "FROM classschedule s " +
-                "LEFT JOIN instructor i ON s.instructID = i.instructID " +
-                "ORDER BY s.startTime";
 
         try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+             CallableStatement cs = conn.prepareCall("{CALL sp_GetAllClassSchedules()}");
+             ResultSet rs = cs.executeQuery()) {
 
             while (rs.next()) {
-                ClassSchedule cs = new ClassSchedule(
-                        rs.getString("classCode") /* classCode is VARCHAR */,
+                ClassSchedule schedule = new ClassSchedule(
+                        rs.getString("classCode"),
                         rs.getString("courseNo"),
                         rs.getTime("startTime"),
                         rs.getTime("endTime"),
                         rs.getString("days"),
                         (Integer) rs.getObject("instructID"),
-                (Integer) rs.getObject("roomID"),
+                        (Integer) rs.getObject("roomID"),
                         (Integer) rs.getObject("assignedChecker")
-                        );
-                cs.setInstructorName(rs.getString("instructorName"));
-                list.add(cs);
+                );
+                schedule.setInstructorName(rs.getString("instructorName"));
+                list.add(schedule);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -201,26 +197,19 @@ public class DataAccess {
         return list;
     }
 
-    // TODO Call stored procedure then use WHERE deptID
+    // Stored procedure: sp_GetClassSchedulesByDept
     public List<ClassSchedule> getClassSchedulesByDept(int deptID) {
         List<ClassSchedule> list = new ArrayList<>();
 
-        String sql =
-                "SELECT s.*, i.name AS instructorName " +
-                        "FROM classschedule s " +
-                        "LEFT JOIN instructor i ON s.assignedInstructID = i.assignedInstructID " +
-                        "WHERE (i.departmentID = ? OR s.assignedInstructID IS NULL) " +
-                        "ORDER BY s.startTime";
-
         try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             CallableStatement cs = conn.prepareCall("{CALL sp_GetClassSchedulesByDept(?)}")) {
 
-            stmt.setInt(1, deptID);
+            cs.setInt(1, deptID);
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet rs = cs.executeQuery()) {
                 while (rs.next()) {
-                    ClassSchedule cs = new ClassSchedule(
-                            rs.getString("classCode") /* classCode is VARCHAR */,
+                    ClassSchedule schedule = new ClassSchedule(
+                            rs.getString("classCode"),
                             rs.getString("courseNo"),
                             rs.getTime("startTime"),
                             rs.getTime("endTime"),
@@ -229,8 +218,8 @@ public class DataAccess {
                             (Integer) rs.getObject("roomID"),
                             (Integer) rs.getObject("assignedChecker")
                     );
-                    cs.setInstructorName(rs.getString("instructorName"));
-                    list.add(cs);
+                    schedule.setInstructorName(rs.getString("instructorName"));
+                    list.add(schedule);
                 }
             }
         } catch (SQLException e) {
@@ -239,23 +228,19 @@ public class DataAccess {
         return list;
     }
 
-    // TODO Call stored procedure then use WHERE roomID
+    // Stored procedure: sp_GetClassSchedulesByRoom
     public List<ClassSchedule> getClassSchedulesByRoom(int roomID) {
         List<ClassSchedule> list = new ArrayList<>();
-        String sql = "SELECT s.*, i.name AS instructorName " +
-                "FROM classschedule s " +
-                "LEFT JOIN instructor i ON s.assignedInstructID = i.assignedInstructID " +
-                "WHERE s.roomID = ? " +
-                "ORDER BY FIELD(s.days, 'M', 'T', 'W', 'Th', 'F', 'S'), s.startTime";
 
         try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             CallableStatement cs = conn.prepareCall("{CALL sp_GetClassSchedulesByRoom(?)}")) {
 
-            stmt.setInt(1, roomID);
-            try (ResultSet rs = stmt.executeQuery()) {
+            cs.setInt(1, roomID);
+
+            try (ResultSet rs = cs.executeQuery()) {
                 while (rs.next()) {
-                    ClassSchedule cs = new ClassSchedule(
-                            rs.getString("classCode") /* classCode is VARCHAR */,
+                    ClassSchedule schedule = new ClassSchedule(
+                            rs.getString("classCode"),
                             rs.getString("courseNo"),
                             rs.getTime("startTime"),
                             rs.getTime("endTime"),
@@ -264,8 +249,8 @@ public class DataAccess {
                             (Integer) rs.getObject("roomID"),
                             (Integer) rs.getObject("assignedChecker")
                     );
-                    cs.setInstructorName(rs.getString("instructorName"));
-                    list.add(cs);
+                    schedule.setInstructorName(rs.getString("instructorName"));
+                    list.add(schedule);
                 }
             }
         } catch (SQLException e) {
@@ -274,23 +259,19 @@ public class DataAccess {
         return list;
     }
 
-    // TODO Call stored procedure then use WHERE instructID
-    public List<ClassSchedule> getClassSchedulesByInstructor(int assignedInstructID) {
+    // Stored procedure: sp_GetClassSchedulesByInstructor
+    public List<ClassSchedule> getClassSchedulesByInstructor(int instructID) {
         List<ClassSchedule> list = new ArrayList<>();
-        String sql = "SELECT s.*, r.building, r.floor " +
-                "FROM classschedule s " +
-                "LEFT JOIN ROOM r ON s.roomID = r.roomID " +
-                "WHERE s.assignedInstructID = ? " +
-                "ORDER BY FIELD(s.days, 'M', 'T', 'W', 'Th', 'F', 'S'), s.startTime";
 
         try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             CallableStatement cs = conn.prepareCall("{CALL sp_GetClassSchedulesByInstructor(?)}")) {
 
-            stmt.setInt(1, assignedInstructID);
-            try (ResultSet rs = stmt.executeQuery()) {
+            cs.setInt(1, instructID);
+
+            try (ResultSet rs = cs.executeQuery()) {
                 while (rs.next()) {
-                    ClassSchedule cs = new ClassSchedule(
-                            rs.getString("classCode") /* classCode is VARCHAR */,
+                    ClassSchedule schedule = new ClassSchedule(
+                            rs.getString("classCode"),
                             rs.getString("courseNo"),
                             rs.getTime("startTime"),
                             rs.getTime("endTime"),
@@ -299,8 +280,8 @@ public class DataAccess {
                             (Integer) rs.getObject("roomID"),
                             (Integer) rs.getObject("assignedChecker")
                     );
-                    cs.setInstructorName(rs.getString("instructorName"));
-                    list.add(cs);
+                    schedule.setInstructorName(rs.getString("instructorName"));
+                    list.add(schedule);
                 }
             }
         } catch (SQLException e) {
@@ -309,26 +290,21 @@ public class DataAccess {
         return list;
     }
 
-    // TODO Call stored procedure then use WHERE dayCode BETWEEN start, end
+    // Stored procedure: sp_GetClassSchedulesByTimeRange
     public List<ClassSchedule> getClassSchedulesByTimeRange(String dayCode, Time start, Time end) {
         List<ClassSchedule> list = new ArrayList<>();
-        String sql = "SELECT s.*, i.name AS instructorName " +
-                "FROM classschedule s " +
-                "LEFT JOIN instructor i ON s.assignedInstructID = i.assignedInstructID " +
-                "WHERE s.days REGEXP ? AND s.startTime >= ? AND s.endTime <= ? " +
-                "ORDER BY s.startTime";
 
         try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             CallableStatement cs = conn.prepareCall("{CALL sp_GetClassSchedulesByTimeRange(?, ?, ?)}")) {
 
-            stmt.setString(1, dayCode);
-            stmt.setTime(2, start);
-            stmt.setTime(3, end);
+            cs.setString(1, dayCode);
+            cs.setTime(2, start);
+            cs.setTime(3, end);
 
-            try (ResultSet rs = stmt.executeQuery()) {
+            try (ResultSet rs = cs.executeQuery()) {
                 while (rs.next()) {
-                    ClassSchedule cs = new ClassSchedule(
-                            rs.getString("classCode") /* classCode is VARCHAR */,
+                    ClassSchedule schedule = new ClassSchedule(
+                            rs.getString("classCode"),
                             rs.getString("courseNo"),
                             rs.getTime("startTime"),
                             rs.getTime("endTime"),
@@ -337,8 +313,8 @@ public class DataAccess {
                             (Integer) rs.getObject("roomID"),
                             (Integer) rs.getObject("assignedChecker")
                     );
-                    cs.setInstructorName(rs.getString("instructorName"));
-                    list.add(cs);
+                    schedule.setInstructorName(rs.getString("instructorName"));
+                    list.add(schedule);
                 }
             }
         } catch (SQLException e) { e.printStackTrace(); }
@@ -1599,7 +1575,7 @@ public class DataAccess {
         return list;
     }
 
-   // Update Attendance methods
+    // Update Attendance methods
 
     /** Returns class schedules assigned to the given checker (assignedChecker = checkerID). */
     public List<ClassSchedule> getSchedulesByCheckerID(int checkerID) {
