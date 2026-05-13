@@ -69,7 +69,7 @@ public class AppController {
 
     public void showLeaveRequests() {
         String role = currentUser.getRole();
-        if (!role.equals("Secretary") && !role.equals("DeptHead")) {
+        if (!role.equalsIgnoreCase("Secretary") && !role.equalsIgnoreCase("DeptHead")) {
             frame.showError("Insufficient privileges.");
             return;
         }
@@ -106,7 +106,7 @@ public class AppController {
 
     /** Admin – manage checker detail records. */
     public void showCheckerDetails() {
-        if (!"Admin".equals(currentUser.getRole())) {
+        if (!currentUser.getRole().equalsIgnoreCase("Admin")) {
             frame.showError("Insufficient privileges.");
             return;
         }

@@ -26,7 +26,8 @@ public class AttendanceRecordsPanel extends BasePanel {
         add(UIHelper.topBar("Attendance Records", "All Users"), BorderLayout.NORTH);
 
         DefaultTableModel model = new DefaultTableModel(
-                new String[]{"Date", "Course", "Instructor", "Status", "Leave Status", "Leave Type", "Reason"},
+                new String[]{"ID", "Class Code", "Date", "Status", "Remarks",
+                        "Assigned Instr. ID", "Actual Instr. ID", "Leave Req. ID", "Checked By"},
                 0
         ) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -36,11 +37,10 @@ public class AttendanceRecordsPanel extends BasePanel {
         for (Attendance a : list) {
             model.addRow(new Object[]{
                     a.getAttendanceID(),
+                    a.getClassCode(),
                     a.getStartDate(),
-                    a.getEndDate(),
                     a.getInstructorStatus(),
                     a.getRemarks(),
-                    a.getClassCode(),
                     a.getAssignedInstructID(),
                     a.getActualInstructID(),
                     a.getLeaveRequestID(),

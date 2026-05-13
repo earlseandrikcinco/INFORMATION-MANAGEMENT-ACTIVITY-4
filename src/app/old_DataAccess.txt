@@ -170,17 +170,13 @@ public class DataAccess {
         return rooms;
     }
 
+    // Stored procedure: sp_GetAllClassSchedules
     public List<ClassSchedule> getAllClassSchedules() {
         List<ClassSchedule> list = new ArrayList<>();
-        String sql =
-                "SELECT s.*, i.name AS instructorName " +
-                        "FROM classschedule s " +
-                        "LEFT JOIN instructor i ON s.instructID = i.instructID " +
-                        "ORDER BY s.startTime";
 
         try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+             CallableStatement cs = conn.prepareCall("{CALL sp_GetAllClassSchedules()}");
+             ResultSet rs = cs.executeQuery()) {
 
             while (rs.next()) {
                 ClassSchedule schedule = new ClassSchedule(
@@ -1197,27 +1193,27 @@ public class DataAccess {
         try (Connection conn = DataPB.getConnection();
              CallableStatement stmt = conn.prepareCall(sql)) {
 
-            stmt.setString(1, classCode);
+                stmt.setString(1, classCode);
 
-            stmt.setDate(2, date);
+                stmt.setDate(2, date);
 
-            stmt.setString(3, status);
+                stmt.setString(3, status);
 
-            stmt.setInt(4, checkerID);
+                stmt.setInt(4, checkerID);
 
-            if (actualInstructorID != null)
-                stmt.setInt(5, actualInstructorID);
-            else
-                stmt.setNull(5, Types.INTEGER);
+                if (actualInstructorID != null)
+                    stmt.setInt(5, actualInstructorID);
+                else
+                    stmt.setNull(5, Types.INTEGER);
 
-            if (leaveRequestID != null)
-                stmt.setInt(6, leaveRequestID);
-            else
-                stmt.setNull(6, Types.INTEGER);
+                if (leaveRequestID != null)
+                    stmt.setInt(6, leaveRequestID);
+                else
+                    stmt.setNull(6, Types.INTEGER);
 
-            stmt.setString(7, remarks);
-            stmt.execute();
-            return true;
+                stmt.setString(7, remarks);
+                stmt.execute();
+                return true;
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -1263,80 +1259,6 @@ public class DataAccess {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public List<Instructor> getAvailableSubstitutesForClass(
-            int assignedInstructID,
-            String absentDays,
-            java.sql.Time absentStart,
-            java.sql.Time absentEnd) {
-
-        // Build a REGEXP pattern that matches any day token found in absentDays.
-        // We must handle the T / Th ambiguity exactly like hasDay() does:
-        //   - "Th" → literal substring "Th"
-        //   - "T"  → "T" not followed by "h"  →  T([^h]|$)
-        // We OR all matching day patterns together.
-        StringBuilder dayRegex = new StringBuilder();
-        String[] dayTokens = {"M", "Th", "W", "F", "S", "T"};
-        for (String day : dayTokens) {
-            if (hasDay(absentDays, day)) {
-                if (dayRegex.length() > 0) dayRegex.append("|");
-                if (day.equals("Th")) {
-                    dayRegex.append("Th");
-                } else if (day.equals("T")) {
-                    dayRegex.append("T([^h]|$)");
-                } else {
-                    dayRegex.append(day);
-                }
-            }
-        }
-
-        // If the absent class has no recognisable days, return everyone (minus assignedInstructor).
-        if (dayRegex.length() == 0) {
-            return getAvailableSubstitutes(assignedInstructID);
-        }
-
-        // Subquery: instructor IDs who are busy during the absent class's slot.
-        // A conflict requires BOTH day overlap AND time overlap.
-        String sql =
-                "SELECT i.instructID, i.name, i.departmentID, d.departmentName " +
-                        "FROM   instructor i " +
-                        "JOIN   department d ON d.departmentID = i.departmentID " +
-                        "WHERE  i.instructID <> ? " +                     // exclude assigned instructor
-                        "  AND  i.instructID NOT IN ( " +
-                        "       SELECT cs.instructID " +
-                        "       FROM   classschedule cs " +
-                        "       WHERE  cs.instructID IS NOT NULL " +
-                        "         AND  cs.days REGEXP ? " +               // day overlap
-                        "         AND  cs.startTime < ? " +               // time overlap: their class starts before absent ends
-                        "         AND  cs.endTime   > ? " +               // time overlap: their class ends   after absent starts
-                        "  ) " +
-                        "ORDER BY i.name";
-
-        List<Instructor> list = new ArrayList<>();
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, assignedInstructID);
-            stmt.setString(2, dayRegex.toString());
-            stmt.setTime(3, absentEnd);     // their startTime < absentEnd
-            stmt.setTime(4, absentStart);   // their endTime   > absentStart
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    Instructor inst = new Instructor(
-                            rs.getInt("instructID"),
-                            rs.getString("name"),
-                            rs.getInt("departmentID")
-                    );
-                    inst.setDepartmentName(rs.getString("departmentName"));
-                    list.add(inst);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
     }
 
     public double getInstructorAttendanceRate(int instructID) {

@@ -44,8 +44,8 @@ public class ClassScheduleDetailDialog extends JDialog {
 
     private void buildUI() {
         String role = currentUser.getRole();
-        boolean canEditInstructor = role.equals("DeptHead") || role.equals("Secretary");
-        boolean canEditChecker    = role.equals("Admin") || canEditInstructor;
+        boolean canEditInstructor = role.equalsIgnoreCase("DeptHead") || role.equalsIgnoreCase("Secretary");
+        boolean canEditChecker    = role.equalsIgnoreCase("Admin") || canEditInstructor;
 
         JPanel root = new JPanel();
         root.setLayout(new BoxLayout(root, BoxLayout.Y_AXIS));
@@ -231,9 +231,9 @@ public class ClassScheduleDetailDialog extends JDialog {
      */
     private List<Instructor> getInstructorList() {
         String role = currentUser.getRole();
-        if (role.equals("DeptHead")) {
+        if (role.equalsIgnoreCase("DeptHead")) {
             return db.getInstructorsByDept(currentUser.getDepartmentID());
-        } else if (role.equals("Secretary")) {
+        } else if (role.equalsIgnoreCase("Secretary")) {
             return db.getInstructorsByDept(currentUser.getDepartmentID());
         }
         return db.getInstructors();

@@ -140,12 +140,17 @@ public class UpdateAttendancePanel extends BasePanel {
 
     // ── Mark / edit dialog ────────────────────────────────────────────────────
 
+    // Statuses that mean the assigned instructor was NOT physically present —
+    // a substitute is allowed for all of these, excused or not.
+    private static final java.util.Set<String> ABSENT_STATUSES =
+            java.util.Set.of("A", "SL", "OB", "PL");
+
     private void showMarkDialog(ClassSchedule cs) {
         JDialog dialog = new JDialog(
                 SwingUtilities.getWindowAncestor(this),
                 "Record Attendance  —  " + cs.getClassCode(),
                 java.awt.Dialog.ModalityType.APPLICATION_MODAL);
-        dialog.setSize(460, 400);
+        dialog.setSize(460, 460);
         dialog.setResizable(false);
         dialog.setLocationRelativeTo(this);
 
@@ -171,7 +176,7 @@ public class UpdateAttendancePanel extends BasePanel {
         lc.insets = new Insets(5, 0, 5, 10);
         lc.gridx  = 0;
         GridBagConstraints fc = new GridBagConstraints();
-        fc.fill   = GridBagConstraints.HORIZONTAL;
+        fc.fill    = GridBagConstraints.HORIZONTAL;
         fc.weightx = 1.0;
         fc.insets  = new Insets(5, 0, 5, 0);
         fc.gridx   = 1;
@@ -188,37 +193,103 @@ public class UpdateAttendancePanel extends BasePanel {
         JLabel existingNote = new JLabel(" ");
         existingNote.setFont(UIHelper.FONT_SUB.deriveFont(Font.ITALIC));
 
-        // Remarks field  ← NEW
+        // ── Substitute instructor picker ─────────────────────────────────────
+        // Populated (and re-populated on date change) using the time-aware method
+        // that excludes instructors who have a conflicting class on that day/time.
+        int excludeID = cs.getInstructID() != null ? cs.getInstructID() : -1;
+
+        JComboBox<Instructor> substituteCombo = new JComboBox<>();
+        substituteCombo.addItem(null);   // index 0 = "— None —"
+        substituteCombo.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                                                          int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value == null) setText("— None (no substitute) —");
+                else setText(((Instructor) value).getName());
+                return this;
+            }
+        });
+
+        // Label for the substitute row — toggled visible/invisible with the combo
+        JLabel substituteLbl = fieldLabel("Substitute:");
+        JLabel substituteHint = UIHelper.sub("Only shown when instructor is absent.");
+        substituteHint.setFont(UIHelper.FONT_SUB.deriveFont(Font.ITALIC));
+
+        // ── Layout rows ─────────────────────────────────────────────────────
+        lc.gridy = 0; fc.gridy = 0;
+        form.add(fieldLabel("Date:"),   lc);
+        form.add(dateSpinner,           fc);
+
+        lc.gridy = 1; fc.gridy = 1;
+        form.add(fieldLabel("Status:"), lc);
+        form.add(statusCombo,           fc);
+
+        lc.gridy = 2; fc.gridy = 2;
+        form.add(new JLabel(),          lc);
+        form.add(existingNote,          fc);
+
+        lc.gridy = 3; fc.gridy = 3;
+        form.add(substituteLbl,         lc);
+        form.add(substituteCombo,       fc);
+
+        lc.gridy = 4; fc.gridy = 4;
+        form.add(new JLabel(),          lc);
+        form.add(substituteHint,        fc);
+
+        lc.gridy = 5; fc.gridy = 5;
+        lc.anchor = GridBagConstraints.NORTHWEST;
+        form.add(fieldLabel("Remarks:"),lc);
         JTextArea remarksArea = new JTextArea(3, 20);
         remarksArea.setLineWrap(true);
         remarksArea.setWrapStyleWord(true);
         remarksArea.setFont(UIHelper.FONT_SUB);
         JScrollPane remarksScroll = new JScrollPane(remarksArea);
         remarksScroll.setBorder(BorderFactory.createLineBorder(UIHelper.BORDER));
+        form.add(remarksScroll,         fc);
+        lc.anchor = GridBagConstraints.WEST;
 
-        lc.gridy = 0; fc.gridy = 0;
-        form.add(fieldLabel("Date:"),    lc);
-        form.add(dateSpinner,            fc);
+        // ── Show/hide substitute row based on selected status ────────────────
+        Runnable updateSubstituteVisibility = () -> {
+            String selectedCode = STATUS_CODES[statusCombo.getSelectedIndex()];
+            boolean absent = ABSENT_STATUSES.contains(selectedCode);
+            substituteLbl.setVisible(absent);
+            substituteCombo.setVisible(absent);
+            substituteHint.setVisible(absent);
+            if (!absent) substituteCombo.setSelectedIndex(0); // reset to "None" when present
+        };
 
-        lc.gridy = 1; fc.gridy = 1;
-        form.add(fieldLabel("Status:"),  lc);
-        form.add(statusCombo,            fc);
-
-        lc.gridy = 2; fc.gridy = 2;
-        form.add(new JLabel(),           lc);
-        form.add(existingNote,           fc);
-
-        lc.gridy = 3; fc.gridy = 3;
-        lc.anchor = GridBagConstraints.NORTHWEST;
-        form.add(fieldLabel("Remarks:"), lc);
-        form.add(remarksScroll,          fc);
-        lc.anchor = GridBagConstraints.WEST; // reset
+        statusCombo.addActionListener(e -> updateSubstituteVisibility.run());
 
         // ── Refresh note + pre-fill when date changes ────────────────────────
         Runnable refreshNote = () -> {
-            java.util.Date d  = (java.util.Date) dateSpinner.getValue();
-            Date sqlDate       = new Date(d.getTime());
+            java.util.Date d    = (java.util.Date) dateSpinner.getValue();
+            Date sqlDate        = new Date(d.getTime());
             Attendance existing = db.getAttendanceForClass(cs.getClassCode(), sqlDate);
+
+            // Re-populate substitute list for this specific date.
+            // The chosen date determines the day-of-week, which determines
+            // which instructors have a conflicting class at this time slot.
+            Integer prevSubID = null;
+            Instructor prevSel = (Instructor) substituteCombo.getSelectedItem();
+            if (prevSel != null) prevSubID = prevSel.getInstructorID();
+
+            List<Instructor> subs = db.getAvailableSubstitutesForClass(
+                    excludeID, cs.getDays(), cs.getStartTime(), cs.getEndTime());
+            substituteCombo.removeAllItems();
+            substituteCombo.addItem(null);
+            for (Instructor inst : subs) substituteCombo.addItem(inst);
+
+            // Re-select previous choice if still in the list
+            if (prevSubID != null) {
+                for (int i = 1; i < substituteCombo.getItemCount(); i++) {
+                    Instructor inst = substituteCombo.getItemAt(i);
+                    if (inst != null && inst.getInstructorID() == prevSubID) {
+                        substituteCombo.setSelectedIndex(i);
+                        break;
+                    }
+                }
+            }
 
             if (existing != null) {
                 existingNote.setText("⚠ Record exists (" + translateStatus(existing.getInstructorStatus()) + ") — will overwrite.");
@@ -231,18 +302,33 @@ public class UpdateAttendancePanel extends BasePanel {
                         break;
                     }
                 }
-                // Pre-fill remarks  ← NEW
+                // Pre-fill remarks
                 remarksArea.setText(existing.getRemarks() != null ? existing.getRemarks() : "");
 
+                // Pre-fill substitute if one was previously recorded and is still available
+                if (existing.getActualInstructID() != null) {
+                    for (int i = 1; i < substituteCombo.getItemCount(); i++) {
+                        Instructor inst = substituteCombo.getItemAt(i);
+                        if (inst != null && inst.getInstructorID() == existing.getActualInstructID()) {
+                            substituteCombo.setSelectedIndex(i);
+                            break;
+                        }
+                    }
+                } else {
+                    substituteCombo.setSelectedIndex(0);
+                }
             } else {
                 existingNote.setText("No record yet — a new entry will be created.");
                 existingNote.setForeground(UIHelper.TEXT_MID);
                 remarksArea.setText("");
+                substituteCombo.setSelectedIndex(0);
             }
+
+            updateSubstituteVisibility.run();
         };
 
         dateSpinner.addChangeListener(e -> refreshNote.run());
-        refreshNote.run();
+        refreshNote.run();   // initial call
 
         // ── Footer ───────────────────────────────────────────────────────────
         JPanel foot = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 8));
@@ -259,52 +345,45 @@ public class UpdateAttendancePanel extends BasePanel {
             java.util.Date d = (java.util.Date) dateSpinner.getValue();
             Date sqlDate     = new Date(d.getTime());
             String code      = STATUS_CODES[statusCombo.getSelectedIndex()];
-            String remarks   = remarksArea.getText().trim();   // ← from the new field
+            String remarks   = remarksArea.getText().trim();
+
+            // ── Resolve substitute (actualInstructorID) ───────────────────
+            // If an absence status is selected AND a substitute was chosen,
+            // use the substitute's ID and override the status to "Substituted".
+            // For "Present" or no substitute chosen, pass the assigned instructor
+            // (null is also fine — upsert handles it).
+            Instructor chosenSub = (Instructor) substituteCombo.getSelectedItem();
+            Integer actualInstructorID;
+            if (ABSENT_STATUSES.contains(code) && chosenSub != null) {
+                actualInstructorID = chosenSub.getInstructorID();
+                code = "Substituted";   // override status — a sub means the class ran
+            } else {
+                // Present: actual instructor = assigned instructor
+                // Absent with no sub: null (class didn't run / unresolved)
+                actualInstructorID = "P".equals(code) ? cs.getInstructID() : null;
+            }
 
             // ── Resolve leaveRequestID ────────────────────────────────────
-            //
-            // Strategy (pure panel-side, no changes to upsertAttendance):
-            //
-            // 1. If an existing attendance record already exists for this
-            //    class/date, reuse its leaveRequestID so we don't lose the link.
-            //
-            // 2. If the chosen status is a leave type (SL, OB, PL) and there
-            //    is no existing record (or it had no leaveRequestID), look up
-            //    an approved leave for the instructor that covers the chosen date.
-            //    This requires one small DataAccess method — see note below.
-            //
-            // 3. For "Present" (P) or "Absent unexcused" (A), leaveRequestID
-            //    is always null.
-
             Integer leaveRequestID = null;
-
             Attendance existing = db.getAttendanceForClass(cs.getClassCode(), sqlDate);
 
             if (existing != null && existing.getLeaveRequestID() != null) {
-                // Case 1 — keep the existing link
                 leaveRequestID = existing.getLeaveRequestID();
-
             } else if (LEAVE_STATUSES.contains(code) && cs.getInstructID() != null) {
-                // Case 2 — look up an approved leave that covers this date
-                // This calls the one new DataAccess method described below.
                 LeaveRequest matchedLeave = db.getApprovedLeaveForInstructorOnDate(
                         cs.getInstructID(), sqlDate);
                 if (matchedLeave != null) {
                     leaveRequestID = matchedLeave.getLeaveRequestID();
                 }
-                // If no approved leave found, leaveRequestID stays null.
-                // That's valid — a checker may record a leave status before
-                // the leave request is approved.
             }
-            // Case 3 — P or A: leaveRequestID remains null (already set above)
 
             // ── Call upsert ───────────────────────────────────────────────
             boolean ok = db.upsertAttendance(
                     cs.getClassCode(),
                     sqlDate,
                     code,
-                    currentUser.getUserID(),    // checkerID
-                    cs.getInstructID(),         // actualInstructorID (assigned instructor)
+                    currentUser.getUserID(),
+                    actualInstructorID,
                     leaveRequestID,
                     remarks.isEmpty() ? null : remarks
             );
@@ -333,7 +412,7 @@ public class UpdateAttendancePanel extends BasePanel {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private boolean isChecker() {
-        return "Checker".equals(currentUser.getRole());
+        return "Checker".equalsIgnoreCase(currentUser.getRole());
     }
 
     private JLabel fieldLabel(String text) {
