@@ -9,8 +9,8 @@ public class ClassSchedule {
     private Time startTime;
     private Time endTime;
     private String days;
-    private Integer roomID;
     private Integer instructID;
+    private Integer roomID;
     private Integer assignedChecker; // FK → checker.checkerID
 
     // Resolved display names (not stored in DB)
@@ -24,17 +24,18 @@ public class ClassSchedule {
             Time startTime,
             Time endTime,
             String days,
+            Integer instructID,
             Integer roomID,
-            Integer instructID
+            Integer assignedChecker
     ) {
         this.classCode = classCode;
         this.courseNo = courseNo;
         this.startTime = startTime;
         this.endTime = endTime;
         this.days = days;
-        this.roomID = roomID;
         this.instructID = instructID;
-        this.assignedChecker = null;
+        this.roomID = roomID;
+        this.assignedChecker = assignedChecker;
     }
 
     // ── Getters ─────────────────────────────────────────

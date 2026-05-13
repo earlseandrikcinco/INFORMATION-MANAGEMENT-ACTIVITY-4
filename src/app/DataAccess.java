@@ -51,8 +51,8 @@ public class DataAccess {
         return null;
     }
 
-    public List<ref.CheckerDetail> getCheckerDetails(int userID) {
-        List<ref.CheckerDetail> list = new ArrayList<>();
+    public List<CheckerDetail> getCheckerDetails(int userID) {
+        List<CheckerDetail> list = new ArrayList<>();
         String sql = "SELECT cd.*, su.name AS checkerName " +
                 "FROM checkerdetails cd " +
                 "JOIN systemuser su ON cd.checkerID = su.userID " +
@@ -117,7 +117,7 @@ public class DataAccess {
                 rooms.add(new Room(
                         rs.getInt("roomID"),
                         rs.getString("building"),
-                        0 /* floor not in checker table */,
+                        rs.getInt("floor"),
                         rs.getInt("capacity"),
                         rs.getString("roomType")
                 ));
@@ -128,11 +128,12 @@ public class DataAccess {
         return rooms;
     }
 
+    // TODO Make it a stored procedure
     public List<ClassSchedule> getAllClassSchedules() {
         List<ClassSchedule> list = new ArrayList<>();
         String sql = "SELECT s.*, i.name AS instructorName " +
                 "FROM classschedule s " +
-                "LEFT JOIN instructor i ON s.assignedInstructID = i.assignedInstructID " +
+                "LEFT JOIN instructor i ON s.instructID = i.instructID " +
                 "ORDER BY s.startTime";
 
         try (Connection conn = DataPB.getConnection();
@@ -146,9 +147,10 @@ public class DataAccess {
                         rs.getTime("startTime"),
                         rs.getTime("endTime"),
                         rs.getString("days"),
-                        (Integer) rs.getObject("roomID"),
-                        (Integer) rs.getObject("assignedInstructID")
-                );
+                        (Integer) rs.getObject("instructID"),
+                (Integer) rs.getObject("roomID"),
+                        (Integer) rs.getObject("assignedChecker")
+                        );
                 cs.setInstructorName(rs.getString("instructorName"));
                 list.add(cs);
             }
@@ -158,7 +160,8 @@ public class DataAccess {
         return list;
     }
 
-    public List<ClassSchedule> getAllClassSchedulesByDept(int deptID) {
+    // TODO Call stored procedure then use WHERE deptID
+    public List<ClassSchedule> getClassSchedulesByDept(int deptID) {
         List<ClassSchedule> list = new ArrayList<>();
 
         String sql =
@@ -181,8 +184,9 @@ public class DataAccess {
                             rs.getTime("startTime"),
                             rs.getTime("endTime"),
                             rs.getString("days"),
+                            (Integer) rs.getObject("instructID"),
                             (Integer) rs.getObject("roomID"),
-                            (Integer) rs.getObject("assignedInstructID")
+                            (Integer) rs.getObject("assignedChecker")
                     );
                     cs.setInstructorName(rs.getString("instructorName"));
                     list.add(cs);
@@ -194,7 +198,8 @@ public class DataAccess {
         return list;
     }
 
-    public List<ClassSchedule> getSchedulesByRoom(int roomID) {
+    // TODO Call stored procedure then use WHERE roomID
+    public List<ClassSchedule> getClassSchedulesByRoom(int roomID) {
         List<ClassSchedule> list = new ArrayList<>();
         String sql = "SELECT s.*, i.name AS instructorName " +
                 "FROM classschedule s " +
@@ -214,8 +219,9 @@ public class DataAccess {
                             rs.getTime("startTime"),
                             rs.getTime("endTime"),
                             rs.getString("days"),
+                            (Integer) rs.getObject("instructID"),
                             (Integer) rs.getObject("roomID"),
-                            (Integer) rs.getObject("assignedInstructID")
+                            (Integer) rs.getObject("assignedChecker")
                     );
                     cs.setInstructorName(rs.getString("instructorName"));
                     list.add(cs);
@@ -227,7 +233,8 @@ public class DataAccess {
         return list;
     }
 
-    public List<ClassSchedule> getSchedulesByInstructor(int assignedInstructID) {
+    // TODO Call stored procedure then use WHERE instructID
+    public List<ClassSchedule> getClassSchedulesByInstructor(int assignedInstructID) {
         List<ClassSchedule> list = new ArrayList<>();
         String sql = "SELECT s.*, r.building, r.floor " +
                 "FROM classschedule s " +
@@ -247,9 +254,11 @@ public class DataAccess {
                             rs.getTime("startTime"),
                             rs.getTime("endTime"),
                             rs.getString("days"),
+                            (Integer) rs.getObject("instructID"),
                             (Integer) rs.getObject("roomID"),
-                            (Integer) rs.getObject("assignedInstructID")
+                            (Integer) rs.getObject("assignedChecker")
                     );
+                    cs.setInstructorName(rs.getString("instructorName"));
                     list.add(cs);
                 }
             }
@@ -259,7 +268,8 @@ public class DataAccess {
         return list;
     }
 
-    public List<ClassSchedule> getSchedulesByTimeRange(String dayCode, Time start, Time end) {
+    // TODO Call stored procedure then use WHERE dayCode BETWEEN start, end
+    public List<ClassSchedule> getClassSchedulesByTimeRange(String dayCode, Time start, Time end) {
         List<ClassSchedule> list = new ArrayList<>();
         String sql = "SELECT s.*, i.name AS instructorName " +
                 "FROM classschedule s " +
@@ -277,10 +287,14 @@ public class DataAccess {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     ClassSchedule cs = new ClassSchedule(
-                            rs.getString("classCode") /* classCode is VARCHAR */, rs.getString("courseNo"),
-                            rs.getTime("startTime"), rs.getTime("endTime"),
-                            rs.getString("days"), (Integer) rs.getObject("roomID"),
-                            (Integer) rs.getObject("assignedInstructID")
+                            rs.getString("classCode") /* classCode is VARCHAR */,
+                            rs.getString("courseNo"),
+                            rs.getTime("startTime"),
+                            rs.getTime("endTime"),
+                            rs.getString("days"),
+                            (Integer) rs.getObject("instructID"),
+                            (Integer) rs.getObject("roomID"),
+                            (Integer) rs.getObject("assignedChecker")
                     );
                     cs.setInstructorName(rs.getString("instructorName"));
                     list.add(cs);
