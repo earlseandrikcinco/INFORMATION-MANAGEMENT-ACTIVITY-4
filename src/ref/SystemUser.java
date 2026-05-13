@@ -9,8 +9,9 @@ public class SystemUser {
     private String email;
     private String password;
     private String role;
-    private Integer createdBy;
+    private int createdBy;  // TODO Check if this really should be non nullable
     private Integer departmentID;
+
     private String approvalCode;    // For admin
     private List<CheckerDetail> checkerDetails;   // For checker
 

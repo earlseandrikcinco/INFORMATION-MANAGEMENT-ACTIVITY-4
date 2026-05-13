@@ -8,9 +8,10 @@ public class LeaveRequest {
     private Date startDate;
     private Date endDate;
     private String status;
-    private Integer approvedBy;     //userId who approved
     private String leaveReason;
     private int instructID;
+    private Integer approvedBy;     //userId who approved
+
     private String instructorName;  // For displaying purposes
 
     public LeaveRequest(int leaveRequestID,

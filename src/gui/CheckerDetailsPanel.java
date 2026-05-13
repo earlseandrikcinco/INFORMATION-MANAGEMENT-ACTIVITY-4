@@ -9,6 +9,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.sql.Time;
 import java.util.List;
 
 /**
@@ -326,8 +327,8 @@ public class CheckerDetailsPanel extends BasePanel {
                         break;
                     }
                 }
-                shiftStartField.setText(existing.getShiftStart());
-                shiftEndField.setText(existing.getShiftEnd());
+                shiftStartField.setText(existing.getShiftStart().toString());
+                shiftEndField.setText(existing.getShiftEnd().toString());
                 buildingField.setText(existing.getBuilding());
                 floorField.setText(existing.getFloor());
             }
@@ -368,9 +369,25 @@ public class CheckerDetailsPanel extends BasePanel {
 
             String day = (String) dayCombo.getSelectedItem();
 
-            result = new CheckerDetail(
-                checker.getUserID(), sid, start, end, building, floor, day
-            );
+            try {
+                // Append ":00" because Time.valueOf() requires HH:mm:ss format
+                java.sql.Time startTime = java.sql.Time.valueOf(start + ":00");
+                java.sql.Time endTime   = java.sql.Time.valueOf(end + ":00");
+
+                result = new CheckerDetail(
+                        checker.getUserID(),
+                        sid,
+                        startTime,
+                        endTime,
+                        building,
+                        floor,
+                        day
+                );
+            } catch (IllegalArgumentException e) {
+                warn("Invalid time format. Use HH:mm.");
+                return;
+            }
+
             if (existing != null) result.setCheckerName(existing.getCheckerName());
             confirmed = true;
             dispose();

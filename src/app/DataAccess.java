@@ -70,8 +70,8 @@ public class DataAccess {
                     ref.CheckerDetail cd = new ref.CheckerDetail(
                             rs.getInt("checkerID"), // Corrected from checkedBy to match your constructor
                             rs.getInt("scheduleID"),
-                            rs.getString("shiftStart"),
-                            rs.getString("shiftEnd"),
+                            rs.getTime("shiftStart"),
+                            rs.getTime("shiftEnd"),
                             rs.getString("building"),
                             rs.getString("floor"),
                             rs.getString("day")
@@ -159,8 +159,8 @@ public class DataAccess {
             while (rs.next()) {
                 rooms.add(new Room(
                         rs.getInt("roomID"),
+                        rs.getString("floor"),
                         rs.getString("building"),
-                        rs.getInt("floor"),
                         rs.getInt("capacity"),
                         rs.getString("roomType")
                 ));
@@ -377,7 +377,7 @@ public class DataAccess {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     list.add(new Attendance(
-                            rs.getString("attendanceID"),
+                            rs.getInt("attendanceID"),
                             rs.getDate("startDate"),
                             rs.getDate("endDate"),
                             rs.getString("instructorStatus"),
@@ -407,7 +407,7 @@ public class DataAccess {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     list.add(new Attendance(
-                            rs.getString("attendanceID"),
+                            rs.getInt("attendanceID"),
                             rs.getDate("startDate"),
                             rs.getDate("endDate"),
                             rs.getString("instructorStatus"),
@@ -466,15 +466,15 @@ public class DataAccess {
                 while (rs.next()) {
                     LeaveRequest lr = new LeaveRequest(
                             rs.getInt("leaveRequestID"),
-                            rs.getInt("instructID"),
                             rs.getString("leaveType"),
                             rs.getDate("startDate"),
                             rs.getDate("endDate"),
                             rs.getString("status"),
+                            rs.getString("leaveReason"),
+                            rs.getInt("instructID"),
                             rs.getInt("approvedBy")
                     );
                     lr.setInstructorName(rs.getString("instructorName"));
-                    lr.setLeaveReason(rs.getString("leaveReason"));
                     list.add(lr);
                 }
             }
@@ -499,9 +499,13 @@ public class DataAccess {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     LeaveRequest lr = new LeaveRequest(
-                            rs.getInt("leaveRequestID"), rs.getInt("instructID"),
-                            rs.getString("leaveType"), rs.getDate("startDate"),
-                            rs.getDate("endDate"), rs.getString("status"),
+                            rs.getInt("leaveRequestID"),
+                            rs.getString("leaveType"),
+                            rs.getDate("startDate"),
+                            rs.getDate("endDate"),
+                            rs.getString("status"),
+                            rs.getString("leaveReason"),
+                            rs.getInt("instructID"),
                             rs.getInt("approvedBy")
                     );
                     lr.setInstructorName(rs.getString("instructorName"));
@@ -529,9 +533,13 @@ public class DataAccess {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     LeaveRequest lr = new LeaveRequest(
-                            rs.getInt("leaveRequestID"), rs.getInt("instructID"),
-                            rs.getString("leaveType"), rs.getDate("startDate"),
-                            rs.getDate("endDate"), rs.getString("status"),
+                            rs.getInt("leaveRequestID"),
+                            rs.getString("leaveType"),
+                            rs.getDate("startDate"),
+                            rs.getDate("endDate"),
+                            rs.getString("status"),
+                            rs.getString("leaveReason"),
+                            rs.getInt("instructID"),
                             rs.getInt("approvedBy")
                     );
                     lr.setInstructorName(rs.getString("instructorName"));
@@ -561,11 +569,12 @@ public class DataAccess {
                 while (rs.next()) {
                     LeaveRequest lr = new LeaveRequest(
                             rs.getInt("leaveRequestID"),
-                            rs.getInt("instructID"),
                             rs.getString("leaveType"),
                             rs.getDate("startDate"),
                             rs.getDate("endDate"),
                             rs.getString("status"),
+                            rs.getString("leaveReason"),
+                            rs.getInt("instructID"),
                             rs.getInt("approvedBy")
                     );
                     lr.setInstructorName(rs.getString("instructorName"));
@@ -595,7 +604,7 @@ public class DataAccess {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     list.add(new Attendance(
-                            rs.getString("attendanceID"),
+                            rs.getInt("attendanceID"),
                             rs.getDate("startDate"),
                             rs.getDate("endDate"),
                             rs.getString("instructorStatus"),
@@ -1433,7 +1442,7 @@ public class DataAccess {
 
             while (rs.next()) {
                 Attendance attendance = new Attendance(
-                        rs.getString("attendanceID"),
+                        rs.getInt("attendanceID"),
                         rs.getDate("startDate"),
                         rs.getDate("endDate"),
                         rs.getString("instructorStatus"),
@@ -1476,8 +1485,8 @@ public class DataAccess {
                 ref.CheckerDetail cd = new ref.CheckerDetail(
                         rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0,
                         rs.getInt("scheduleID"),
-                        rs.getString("shiftStart"),
-                        rs.getString("shiftEnd"),
+                        rs.getTime("shiftStart"),
+                        rs.getTime("shiftEnd"),
                         rs.getString("building"),
                         rs.getString("floor"),
                         rs.getString("day")
@@ -1502,8 +1511,8 @@ public class DataAccess {
 
             stmt.setInt(1, cd.getCheckerID());
             stmt.setInt(2, cd.getScheduleID());
-            stmt.setString(3, cd.getShiftStart());
-            stmt.setString(4, cd.getShiftEnd());
+            stmt.setTime(3, cd.getShiftStart());
+            stmt.setTime(4, cd.getShiftEnd());
             stmt.setString(5, cd.getBuilding());
             stmt.setString(6, cd.getFloor());
             stmt.setString(7, cd.getDay());
@@ -1525,8 +1534,8 @@ public class DataAccess {
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, cd.getShiftStart());
-            stmt.setString(2, cd.getShiftEnd());
+            stmt.setTime(1, cd.getShiftStart());
+            stmt.setTime(2, cd.getShiftEnd());
             stmt.setString(3, cd.getBuilding());
             stmt.setString(4, cd.getFloor());
             stmt.setString(5, cd.getDay());
@@ -1656,7 +1665,7 @@ public class DataAccess {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return new Attendance(
-                            rs.getString("attendanceID"),
+                            rs.getInt("attendanceID"),
                             rs.getDate("startDate"),
                             rs.getDate("endDate"),
                             rs.getString("instructorStatus"),

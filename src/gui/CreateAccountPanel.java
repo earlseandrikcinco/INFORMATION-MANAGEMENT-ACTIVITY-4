@@ -200,7 +200,7 @@ public class CreateAccountPanel extends BasePanel {
             default          -> null;
         };
 
-        return db.addSystemUser(user, extra, adminID);
+        return db.addSystemUser(user);
     }
 
     private void clearForm() {
