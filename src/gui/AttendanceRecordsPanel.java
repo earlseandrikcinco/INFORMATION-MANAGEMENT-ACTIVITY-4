@@ -35,13 +35,16 @@ public class AttendanceRecordsPanel extends BasePanel {
         List<Attendance> list = db.getAttendanceRecords();
         for (Attendance a : list) {
             model.addRow(new Object[]{
+                    a.getAttendanceID(),
                     a.getStartDate(),
-                    a.getCourseNo(),
-                    a.getInstructorName(),
+                    a.getEndDate(),
                     a.getInstructorStatus(),
-                    a.getLeaveStatus(),
-                    a.getLeaveType(),
-                    a.getLeaveReason()
+                    a.getRemarks(),
+                    a.getClassCode(),
+                    a.getAssignedInstructID(),
+                    a.getActualInstructID(),
+                    a.getLeaveRequestID(),
+                    a.getCheckedBy()
             });
         }
 

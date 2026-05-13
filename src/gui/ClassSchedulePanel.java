@@ -46,7 +46,7 @@ public class ClassSchedulePanel extends BasePanel {
         // Load data
         schedules = (deptID == -1)
                 ? db.getAllClassSchedules()
-                : db.getAllClassSchedulesByDept(deptID);
+                : db.getClassSchedulesByDept(deptID);
 
         // Summary columns only
         String[] cols = {"Class Code", "Course No.", "Days", "Start Time"};

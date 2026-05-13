@@ -7,14 +7,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DataAccess {
-    public SystemUser getUser(String username, String password) {
-        String sql = "SELECT * FROM systemuser WHERE username = ? AND password = ?";
+    public SystemUser getUser(String username) {
+        String sql = "SELECT * FROM systemuser WHERE username = ?";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, username);
-            stmt.setString(2, password);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -83,6 +82,48 @@ public class DataAccess {
             e.printStackTrace();
         }
         return list; // Return the variable 'list', not the class 'CheckerDetail'
+    }
+
+    public List<SystemUser> getCheckers() {
+        List<SystemUser> checkers = new ArrayList<>();
+        // Simply filter the collapsed table by the 'Checker' role
+        String sql = "SELECT username FROM systemuser WHERE role = 'Checker' ORDER BY name ASC";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                // Reuse your existing getUser method to handle the logic for each checker
+                SystemUser checker = getUser(rs.getString("username"));
+                if (checker != null) {
+                    checkers.add(checker);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return checkers;
+    }
+
+    public SystemUser getSystemUserByRoleAndDept(String role, int deptID) {
+        String sql = "SELECT username FROM systemuser WHERE role = ? AND departmentID = ?";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, role);
+            stmt.setInt(2, deptID);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return getUser(rs.getString("username"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public List<Department> getDepartments() {

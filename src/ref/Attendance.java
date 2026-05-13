@@ -39,14 +39,6 @@ public class Attendance {
 
     public void setAttendanceID(String attendanceID) {this.attendanceID = attendanceID;}
 
-    public String getClassCode() {
-        return classCode;
-    }
-
-    public void setClassCode(String classCode) {
-        this.classCode = classCode;
-    }
-
     public int getAssignedInstructID() {
         return assignedInstructID;
     }
@@ -54,6 +46,10 @@ public class Attendance {
     public void setAssignedInstructID(int assignedInstructID) {
         this.assignedInstructID = assignedInstructID;
     }
+
+    public Integer getActualInstructID() {return actualInstructID;}
+
+    public void setActualInstructID(Integer actualInstructID) {this.actualInstructID = actualInstructID;}
 
     public Date getStartDate() {
         return startDate;
@@ -63,12 +59,28 @@ public class Attendance {
         this.startDate = startDate;
     }
 
+    public Date getEndDate() {return endDate;}
+
+    public void setEndDate(Date endDate) {this.endDate = endDate;}
+
     public String getInstructorStatus() {
         return instructorStatus;
     }
 
     public void setInstructorStatus(String instructorStatus) {
         this.instructorStatus = instructorStatus;
+    }
+
+    public String getRemarks() {return remarks;}
+
+    public void setRemarks(String remarks) {this.remarks = remarks;}
+
+    public String getClassCode() {
+        return classCode;
+    }
+
+    public void setClassCode(String classCode) {
+        this.classCode = classCode;
     }
 
     public int getCheckedBy() {

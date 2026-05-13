@@ -238,6 +238,7 @@ public class CreateSchedulePanel extends BasePanel {
 
         Room room = (Room) roomCombo.getSelectedItem();
         Instructor inst = (Instructor) instructorCombo.getSelectedItem();
+        Integer checker = (Integer) null; // TODO Add a checker input field
 
         ClassSchedule cs = new ClassSchedule(
                 classCode,
@@ -245,9 +246,11 @@ public class CreateSchedulePanel extends BasePanel {
                 start,
                 end,
                 days.toString(),
+                inst != null ? inst.getInstructorID() : null,
                 room != null ? room.getRoomID() : null,
-                inst != null ? inst.getInstructorID() : null
-        );
+                null
+                //TODO room != null ? checker.getCheckerID() : null
+                );
 
         return db.insertClassSchedule(cs, conflictsOut);
     }

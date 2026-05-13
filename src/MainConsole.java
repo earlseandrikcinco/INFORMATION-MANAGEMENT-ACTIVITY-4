@@ -102,7 +102,7 @@ public class MainConsole {
                             System.out.print("Select instructor: ");
                             int instructChoice = validChoice(1, instructorList.size());
                             Instructor temp = access.getInstructorDetails(instructorList.get(instructChoice - 1));
-                            System.out.println(temp.toString());
+                            System.out.println(temp != null ? temp.toString() : "No record found.");
                         }
                         case 2, 3 -> {
                             List<Department> departments = access.getDepartments();
@@ -113,20 +113,30 @@ public class MainConsole {
                             int deptChoice = validChoice(1, departments.size());
                             int deptID = departments.get(deptChoice - 1).getDepartmentID();
 
-                            SystemUser staff = (category == 2) ? access.getDeptHead(deptID) : access.getSecretary(deptID);
-                            System.out.println(staff != null ? staff.toString() : "No record found.");
+                            // Syntax Fix: Calling a generic role-based fetcher instead of missing specialized methods
+                            String targetRole = (category == 2) ? "DeptHead" : "Secretary";
+                            SystemUser staff = access.getSystemUserByRoleAndDept(targetRole, deptID);
+
+                            System.out.println(staff != null ? staff.toString() : "No record found for " + targetRole + ".");
                         }
                         case 4 -> {
+                            // Syntax Fix: Use your existing getCheckers list and the toString from SystemUser
                             List<SystemUser> checkerList = access.getCheckers();
                             for (int i = 0; i < checkerList.size(); i++) {
                                 System.out.println((i + 1) + ": " + checkerList.get(i).getName());
                             }
-                            System.out.print("Select checker: ");
-                            int checkerChoice = validChoice(1, checkerList.size());
-                            System.out.println(checkerList.get(checkerChoice - 1).toString());
+                            if (!checkerList.isEmpty()) {
+                                System.out.print("Select checker: ");
+                                int checkerChoice = validChoice(1, checkerList.size());
+                                System.out.println(checkerList.get(checkerChoice - 1).toString());
+                            } else {
+                                System.out.println("No checkers registered.");
+                            }
                         }
+                        case 5 -> { /* Go Back - break inner switch */ }
                     }
                 }
+                case 2 -> { /* Attendance logic here */ }
                 case 3 -> { if (handleLogout()) return; }
             }
         }
