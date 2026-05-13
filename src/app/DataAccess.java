@@ -678,46 +678,48 @@ public class DataAccess {
     }
 
     public int getPresentCount(int instructorID) {
+        String sql = """
+        SELECT COUNT(*) AS total
+        FROM attendance a
+        JOIN classschedule cs ON a.classCode = cs.classCode
+        WHERE cs.instructID = ? AND a.instructorStatus = 'Present'
+        """;
 
-        String sql = "SELECT COUNT(*) AS total FROM attendance " +
-                "WHERE instructID = ? AND instructorStatus = 'Present'";
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, instructorID);
-
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                return rs.getInt("total");
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return 0;
     }
 
     public int getAbsenceCount(int instructorID) {
+        String sql = """
+        SELECT COUNT(*) AS total
+        FROM attendance a
+        JOIN classschedule cs ON a.classCode = cs.classCode
+        WHERE cs.instructID = ? AND a.instructorStatus = 'Absent'
+        """;
 
-        String sql = "SELECT COUNT(*) AS total FROM attendance " +
-                "WHERE instructID = ? AND instructorStatus = 'Absent'";
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, instructorID);
-
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                return rs.getInt("total");
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return 0;
     }
 
@@ -831,12 +833,17 @@ public class DataAccess {
                 stmtUser.setString(2, user.getUsername());
                 stmtUser.setString(3, user.getEmail());
                 stmtUser.setString(4, user.getPassword());
-                stmtUser.setString(5, user.getRole().toUpperCase());
 
-                if (user.getCreatedBy() != null) stmtUser.setInt(6, user.getCreatedBy());
-                else stmtUser.setNull(6, java.sql.Types.INTEGER);
+                String role = (user.getRole() != null) ? user.getRole() : "";
+                stmtUser.setString(5, role.toUpperCase());
 
-                if (user.getDepartmentID() != 0) {
+                if (user.getCreatedBy() != null) {
+                    stmtUser.setInt(6, user.getCreatedBy());
+                } else {
+                    stmtUser.setNull(6, java.sql.Types.INTEGER);
+                }
+
+                if (user.getDepartmentID() != null && user.getDepartmentID() != 0) {
                     stmtUser.setInt(7, user.getDepartmentID());
                 } else {
                     stmtUser.setNull(7, java.sql.Types.INTEGER);
@@ -847,13 +854,14 @@ public class DataAccess {
                 try (ResultSet rs = stmtUser.getGeneratedKeys()) {
                     if (rs.next()) {
                         int newID = rs.getInt(1);
-                        if (user.getRole().equalsIgnoreCase("Admin")) {
+                        if (role.equalsIgnoreCase("Admin")) {
                             try (PreparedStatement st = conn.prepareStatement("INSERT INTO admin (adminID, approvalCode) VALUES (?, ?)")) {
                                 st.setInt(1, newID);
                                 st.setString(2, user.getApprovalCode());
                                 st.executeUpdate();
                             }
-                        } else if (user.getRole().equalsIgnoreCase("Checker")) {
+                        } else if (role.equalsIgnoreCase("Checker")) {
+
                             try (PreparedStatement st = conn.prepareStatement("INSERT INTO checker (checkerID) VALUES (?)")) {
                                 st.setInt(1, newID);
                                 st.executeUpdate();
@@ -1416,24 +1424,25 @@ public class DataAccess {
         List<Attendance> list = new ArrayList<>();
 
         String sql = """
-            SELECT a.*,
-                   cs.courseNo,
-                   i.name AS instructorName,
-                   lr.leaveRequestID,
-                   lr.leaveType,
-                   lr.status AS leaveStatus,
-                   lr.leaveReason AS reason
-            FROM attendance a
-            JOIN classschedule cs
-                ON a.classCode = cs.classCode
-            LEFT JOIN instructor i
-                ON a.instructID = i.instructID
-            LEFT JOIN leaverequest lr
-                ON a.instructID = lr.instructID
-                AND a.startDate BETWEEN lr.startDate AND lr.endDate
-                AND lr.status = 'APPROVED'
-            ORDER BY a.startDate DESC
-            """;
+        SELECT a.*,
+               cs.courseNo,
+               cs.instructID AS assignedInstructID,
+               i.name AS instructorName,
+               lr.leaveRequestID,
+               lr.leaveType,
+               lr.status AS leaveStatus,
+               lr.leaveReason AS reason
+        FROM attendance a
+        JOIN classschedule cs
+            ON a.classCode = cs.classCode
+        LEFT JOIN instructor i
+            ON cs.instructID = i.instructID
+        LEFT JOIN leaverequest lr
+            ON cs.instructID = lr.instructID
+            AND a.startDate BETWEEN lr.startDate AND lr.endDate
+            AND lr.status = 'APPROVED'
+        ORDER BY a.startDate DESC
+        """;
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -1447,7 +1456,7 @@ public class DataAccess {
                         rs.getString("instructorStatus"),
                         rs.getString("remarks"),
                         rs.getString("classCode"),
-                        rs.getInt("instructID"),
+                        rs.getInt("assignedInstructID"),
                         (Integer) rs.getObject("actualInstructID"),
                         (Integer) rs.getObject("leaveRequestID"),
                         rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0
@@ -1455,11 +1464,9 @@ public class DataAccess {
 
                 list.add(attendance);
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return list;
     }
 
