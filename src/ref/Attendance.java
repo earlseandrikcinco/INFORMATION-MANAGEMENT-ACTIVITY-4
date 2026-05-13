@@ -2,7 +2,7 @@ package ref;
 import java.sql.Date;
 
 public class Attendance {
-    private String attendanceID;
+    private int attendanceID;
     private Date startDate;
     private Date endDate;
     private String instructorStatus;
@@ -11,17 +11,17 @@ public class Attendance {
     private int assignedInstructID; // From ClassSchedule
     private Integer actualInstructID;   // From  Instructor (for substitutes)
     private Integer leaveRequestID;
-    private int checkedBy;
+    private Integer checkedBy;
 
-    public Attendance(String attendanceID,
+    public Attendance(int attendanceID,
                       Date startDate, Date endDate,
                       String instructorStatus,
                       String remarks,
                       String classCode,
-                      Integer assignedInstructID,
+                      Integer assignedInstructID,   //TODO This is removed from physical schema?
                       Integer actualInstructID,
                       Integer leaveRequestID,
-                      int checkedBy
+                      Integer checkedBy
                       ) {
         this.attendanceID = attendanceID;
         this.startDate = startDate;
@@ -35,9 +35,9 @@ public class Attendance {
         this.checkedBy = checkedBy;
     }
 
-    public String getAttendanceID() {return attendanceID;}
+    public int getAttendanceID() {return attendanceID;}
 
-    public void setAttendanceID(String attendanceID) {this.attendanceID = attendanceID;}
+    public void setAttendanceID(int attendanceID) {this.attendanceID = attendanceID;}
 
     public int getAssignedInstructID() {
         return assignedInstructID;
@@ -87,7 +87,7 @@ public class Attendance {
         return checkedBy;
     }
 
-    public void setCheckedBy(int checkedBy) {
+    public void setCheckedBy(Integer checkedBy) {
         this.checkedBy = checkedBy;
     }
 

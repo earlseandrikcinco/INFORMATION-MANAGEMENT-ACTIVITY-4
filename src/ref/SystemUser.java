@@ -10,7 +10,7 @@ public class SystemUser {
     private String password;
     private String role;
     private Integer createdBy;
-    private int departmentID;
+    private Integer departmentID;
     private String approvalCode;    // For admin
     private List<CheckerDetail> checkerDetails;   // For checker
 

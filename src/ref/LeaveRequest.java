@@ -4,23 +4,30 @@ import java.sql.Date;
 
 public class LeaveRequest {
     private int leaveRequestID;
-    private int instructID;
     private String leaveType;
     private Date startDate;
     private Date endDate;
     private String status;
     private Integer approvedBy;     //userId who approved
     private String leaveReason;
+    private int instructID;
     private String instructorName;  // For displaying purposes
 
-    public LeaveRequest(int leaveRequestID, int instructID, String leaveType,
-                        Date startDate, Date endDate, String status, Integer approvedBy) {
+    public LeaveRequest(int leaveRequestID,
+                        String leaveType,
+                        Date startDate,
+                        Date endDate,
+                        String status,
+                        String leaveReason,
+                        int instructID,
+                        Integer approvedBy) {
         this.leaveRequestID = leaveRequestID;
-        this.instructID = instructID;
         this.leaveType = leaveType;
         this.startDate = startDate;
         this.endDate = endDate;
         this.status = status;
+        this.leaveReason = leaveReason;
+        this.instructID = instructID;
         this.approvedBy = approvedBy;
     }
 

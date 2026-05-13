@@ -1,11 +1,13 @@
 package ref;
 
+import java.sql.Time;
+
 public class CheckerDetail {
 
     private int checkerID;
     private int scheduleID;
-    private String shiftStart;   // stored as "HH:mm"
-    private String shiftEnd;
+    private Time shiftStart;   // stored as "HH:mm"
+    private Time shiftEnd;
     private String building;
     private String floor;
     private String day;
@@ -14,7 +16,7 @@ public class CheckerDetail {
     private String checkerName;
 
     public CheckerDetail(int checkerID, int scheduleID,
-                         String shiftStart, String shiftEnd,
+                         Time shiftStart, Time shiftEnd,
                          String building, String floor, String day) {
         this.checkerID   = checkerID;
         this.scheduleID  = scheduleID;
@@ -28,8 +30,8 @@ public class CheckerDetail {
     // ── getters ──────────────────────────────────────────────────────────────
     public int    getCheckerID()   { return checkerID;   }
     public int    getScheduleID()  { return scheduleID;  }
-    public String getShiftStart()  { return shiftStart;  }
-    public String getShiftEnd()    { return shiftEnd;    }
+    public Time getShiftStart()  { return shiftStart;  }
+    public Time getShiftEnd()    { return shiftEnd;    }
     public String getBuilding()    { return building;    }
     public String getFloor()       { return floor;       }
     public String getDay()         { return day;         }
@@ -38,8 +40,8 @@ public class CheckerDetail {
     // ── setters ──────────────────────────────────────────────────────────────
     public void setCheckerID(int checkerID)     { this.checkerID  = checkerID;  }
     public void setScheduleID(int scheduleID)   { this.scheduleID = scheduleID; }
-    public void setShiftStart(String s)         { this.shiftStart = s;          }
-    public void setShiftEnd(String s)           { this.shiftEnd   = s;          }
+    public void setShiftStart(Time s)         { this.shiftStart = s;          }
+    public void setShiftEnd(Time s)           { this.shiftEnd   = s;          }
     public void setBuilding(String b)           { this.building   = b;          }
     public void setFloor(String f)              { this.floor      = f;          }
     public void setDay(String d)                { this.day        = d;          }
