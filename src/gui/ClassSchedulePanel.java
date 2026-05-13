@@ -30,13 +30,14 @@ public class ClassSchedulePanel extends BasePanel {
         this.db   = db;
         this.currentUser = currentUser;
 
-        if (currentUser.getRole().equalsIgnoreCase("Secretary")
-                || currentUser.getRole().equalsIgnoreCase("DeptHead")) {
-            deptID = currentUser.getDepartmentID();
-        } else {
-            deptID = -1;
-        }
+        String role = currentUser.getRole();
 
+        if (role != null && (role.equalsIgnoreCase("Secretary") || role.equalsIgnoreCase("DeptHead"))) {
+            Integer id = currentUser.getDepartmentID();
+            this.deptID = (id != null) ? id : -1;
+        } else {
+            this.deptID = -1;
+        }
         buildUI();
     }
 
