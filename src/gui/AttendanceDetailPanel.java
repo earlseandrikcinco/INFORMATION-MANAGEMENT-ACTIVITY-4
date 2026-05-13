@@ -76,7 +76,7 @@ public class AttendanceDetailPanel extends BasePanel {
                     a.getClassCode(),
                     a.getStartDate(),
                     translateStatus(a.getInstructorStatus()),
-                    (a.getLeaveReqID() != null && a.getLeaveReqID() > 0) ? "Req #" + a.getLeaveReqID() : "-"
+                    (a.getLeaveRequestID() != null && a.getLeaveRequestID() > 0) ? "Req #" + a.getLeaveRequestID() : "-"
             });
         }
         JTable attTable = UIHelper.makeTable(aModel);

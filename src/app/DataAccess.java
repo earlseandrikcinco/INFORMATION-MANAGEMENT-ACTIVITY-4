@@ -354,13 +354,16 @@ public class DataAccess {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     list.add(new Attendance(
-                            rs.getString("classCode") /* classCode is VARCHAR */,
-                            rs.getInt("assignedInstructID"),
+                            rs.getString("attendanceID"),
                             rs.getDate("startDate"),
+                            rs.getDate("endDate"),
                             rs.getString("instructorStatus"),
-                            rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0,
-                            null,
-                            false /* isSubstitute not in schema */
+                            rs.getString("remarks"),
+                            rs.getString("classCode"),
+                            rs.getInt("assignedInstructID"),
+                            (Integer) rs.getObject("actualInstructID"),
+                            (Integer) rs.getObject("leaveReqID"),
+                            rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0
                     ));
                 }
             }
@@ -381,13 +384,16 @@ public class DataAccess {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     list.add(new Attendance(
-                            rs.getString("classCode") /* classCode is VARCHAR */,
-                            (Integer) rs.getObject("assignedInstructID"),
+                            rs.getString("attendanceID"),
                             rs.getDate("startDate"),
+                            rs.getDate("endDate"),
                             rs.getString("instructorStatus"),
-                            rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0,
-                            (Integer) rs.getObject("leaveRequestID"),
-                            false /* isSubstitute not in schema */
+                            rs.getString("remarks"),
+                            rs.getString("classCode"),
+                            rs.getInt("assignedInstructID"),
+                            (Integer) rs.getObject("actualInstructID"),
+                            (Integer) rs.getObject("leaveReqID"),
+                            rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0
                     ));
                 }
             }
@@ -562,13 +568,16 @@ public class DataAccess {
 
             while (rs.next()) {
                 list.add(new Attendance(
-                        rs.getString("classCode") /* classCode is VARCHAR */,
-                        rs.getInt("assignedInstructID"),
+                        rs.getString("attendanceID"),
                         rs.getDate("startDate"),
+                        rs.getDate("endDate"),
                         rs.getString("instructorStatus"),
-                        rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0,
-                        (Integer) rs.getObject("leaveRequestID"),
-                        false /* isSubstitute not in schema */
+                        rs.getString("remarks"),
+                        rs.getString("classCode"),
+                        rs.getInt("assignedInstructID"),
+                        (Integer) rs.getObject("actualInstructID"),
+                        (Integer) rs.getObject("leaveReqID"),
+                        rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0
                 ));
             }
         } catch (SQLException e) {
@@ -592,8 +601,9 @@ public class DataAccess {
                         rs.getTime("startTime"),
                         rs.getTime("endTime"),
                         rs.getString("days"),
-                        rs.getInt("roomID"),
-                        rs.getInt("assignedInstructID")
+                        (Integer) rs.getObject("instructID"),
+                        (Integer) rs.getObject("roomID"),
+                        (Integer) rs.getObject("assignedChecker")
                 ));
             }
         } catch (SQLException e) {
@@ -619,8 +629,9 @@ public class DataAccess {
                             rs.getTime("startTime"),
                             rs.getTime("endTime"),
                             rs.getString("days"),
+                            (Integer) rs.getObject("instructID"),
                             (Integer) rs.getObject("roomID"),
-                            (Integer) rs.getObject("assignedInstructID")
+                            (Integer) rs.getObject("assignedChecker")
                     ));
                 }
             }
@@ -834,7 +845,7 @@ public class DataAccess {
             stmt.setDate(3, att.getStartDate());
             stmt.setDate(4, att.getStartDate()); // endDate same as startDate for single-day record
             stmt.setString(5, att.getInstructorStatus());
-            stmt.setObject(6, att.getLeaveReqID());
+            stmt.setObject(6, att.getLeaveRequestID());
             stmt.setObject(7, att.getCheckedBy() != 0 ? att.getCheckedBy() : null);
 
             stmt.executeUpdate();
@@ -1023,13 +1034,14 @@ public class DataAccess {
                     String existingDays = rs.getString("days");
                     if (daysOverlap(days, existingDays)) {
                         ClassSchedule cs = new ClassSchedule(
-                                rs.getString("classCode"),
+                                rs.getString("classCode") /* classCode is VARCHAR */,
                                 rs.getString("courseNo"),
                                 rs.getTime("startTime"),
                                 rs.getTime("endTime"),
-                                existingDays,
+                                rs.getString("days"),
+                                (Integer) rs.getObject("instructID"),
                                 (Integer) rs.getObject("roomID"),
-                                (Integer) rs.getObject("assignedInstructID")
+                                (Integer) rs.getObject("assignedChecker")
                         );
                         cs.setInstructorName(rs.getString("instructorName"));
                         conflicts.add(cs);
@@ -1089,13 +1101,14 @@ public class DataAccess {
                 if (rs.next()) {
 
                     ClassSchedule cs = new ClassSchedule(
-                            rs.getString("classCode") /* classCode is VARCHAR */, // adjust if classCode becomes String
+                            rs.getString("classCode") /* classCode is VARCHAR */,
                             rs.getString("courseNo"),
                             rs.getTime("startTime"),
                             rs.getTime("endTime"),
                             rs.getString("days"),
+                            (Integer) rs.getObject("instructID"),
                             (Integer) rs.getObject("roomID"),
-                            (Integer) rs.getObject("assignedInstructID")
+                            (Integer) rs.getObject("assignedChecker")
                     );
 
                     cs.setAssignedChecker((Integer) rs.getObject("assignedChecker"));
@@ -1157,8 +1170,9 @@ public class DataAccess {
                             rs.getTime("startTime"),
                             rs.getTime("endTime"),
                             rs.getString("days"),
+                            (Integer) rs.getObject("instructID"),
                             (Integer) rs.getObject("roomID"),
-                            (Integer) rs.getObject("assignedInstructID")
+                            (Integer) rs.getObject("assignedChecker")
                     );
                     cs.setAssignedChecker((Integer) rs.getObject("assignedChecker"));
                     cs.setInstructorName(rs.getString("instructorName"));
@@ -1371,20 +1385,17 @@ public class DataAccess {
 
             while (rs.next()) {
                 Attendance attendance = new Attendance(
-                        rs.getString("classCode") /* classCode is VARCHAR */,
-                        rs.getObject("assignedInstructID") != null ? rs.getInt("assignedInstructID") : null,
+                        rs.getString("attendanceID"),
                         rs.getDate("startDate"),
+                        rs.getDate("endDate"),
                         rs.getString("instructorStatus"),
-                        rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0,
-                        rs.getObject("leaveRequestID") != null ? rs.getInt("leaveRequestID") : null,
-                        false /* isSubstitute not in schema */
+                        rs.getString("remarks"),
+                        rs.getString("classCode"),
+                        rs.getInt("assignedInstructID"),
+                        (Integer) rs.getObject("actualInstructID"),
+                        (Integer) rs.getObject("leaveReqID"),
+                        rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0
                 );
-
-                attendance.setCourseNo(rs.getString("courseNo"));
-                attendance.setInstructorName(rs.getString("instructorName"));
-                attendance.setLeaveType(rs.getString("leaveType"));
-                attendance.setLeaveStatus(rs.getString("leaveStatus"));
-                attendance.setLeaveReason(rs.getString("leaveReason"));
 
                 list.add(attendance);
             }
@@ -1565,13 +1576,14 @@ public class DataAccess {
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     ClassSchedule cs = new ClassSchedule(
-                            rs.getString("classCode"),
+                            rs.getString("classCode") /* classCode is VARCHAR */,
                             rs.getString("courseNo"),
                             rs.getTime("startTime"),
                             rs.getTime("endTime"),
                             rs.getString("days"),
+                            (Integer) rs.getObject("instructID"),
                             (Integer) rs.getObject("roomID"),
-                            (Integer) rs.getObject("assignedInstructID")
+                            (Integer) rs.getObject("assignedChecker")
                     );
                     cs.setInstructorName(rs.getString("instructorName"));
                     cs.setAssignedChecker(checkerID);
@@ -1596,13 +1608,16 @@ public class DataAccess {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return new Attendance(
-                            rs.getString("classCode"),
-                            rs.getObject("assignedInstructID") != null ? rs.getInt("assignedInstructID") : null,
+                            rs.getString("attendanceID"),
                             rs.getDate("startDate"),
+                            rs.getDate("endDate"),
                             rs.getString("instructorStatus"),
-                            rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0,
-                            rs.getObject("leaveRequestID") != null ? rs.getInt("leaveRequestID") : null,
-                            false
+                            rs.getString("remarks"),
+                            rs.getString("classCode"),
+                            rs.getInt("assignedInstructID"),
+                            (Integer) rs.getObject("actualInstructID"),
+                            (Integer) rs.getObject("leaveReqID"),
+                            rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0
                     );
                 }
             }

@@ -10,7 +10,7 @@ public class Attendance {
     private String classCode;
     private int assignedInstructID; // From ClassSchedule
     private Integer actualInstructID;   // From  Instructor (for substitutes)
-    private Integer leaveReqID;
+    private Integer leaveRequestID;
     private int checkedBy;
 
     public Attendance(String attendanceID,
@@ -20,7 +20,7 @@ public class Attendance {
                       String classCode,
                       Integer assignedInstructID,
                       Integer actualInstructID,
-                      Integer leaveReqID,
+                      Integer leaveRequestID,
                       int checkedBy
                       ) {
         this.attendanceID = attendanceID;
@@ -31,7 +31,7 @@ public class Attendance {
         this.classCode = classCode;
         this.assignedInstructID = assignedInstructID;
         this.actualInstructID = actualInstructID;
-        this.leaveReqID = leaveReqID;
+        this.leaveRequestID = leaveRequestID;
         this.checkedBy = checkedBy;
     }
 
@@ -79,11 +79,11 @@ public class Attendance {
         this.checkedBy = checkedBy;
     }
 
-    public Integer getLeaveReqID() {
-        return leaveReqID;
+    public Integer getLeaveRequestID() {
+        return leaveRequestID;
     }
 
-    public void setLeaveReqID(Integer leaveReqID) {
-        this.leaveReqID = leaveReqID;
+    public void setLeaveRequestID(Integer leaveRequestID) {
+        this.leaveRequestID = leaveRequestID;
     }
 }
