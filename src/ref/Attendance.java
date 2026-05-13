@@ -8,10 +8,8 @@ public class Attendance {
     private String instructorStatus;
     private String remarks;
     private String classCode;
-    // TODO Check in physical schema and ERD
-    private Integer assignedInstructID;
-    private Integer actualInstructID;
-    // ------------------------------------
+    private int assignedInstructID; // From ClassSchedule
+    private Integer actualInstructID;   // From  Instructor (for substitutes)
     private Integer leaveReqID;
     private int checkedBy;
 

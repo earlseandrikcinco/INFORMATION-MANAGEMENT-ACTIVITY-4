@@ -1,5 +1,7 @@
 package ref;
 
+import java.util.List;
+
 public class SystemUser {
     private int userID;
     private String name;
@@ -8,11 +10,17 @@ public class SystemUser {
     private String password;
     private String role;
     private Integer createdBy;
-    private int departmentID;   //TODO Add in physical schema
+    private int departmentID;
     private String approvalCode;    // For admin
-    private CheckerDetail checkerDetail;   // For checker
+    private List<CheckerDetail> checkerDetails;   // For checker
 
-    public SystemUser (int userID, String name, String username, String email, String password, String role, Integer createdBy) {
+    public SystemUser (int userID,
+                       String name,
+                       String username,
+                       String email,
+                       String password,
+                       String role,
+                       Integer createdBy) {
         this.userID = userID;
         this.name = name;
         this.username = username;
@@ -43,8 +51,8 @@ public class SystemUser {
     public int getDepartmentID() {return departmentID;}
     public Integer getCreatedBy() {return createdBy;}
 
-    public CheckerDetail getCheckerDetail() {
-        return "Checker".equalsIgnoreCase(this.role) ? this.checkerDetail : null;
+    public List<CheckerDetail> getCheckerDetails() {
+        return "Checker".equalsIgnoreCase(this.role) ? this.checkerDetails : null;
     }
     public String getApprovalCode() {
         return "Admin".equalsIgnoreCase(this.role) ? this.approvalCode : null;
@@ -57,7 +65,7 @@ public class SystemUser {
     public void setRole(String role) {this.role = role;}
     public void setEmail(String email) {this.email = email;}
     public void setCreatedBy(Integer createdBy) {this.createdBy = createdBy;}
-    public void setCheckerDetail(CheckerDetail checkerDetail) {this.checkerDetail = checkerDetail;}
+    public void setCheckerDetails(List<CheckerDetail> checkerDetails) {this.checkerDetails = checkerDetails;}
     public void setDepartmentID(int departmentID) {this.departmentID = departmentID;}
     public void setApprovalCode(String approvalCode) {this.approvalCode = approvalCode;}
 

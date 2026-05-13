@@ -9,7 +9,7 @@ public class LeaveRequest {
     private Date startDate;
     private Date endDate;
     private String status;
-    private Integer approvedBy;     //TODO Check in physical schema
+    private Integer approvedBy;     //userId who approved
     private String leaveReason;
     private String instructorName;  // For displaying purposes
 

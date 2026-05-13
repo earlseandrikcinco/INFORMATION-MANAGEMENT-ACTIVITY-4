@@ -7,43 +7,42 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DataAccess {
-    public SystemUser getUser(String key) {
-        String sql = "SELECT u.*, c.floor, d.departmentID AS deptHeadID, " +
-                "s.departmentID AS secDeptID, a.approvalCode " +
-                "FROM systemuser u " +
-                "LEFT JOIN CHECKER c ON u.userID = c.checkerID " +
-                "LEFT JOIN DEPTHEAD d ON u.userID = d.deptheadID " +
-                "LEFT JOIN SECRETARY s ON u.userID = s.secretaryID " +
-                "LEFT JOIN ADMIN a ON u.userID = a.adminID " +
-                "WHERE u.username = ?";
+    public SystemUser getUser(String username, String password) {
+        String sql = "SELECT * FROM systemuser WHERE username = ? AND password = ?";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setString(1, key);
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-
-                    SystemUser baseUser = new SystemUser(
+                    SystemUser user = new SystemUser(
                             rs.getInt("userID"),
                             rs.getString("name"),
                             rs.getString("username"),
                             rs.getString("email"),
                             rs.getString("password"),
                             rs.getString("role"),
-                            (Integer) rs.getObject("createdBy")
+                            rs.getObject("createdBy") != null ? rs.getInt("createdBy") : null
                     );
 
-                    String role = baseUser.getRole();
-                    switch (role) {
-                        case "Checker" -> {}// TODO baseUser.setCheckerDetail(rs.getInt("building"));
-                        case "DeptHead", "Secretary" -> baseUser.setDepartmentID(rs.getInt("departmentID"));
-                        case "Admin" -> baseUser.setApprovalCode(rs.getString("approvalCode"));
-                        default -> {
-                        }
-                    };
+                    String role = user.getRole();
 
-                    return baseUser;
+                    if (role.equalsIgnoreCase("Secretary") || role.equalsIgnoreCase("DeptHead")) {
+                        user.setDepartmentID(rs.getInt("departmentID"));
+                    }
+
+                    if (role.equalsIgnoreCase("Admin")) {
+                        user.setApprovalCode(rs.getString("approvalCode"));
+                    }
+
+                    if (role.equalsIgnoreCase("Checker")) {
+                        user.setCheckerDetails(getCheckerDetails(user.getUserID()));
+                    }
+
+                    return user;
                 }
             }
         } catch (SQLException e) {
@@ -52,65 +51,38 @@ public class DataAccess {
         return null;
     }
 
-    public SystemUser getDeptHead(int deptID) {
-        String sql = "SELECT u.username FROM systemuser u " +
-                "JOIN DEPTHEAD dh ON u.userID = dh.deptheadID " +
-                "WHERE dh.departmentID = ?";
+    public List<ref.CheckerDetail> getCheckerDetails(int userID) {
+        List<ref.CheckerDetail> list = new ArrayList<>();
+        String sql = "SELECT cd.*, su.name AS checkerName " +
+                "FROM checkerdetails cd " +
+                "JOIN systemuser su ON cd.checkerID = su.userID " +
+                "WHERE su.userID = ? " +
+                "ORDER BY su.name, cd.day, cd.shiftStart";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.setInt(1, deptID);
+            stmt.setInt(1, userID); // This must be outside the try-with-resources parens
+
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return getUser(rs.getString("username"));
+                while (rs.next()) {
+                    ref.CheckerDetail cd = new ref.CheckerDetail(
+                            rs.getInt("checkerID"), // Corrected from checkedBy to match your constructor
+                            rs.getInt("scheduleID"),
+                            rs.getString("shiftStart"),
+                            rs.getString("shiftEnd"),
+                            rs.getString("building"),
+                            rs.getString("floor"),
+                            rs.getString("day")
+                    );
+                    cd.setCheckerName(rs.getString("checkerName"));
+                    list.add(cd);
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null;
-    }
-
-    public SystemUser getSecretary(int deptID) {
-        String sql = "SELECT u.username FROM systemuser u " +
-                "JOIN SECRETARY s ON u.userID = s.secretaryID " +
-                "WHERE s.departmentID = ?";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, deptID);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return getUser(rs.getString("username"));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public List<SystemUser> getCheckers() {
-        List<SystemUser> checkers = new ArrayList<>();
-
-        String sql = "SELECT username FROM systemuser WHERE role = 'CHECKER' ORDER BY name";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                SystemUser checker = getUser(rs.getString("username"));
-                if (checker != null) {
-                    checkers.add(checker);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return checkers;
+        return list; // Return the variable 'list', not the class 'CheckerDetail'
     }
 
     public List<Department> getDepartments() {
