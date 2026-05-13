@@ -159,7 +159,7 @@ public class LeaveRequestPanel extends BasePanel {
         tableModel.setRowCount(0);
         for (LeaveRequest lr : list) {
             tableModel.addRow(new Object[]{
-                    lr.getLeaveReqID(),
+                    lr.getLeaveRequestID(),
                     lr.getInstructorName() != null ? lr.getInstructorName() : lr.getInstructID(),
                     lr.getLeaveType(),
                     lr.getStartDate(),
@@ -184,7 +184,7 @@ public class LeaveRequestPanel extends BasePanel {
 
         JDialog dialog = new JDialog(
                 SwingUtilities.getWindowAncestor(this),
-                "Leave Reason  —  Request #" + lr.getLeaveReqID(),
+                "Leave Reason  —  Request #" + lr.getLeaveRequestID(),
                 java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setSize(480, 340);
         dialog.setResizable(false);
@@ -237,7 +237,7 @@ public class LeaveRequestPanel extends BasePanel {
             approveBtn.addActionListener(e -> {
                 if (db.updateLeaveStatus(
                         lr.getInstructID(),
-                        lr.getLeaveReqID(),
+                        lr.getLeaveRequestID(),
                         "Approved",
                         currentUser.getUserID())) {
                     dialog.dispose();
@@ -248,7 +248,7 @@ public class LeaveRequestPanel extends BasePanel {
             rejectBtn.addActionListener(e -> {
                 if (db.updateLeaveStatus(
                         lr.getInstructID(),
-                        lr.getLeaveReqID(),
+                        lr.getLeaveRequestID(),
                         "Rejected",
                         currentUser.getUserID())) {
                     dialog.dispose();

@@ -2,28 +2,44 @@ package ref;
 import java.sql.Date;
 
 public class Attendance {
-    private String classCode;
-    private Integer instructID;
-    private Date date;
+    private String attendanceID;
+    private Date startDate;
+    private Date endDate;
     private String instructorStatus;
-    private int checkerID;
+    private String remarks;
+    private String classCode;
+    // TODO Check in physical schema and ERD
+    private Integer assignedInstructID;
+    private Integer actualInstructID;
+    // ------------------------------------
     private Integer leaveReqID;
-    private boolean isSubstitute;
-    private String courseNo;
-    private String instructorName;
-    private String leaveType;
-    private String leaveStatus;
-    private String leaveReason;
+    private int checkedBy;
 
-    public Attendance(String classCode, Integer instructID, Date date, String instructorStatus, int checkerID, Integer leaveReqID, boolean isSubstitute) {
-        this.classCode = classCode;
-        this.instructID = instructID;
-        this.date = date;
+    public Attendance(String attendanceID,
+                      Date startDate, Date endDate,
+                      String instructorStatus,
+                      String remarks,
+                      String classCode,
+                      Integer assignedInstructID,
+                      Integer actualInstructID,
+                      Integer leaveReqID,
+                      int checkedBy
+                      ) {
+        this.attendanceID = attendanceID;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.instructorStatus = instructorStatus;
-        this.checkerID = checkerID;
+        this.remarks = remarks;
+        this.classCode = classCode;
+        this.assignedInstructID = assignedInstructID;
+        this.actualInstructID = actualInstructID;
         this.leaveReqID = leaveReqID;
-        this.isSubstitute = isSubstitute;
+        this.checkedBy = checkedBy;
     }
+
+    public String getAttendanceID() {return attendanceID;}
+
+    public void setAttendanceID(String attendanceID) {this.attendanceID = attendanceID;}
 
     public String getClassCode() {
         return classCode;
@@ -33,20 +49,20 @@ public class Attendance {
         this.classCode = classCode;
     }
 
-    public int getInstructID() {
-        return instructID;
+    public int getAssignedInstructID() {
+        return assignedInstructID;
     }
 
-    public void setInstructID(int instructID) {
-        this.instructID = instructID;
+    public void setAssignedInstructID(int assignedInstructID) {
+        this.assignedInstructID = assignedInstructID;
     }
 
-    public Date getDate() {
-        return date;
+    public Date getStartDate() {
+        return startDate;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
     }
 
     public String getInstructorStatus() {
@@ -57,12 +73,12 @@ public class Attendance {
         this.instructorStatus = instructorStatus;
     }
 
-    public int getCheckerID() {
-        return checkerID;
+    public int getCheckedBy() {
+        return checkedBy;
     }
 
-    public void setCheckerID(int checkerID) {
-        this.checkerID = checkerID;
+    public void setCheckedBy(int checkedBy) {
+        this.checkedBy = checkedBy;
     }
 
     public Integer getLeaveReqID() {
@@ -71,53 +87,5 @@ public class Attendance {
 
     public void setLeaveReqID(Integer leaveReqID) {
         this.leaveReqID = leaveReqID;
-    }
-
-    public boolean isSubstitute() {
-        return isSubstitute;
-    }
-
-    public void setSubstitute(boolean substitute) {
-        isSubstitute = substitute;
-    }
-
-    public String getCourseNo() {
-        return courseNo;
-    }
-
-    public void setCourseNo(String courseNo) {
-        this.courseNo = courseNo;
-    }
-
-    public String getInstructorName() {
-        return instructorName;
-    }
-
-    public void setInstructorName(String instructorName) {
-        this.instructorName = instructorName;
-    }
-
-    public String getLeaveType() {
-        return leaveType;
-    }
-
-    public void setLeaveType(String leaveType) {
-        this.leaveType = leaveType;
-    }
-
-    public String getLeaveStatus() {
-        return leaveStatus;
-    }
-
-    public void setLeaveStatus(String leaveStatus) {
-        this.leaveStatus = leaveStatus;
-    }
-
-    public String getLeaveReason() {
-        return leaveReason;
-    }
-
-    public void setLeaveReason(String leaveReason) {
-        this.leaveReason = leaveReason;
     }
 }

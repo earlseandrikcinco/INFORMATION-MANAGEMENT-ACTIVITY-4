@@ -4,7 +4,7 @@ public class Instructor {
     private int instructorID;
     private String name;
     private int departmentID;
-    private String departmentName;
+    private String departmentName;      // For displaying purposes
 
     public Instructor(int instructorID, String name, int departmentID) {
         this.instructorID = instructorID;

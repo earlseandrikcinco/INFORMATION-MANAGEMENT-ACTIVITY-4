@@ -8,9 +8,9 @@ public class SystemUser {
     private String password;
     private String role;
     private Integer createdBy;
-    private int departmentID;
+    private int departmentID;   //TODO Add in physical schema
     private String approvalCode;    // For admin
-    private int building;   // For checker
+    private CheckerDetail checkerDetail;   // For checker
 
     public SystemUser (int userID, String name, String username, String email, String password, String role, Integer createdBy) {
         this.userID = userID;
@@ -43,8 +43,8 @@ public class SystemUser {
     public int getDepartmentID() {return departmentID;}
     public Integer getCreatedBy() {return createdBy;}
 
-    public int getBuilding() {
-        return "Checker".equalsIgnoreCase(this.role) ? this.building : 0;
+    public CheckerDetail getCheckerDetail() {
+        return "Checker".equalsIgnoreCase(this.role) ? this.checkerDetail : null;
     }
     public String getApprovalCode() {
         return "Admin".equalsIgnoreCase(this.role) ? this.approvalCode : null;
@@ -57,7 +57,7 @@ public class SystemUser {
     public void setRole(String role) {this.role = role;}
     public void setEmail(String email) {this.email = email;}
     public void setCreatedBy(Integer createdBy) {this.createdBy = createdBy;}
-    public void setBuilding(int building) {this.building = building;}
+    public void setCheckerDetail(CheckerDetail checkerDetail) {this.checkerDetail = checkerDetail;}
     public void setDepartmentID(int departmentID) {this.departmentID = departmentID;}
     public void setApprovalCode(String approvalCode) {this.approvalCode = approvalCode;}
 

@@ -49,7 +49,7 @@ public class AttendanceDetailPanel extends BasePanel {
         DefaultTableModel lModel = new DefaultTableModel(lCols, 0);
         for (LeaveRequest lr : leaves) {
             lModel.addRow(new Object[]{
-                    lr.getLeaveReqID(),
+                    lr.getLeaveRequestID(),
                     lr.getLeaveType(),
                     lr.getStartDate(),
                     lr.getEndDate(),
@@ -74,9 +74,8 @@ public class AttendanceDetailPanel extends BasePanel {
         for (Attendance a : attList) {
             aModel.addRow(new Object[]{
                     a.getClassCode(),
-                    a.getDate(),
+                    a.getStartDate(),
                     translateStatus(a.getInstructorStatus()),
-                    a.isSubstitute() ? "Yes" : "No",
                     (a.getLeaveReqID() != null && a.getLeaveReqID() > 0) ? "Req #" + a.getLeaveReqID() : "-"
             });
         }

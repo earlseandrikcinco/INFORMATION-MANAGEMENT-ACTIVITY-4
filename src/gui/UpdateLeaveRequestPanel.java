@@ -82,7 +82,7 @@ public class UpdateLeaveRequestPanel extends BasePanel {
         tableModel.setRowCount(0);
         for (LeaveRequest lr : all) {
             tableModel.addRow(new Object[]{
-                    lr.getLeaveReqID(),
+                    lr.getLeaveRequestID(),
                     lr.getInstructorName() != null ? lr.getInstructorName() : "ID " + lr.getInstructID(),
                     lr.getLeaveType(),
                     lr.getStartDate(),
@@ -118,7 +118,7 @@ public class UpdateLeaveRequestPanel extends BasePanel {
 
         boolean ok = db.resolveLeaveRequest(
                 lr.getInstructID(),
-                lr.getLeaveReqID(),
+                lr.getLeaveRequestID(),
                 newStatus,
                 currentUser.getUserID()
         );
@@ -144,7 +144,7 @@ public class UpdateLeaveRequestPanel extends BasePanel {
 
         JDialog dialog = new JDialog(
                 SwingUtilities.getWindowAncestor(this),
-                "Leave Request  —  #" + lr.getLeaveReqID(),
+                "Leave Request  —  #" + lr.getLeaveRequestID(),
                 java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         dialog.setSize(480, 340);
         dialog.setResizable(false);

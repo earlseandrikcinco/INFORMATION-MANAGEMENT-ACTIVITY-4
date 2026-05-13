@@ -75,7 +75,7 @@ public class AffectedClassesPanel extends BasePanel {
     }
 
     private void loadAffectedClasses() {
-        affectedList = db.getAffectedClassesByLeave(leaveRequest.getLeaveReqID());
+        affectedList = db.getAffectedClassesByLeave(leaveRequest.getLeaveRequestID());
         tableModel.setRowCount(0);
         for (AffectedClass ac : affectedList) {
             String resolution;
