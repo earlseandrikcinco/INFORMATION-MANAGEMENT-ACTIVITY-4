@@ -9,7 +9,6 @@ public class Main {
 
                 AppController controller = new AppController();
                 controller.start();
-
             }
         });
     }

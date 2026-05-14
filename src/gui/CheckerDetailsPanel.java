@@ -10,6 +10,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.Time;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -244,47 +245,48 @@ public class CheckerDetailsPanel extends BasePanel {
     // =========================================================================
 
     static class CheckerDetailDialog extends JDialog {
-
         private boolean confirmed = false;
         private CheckerDetail result;
-
         private JComboBox<SystemUser> checkerCombo;
-        // BUG 4: scheduleID is auto-incremented — no input field needed
-        private int autoScheduleID = -1;
-        // BUG 5: multiple-day checkboxes
+        private JComboBox<String> buildingCombo, floorCombo;
         private JCheckBox[] dayBoxes;
-        private JTextField shiftStartField;
-        private JTextField shiftEndField;
-        private JTextField buildingField;
-        private JTextField floorField;
+        private JSpinner startSpinner, endSpinner;
+        private int autoScheduleID = -1;
 
-        /** Pass {@code existing = null} for "Add" mode, or an existing record for "Edit". */
+        private static final String[] BUILDINGS = {"Main Building", "Science Building", "Engineering Complex", "Annex"};
+        private static final String[] FLOORS = {"1st Floor", "2nd Floor", "3rd Floor", "4th Floor", "5th Floor"};
+        private static final String[] DAYS = {
+                "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+        };
+
         CheckerDetailDialog(Window owner, DataAccess db, CheckerDetail existing) {
-            super(owner, existing == null ? "Add Checker Detail" : "Edit Checker Detail",
-                    ModalityType.APPLICATION_MODAL);
-            setSize(420, 420);
+            super(owner, existing == null ? "Add Checker Detail" : "Edit Checker Detail", ModalityType.APPLICATION_MODAL);
+            setSize(500, 580);
             setLocationRelativeTo(owner);
             setResizable(false);
 
             JPanel panel = new JPanel();
-            panel.setBackground(UIHelper.SURFACE);
             panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-            panel.setBorder(new EmptyBorder(20, 28, 16, 28));
+            panel.setBackground(UIHelper.SURFACE);
+            panel.setBorder(new EmptyBorder(25, 30, 20, 30));
 
-            // ── Checker combo ──────────────────────────────────────────────
+            // 1. Checker Selection (Name only)
             checkerCombo = new JComboBox<>();
-            List<SystemUser> checkers = db.getAllCheckerUsers();
-            for (SystemUser u : checkers) checkerCombo.addItem(u);
-            panel.add(formRow("Checker", checkerCombo));
-            panel.add(Box.createVerticalStrut(8));
+            checkerCombo.setRenderer(new DefaultListCellRenderer() {
+                @Override
+                public Component getListCellRendererComponent(JList<?> list, Object val, int idx, boolean sel, boolean foc) {
+                    super.getListCellRendererComponent(list, val, idx, sel, foc);
+                    if (val instanceof SystemUser) setText(((SystemUser) val).getName());
+                    return this;
+                }
+            });
+            db.getAllCheckerUsers().forEach(checkerCombo::addItem);
+            panel.add(formRow("Checker", checkerCombo, 35));
 
-            // BUG 4: Schedule ID is auto-incremented — no input field; auto-compute on save
-            if (existing == null) {
-                autoScheduleID = db.getNextCheckerScheduleID();
-            }
+            if (existing == null) autoScheduleID = db.getNextCheckerScheduleID();
 
-            // BUG 5: Multi-day checkboxes
-            JPanel dayPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+            // 2. Day selection (Fixed spacing/clumping)
+            JPanel dayPanel = new JPanel(new GridLayout(0, 3, 12, 10)); // 12px gap
             dayPanel.setOpaque(false);
             dayBoxes = new JCheckBox[DAYS.length];
             for (int i = 0; i < DAYS.length; i++) {
@@ -293,141 +295,157 @@ public class CheckerDetailsPanel extends BasePanel {
                 dayBoxes[i].setFont(UIHelper.FONT_TABLE);
                 dayPanel.add(dayBoxes[i]);
             }
-            panel.add(formRow("Day(s)", dayPanel));
-            panel.add(Box.createVerticalStrut(8));
+            panel.add(formRow("Day(s)", dayPanel, 100)); // Larger height for grid
 
-            // ── Shift Start ────────────────────────────────────────────────
-            shiftStartField = new JTextField();
-            shiftStartField.setFont(UIHelper.FONT_TABLE);
-            shiftStartField.setToolTipText("Format: HH:mm  (e.g. 07:00)");
-            panel.add(formRow("Shift Start (HH:mm)", shiftStartField));
-            panel.add(Box.createVerticalStrut(8));
+            // 3. Time Spinners (30m increments)
+            startSpinner = createTimeSpinner();
+            endSpinner = createTimeSpinner();
+            panel.add(formRow("Shift Start", startSpinner, 35));
+            panel.add(formRow("Shift End", endSpinner, 35));
 
-            // ── Shift End ──────────────────────────────────────────────────
-            shiftEndField = new JTextField();
-            shiftEndField.setFont(UIHelper.FONT_TABLE);
-            shiftEndField.setToolTipText("Format: HH:mm  (e.g. 12:00)");
-            panel.add(formRow("Shift End (HH:mm)", shiftEndField));
-            panel.add(Box.createVerticalStrut(8));
+            // 4. Building & Floor Dropdowns
+            buildingCombo = new JComboBox<>(BUILDINGS);
+            floorCombo = new JComboBox<>(FLOORS);
+            panel.add(formRow("Building", buildingCombo, 35));
+            panel.add(formRow("Floor", floorCombo, 35));
 
-            // ── Building ───────────────────────────────────────────────────
-            buildingField = new JTextField();
-            buildingField.setFont(UIHelper.FONT_TABLE);
-            panel.add(formRow("Building", buildingField));
-            panel.add(Box.createVerticalStrut(8));
+            if (existing != null) prefill(existing);
 
-            // ── Floor ──────────────────────────────────────────────────────
-            floorField = new JTextField();
-            floorField.setFont(UIHelper.FONT_TABLE);
-            panel.add(formRow("Floor", floorField));
-            panel.add(Box.createVerticalStrut(16));
-
-            // Pre-fill fields in edit mode
-            if (existing != null) {
-                for (int i = 0; i < checkerCombo.getItemCount(); i++) {
-                    SystemUser u = checkerCombo.getItemAt(i);
-                    if (u != null && u.getUserID() == existing.getCheckerID()) {
-                        checkerCombo.setSelectedIndex(i);
-                        break;
-                    }
-                }
-                // Lock checker in edit mode — forms part of PK
-                checkerCombo.setEnabled(false);
-                autoScheduleID = existing.getScheduleID();
-                // Pre-tick day checkboxes from comma-separated day string
-                String existingDay = existing.getDay() != null ? existing.getDay() : "";
-                for (JCheckBox cb : dayBoxes) {
-                    cb.setSelected(existingDay.contains(cb.getText()));
-                }
-                shiftStartField.setText(existing.getShiftStart().toString());
-                shiftEndField.setText(existing.getShiftEnd().toString());
-                buildingField.setText(existing.getBuilding());
-                floorField.setText(existing.getFloor());
-            }
-
-            // ── Buttons ────────────────────────────────────────────────────
-            JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+            // 5. Action Buttons
+            JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
             btns.setOpaque(false);
-            JButton save   = UIHelper.button("Save");
+            JButton save = UIHelper.button("Save");
             JButton cancel = UIHelper.secondaryButton("Cancel");
-            save.setPreferredSize(new Dimension(90, 32));
-            cancel.setPreferredSize(new Dimension(90, 32));
+            save.setPreferredSize(new Dimension(100, 35));
+            cancel.setPreferredSize(new Dimension(100, 35));
+
             save.addActionListener(e -> onSave(existing));
             cancel.addActionListener(e -> dispose());
+
             btns.add(cancel);
             btns.add(save);
+
+            panel.add(Box.createVerticalGlue());
             panel.add(btns);
 
-            setContentPane(new JScrollPane(panel));
+            setContentPane(panel);
+        }
+
+        private JSpinner createTimeSpinner() {
+            SpinnerDateModel model = new SpinnerDateModel() {
+                @Override public Object getNextValue() {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(getDate());
+                    cal.add(Calendar.MINUTE, 30);
+                    return cal.getTime();
+                }
+                @Override public Object getPreviousValue() {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(getDate());
+                    cal.add(Calendar.MINUTE, -30);
+                    return cal.getTime();
+                }
+            };
+            JSpinner spinner = new JSpinner(model);
+            spinner.setEditor(new JSpinner.DateEditor(spinner, "HH:mm"));
+            return spinner;
+        }
+
+        private void prefill(CheckerDetail existing) {
+            for (int i = 0; i < checkerCombo.getItemCount(); i++) {
+                if (checkerCombo.getItemAt(i).getUserID() == existing.getCheckerID()) {
+                    checkerCombo.setSelectedIndex(i); break;
+                }
+            }
+            checkerCombo.setEnabled(false);
+            autoScheduleID = existing.getScheduleID();
+            String days = existing.getDay() != null ? existing.getDay() : "";
+            for (JCheckBox cb : dayBoxes) cb.setSelected(days.contains(cb.getText()));
+
+            startSpinner.setValue(new java.util.Date(existing.getShiftStart().getTime()));
+            endSpinner.setValue(new java.util.Date(existing.getShiftEnd().getTime()));
+            buildingCombo.setSelectedItem(existing.getBuilding());
+            floorCombo.setSelectedItem(existing.getFloor());
         }
 
         private void onSave(CheckerDetail existing) {
-            // Validate
-            SystemUser checker = (SystemUser) checkerCombo.getSelectedItem();
-            if (checker == null) { warn("Please select a checker."); return; }
-            // BUG 5: build day string from selected checkboxes
-            StringBuilder dayBuilder = new StringBuilder();
+            // 1. Validate Days
+            StringBuilder sb = new StringBuilder();
             for (JCheckBox cb : dayBoxes) {
-                if (cb.isSelected()) {
-                    if (dayBuilder.length() > 0) dayBuilder.append(",");
-                    dayBuilder.append(cb.getText());
-                }
+                if (cb.isSelected()) sb.append(sb.length() > 0 ? "," : "").append(cb.getText());
             }
-            String day = dayBuilder.toString();
-            if (day.isEmpty()) { warn("Please select at least one day."); return; }
-            String start = shiftStartField.getText().trim();
-            String end   = shiftEndField.getText().trim();
-            if (!start.matches("\\d{2}:\\d{2}")) { warn("Shift Start must be HH:mm (e.g. 07:00)."); return; }
-            if (!end.matches("\\d{2}:\\d{2}"))   { warn("Shift End must be HH:mm (e.g. 12:00)."); return; }
-            String building = buildingField.getText().trim();
-            String floor    = floorField.getText().trim();
-            if (building.isEmpty()) { warn("Building is required."); return; }
-            if (floor.isEmpty())    { warn("Floor is required."); return; }
-
-            // BUG 4: use autoScheduleID (no user input)
-            int sid = autoScheduleID;
-
-            try {
-                java.sql.Time startTime = java.sql.Time.valueOf(start + ":00");
-                java.sql.Time endTime   = java.sql.Time.valueOf(end + ":00");
-
-                result = new CheckerDetail(
-                        checker.getUserID(),
-                        sid,
-                        startTime,
-                        endTime,
-                        building,
-                        floor,
-                        day
-                );
-            } catch (IllegalArgumentException e) {
-                warn("Invalid time format. Use HH:mm.");
+            if (sb.length() == 0) {
+                JOptionPane.showMessageDialog(this, "Select at least one day", "Validation Error", JOptionPane.WARNING_MESSAGE);
                 return;
             }
+
+            // 2. Validate Time Shift (Start must be before End)
+            java.util.Date startTime = (java.util.Date) startSpinner.getValue();
+            java.util.Date endTime = (java.util.Date) endSpinner.getValue();
+
+            // Use Calendar to compare only hours and minutes (ignoring dates)
+            Calendar calStart = Calendar.getInstance();
+            calStart.setTime(startTime);
+            Calendar calEnd = Calendar.getInstance();
+            calEnd.setTime(endTime);
+
+            // Logic: Convert both to "minutes from midnight" for an easy comparison
+            int startMins = calStart.get(Calendar.HOUR_OF_DAY) * 60 + calStart.get(Calendar.MINUTE);
+            int endMins = calEnd.get(Calendar.HOUR_OF_DAY) * 60 + calEnd.get(Calendar.MINUTE);
+
+            if (startMins >= endMins) {
+                JOptionPane.showMessageDialog(this,
+                        "Invalid Shift: Start time must be earlier than end time.",
+                        "Time Validation Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // 3. Create Result if valid
+            result = new CheckerDetail(
+                    ((SystemUser) checkerCombo.getSelectedItem()).getUserID(),
+                    autoScheduleID,
+                    new java.sql.Time(startTime.getTime()),
+                    new java.sql.Time(endTime.getTime()),
+                    (String) buildingCombo.getSelectedItem(),
+                    (String) floorCombo.getSelectedItem(),
+                    sb.toString()
+            );
 
             if (existing != null) result.setCheckerName(existing.getCheckerName());
             confirmed = true;
             dispose();
         }
 
-        private void warn(String msg) {
-            JOptionPane.showMessageDialog(this, msg, "Validation Error", JOptionPane.WARNING_MESSAGE);
+        private JPanel formRow(String label, JComponent field, int height) {
+            JPanel row = new JPanel();
+            row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
+            row.setOpaque(false);
+            row.setMaximumSize(new Dimension(450, height));
+
+            JLabel lbl = new JLabel(label);
+            lbl.setFont(UIHelper.FONT_LABEL);
+            lbl.setPreferredSize(new Dimension(120, 30));
+
+            // If it's a direct input (not a panel), constrain the width
+            if (!(field instanceof JPanel)) {
+                field.setMaximumSize(new Dimension(220, 30));
+                field.setPreferredSize(new Dimension(220, 30));
+            }
+
+            row.add(lbl);
+            row.add(Box.createHorizontalStrut(15));
+            row.add(field);
+            row.add(Box.createHorizontalGlue());
+
+            JPanel wrapper = new JPanel(new BorderLayout());
+            wrapper.setOpaque(false);
+            wrapper.add(row, BorderLayout.CENTER);
+            wrapper.setBorder(new EmptyBorder(0, 0, 15, 0));
+            return wrapper;
         }
 
         boolean isConfirmed() { return confirmed; }
         CheckerDetail getResult() { return result; }
-
-        private static JPanel formRow(String label, JComponent field) {
-            JPanel row = new JPanel(new BorderLayout(8, 0));
-            row.setOpaque(false);
-            row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
-            JLabel lbl = new JLabel(label);
-            lbl.setFont(UIHelper.FONT_LABEL);
-            lbl.setForeground(UIHelper.TEXT_DARK);
-            lbl.setPreferredSize(new Dimension(170, 28));
-            row.add(lbl, BorderLayout.WEST);
-            row.add(field, BorderLayout.CENTER);
-            return row;
-        }
     }
 }

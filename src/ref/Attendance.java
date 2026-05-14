@@ -12,6 +12,9 @@ public class Attendance {
     private Integer actualInstructID;   // From  Instructor (for substitutes)
     private Integer leaveRequestID;
     private Integer checkedBy;
+    private String instructorName;
+    private String actualInstructorName;
+    private String checkerName;
 
     public Attendance(int attendanceID,
                       Date startDate, Date endDate,
@@ -34,6 +37,15 @@ public class Attendance {
         this.leaveRequestID = leaveRequestID;
         this.checkedBy = checkedBy;
     }
+
+    public String getInstructorName() { return instructorName; }
+    public void setInstructorName(String instructorName) { this.instructorName = instructorName; }
+
+    public String getActualInstructorName() { return actualInstructorName; }
+    public void setActualInstructorName(String actualInstructorName) { this.actualInstructorName = actualInstructorName; }
+
+    public String getCheckerName() { return checkerName; }
+    public void setCheckerName(String checkerName) { this.checkerName = checkerName; }
 
     public int getAttendanceID() {return attendanceID;}
 

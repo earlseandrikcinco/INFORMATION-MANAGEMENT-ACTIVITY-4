@@ -35,6 +35,74 @@ public class DataAccess {
         return null;
     }
 
+
+
+    public int getUnexcusedAbsenceCount(int instructorID) {
+        int count = 0;
+        // Logic:
+        // 1. Instructor was assigned to the class AND no sub was present AND status is 'A' (and no leave).
+        // 2. Instructor WAS the substitute (actualInstructorID) AND status is 'A'.
+        String sql = """
+        SELECT COUNT(*) FROM attendance a
+        LEFT JOIN classschedule cs ON a.classCode = cs.classCode
+        WHERE 
+            (cs.instructID = ? AND a.actualInstructID IS NULL AND a.instructorStatus = 'A' AND a.leaveRequestID IS NULL)
+            OR 
+            (a.actualInstructID = ? AND a.instructorStatus = 'A')
+    """;
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, instructorID);
+            stmt.setInt(2, instructorID);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) count = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return count;
+    }
+
+
+
+    public Room getRoomByID(Integer roomID) {
+
+        if (roomID == null) return null;
+
+        String sql = """
+        SELECT *
+        FROM room
+        WHERE roomID = ?
+    """;
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, roomID);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+
+                return new Room(
+                        rs.getInt("roomID"),
+                        rs.getString("floor"),
+                        rs.getString("building"),
+                        rs.getInt("capacity"),
+                        rs.getString("roomType")
+                );
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     public List<SystemUser> getCheckers() {
         List<SystemUser> checkers = new ArrayList<>();
         // Simply filter the collapsed table by the 'Checker' role
@@ -377,6 +445,8 @@ public class DataAccess {
         return list;
     }
 
+
+
     public List<Attendance> getAttendanceByInstructor(int instructID) {
         List<Attendance> list = new ArrayList<>();
 
@@ -437,11 +507,13 @@ public class DataAccess {
 
     public int getAbsenceCount(int instructorID) {
         String sql = """
-        SELECT COUNT(*) AS total
-        FROM attendance a
-        JOIN classschedule cs ON a.classCode = cs.classCode
-        WHERE cs.instructID = ? AND a.instructorStatus = 'Absent'
-        """;
+    SELECT COUNT(*) AS total
+    FROM attendance a
+    JOIN classschedule cs ON a.classCode = cs.classCode
+    WHERE cs.instructID = ? 
+      AND (a.instructorStatus = 'Absent' OR a.instructorStatus = 'A')
+      AND (a.leaveRequestID IS NULL OR a.leaveRequestID = 0)
+    """;
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -571,6 +643,92 @@ public class DataAccess {
         }
     }
 
+    public void syncLeaveToAttendance(LeaveRequest lr) {
+        // This query updates any existing 'Absent' records to the excused status
+        // and links the leaveRequestID to clear it from "Unexcused" counts.
+        String sql = """
+        UPDATE attendance a
+        JOIN classschedule cs ON a.classCode = cs.classCode
+        SET a.instructorStatus = ?, 
+            a.leaveRequestID = ?
+        WHERE cs.instructID = ? 
+          AND a.date BETWEEN ? AND ?
+          AND (a.instructorStatus = 'A' OR a.instructorStatus = 'Absent')
+    """;
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, lr.getLeaveType());
+            stmt.setInt(2, lr.getLeaveRequestID());
+            stmt.setInt(3, lr.getInstructID());
+            stmt.setDate(4, lr.getStartDate());
+            stmt.setDate(5, lr.getEndDate());
+
+            int rowsAffected = stmt.executeUpdate();
+            System.out.println("Sync complete: Updated " + rowsAffected + " attendance records.");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public LeaveRequest getApprovedLeaveForDate(int instructorID, java.sql.Date date) {
+        String sql = """
+        SELECT * FROM leaverequest 
+        WHERE instructID = ? AND status = 'Approved' 
+        AND ? BETWEEN startDate AND endDate LIMIT 1
+    """;
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, instructorID);
+            stmt.setDate(2, date);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new LeaveRequest(
+                            rs.getInt("leaveRequestID"), rs.getString("leaveType"),
+                            rs.getDate("startDate"), rs.getDate("endDate"),
+                            rs.getString("status"), rs.getString("leaveReason"),
+                            rs.getInt("instructID"), rs.getInt("approvedBy")
+                    );
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return null;
+    }
+
+    public Integer getMatchingLeaveRequestID(int instructID, Date date, String statusAttempted) {
+        // We only need to check the DB if the status is an "Excused" type
+        if (statusAttempted.equals("Present") || statusAttempted.equals("Absent") ||
+                statusAttempted.equals("P") || statusAttempted.equals("A")) {
+            return null;
+        }
+
+
+
+        String sql = """
+        SELECT leaveRequestID FROM leaverequest 
+        WHERE instructID = ? 
+          AND status = 'Approved' 
+          AND leaveType = ? 
+          AND ? BETWEEN startDate AND endDate
+        LIMIT 1
+    """;
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, instructID);
+            stmt.setString(2, statusAttempted); // e.g., "Sick Leave"
+            stmt.setDate(3, date);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return rs.getInt("leaveRequestID");
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return null;
+    }
+
     public List<ClassSchedule> fetchScheduleConflictDetails(
             String classCode,
             Integer roomID,
@@ -641,6 +799,23 @@ public class DataAccess {
         }
 
         return conflicts;
+    }
+
+    public String getActualInstructorName(int actualID) {
+        String name = "Unknown";
+        String sql = "SELECT name FROM instructor WHERE instructorID = ?";
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, actualID);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    name = rs.getString("name");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return name;
     }
 
     public boolean addSystemUser(SystemUser user) {
@@ -1157,32 +1332,25 @@ public class DataAccess {
         List<Attendance> list = new ArrayList<>();
 
         String sql = """
-        SELECT a.*,
-               cs.courseNo,
-               cs.instructID AS assignedInstructID,
-               i.name AS instructorName,
-               lr.leaveRequestID,
-               lr.leaveType,
-               lr.status AS leaveStatus,
-               lr.leaveReason AS reason
-        FROM attendance a
-        JOIN classschedule cs
-            ON a.classCode = cs.classCode
-        LEFT JOIN instructor i
-            ON cs.instructID = i.instructID
-        LEFT JOIN leaverequest lr
-            ON cs.instructID = lr.instructID
-            AND a.startDate BETWEEN lr.startDate AND lr.endDate
-            AND lr.status = 'APPROVED'
-        ORDER BY a.startDate DESC
-        """;
+    SELECT a.*,
+           cs.instructID AS assignedInstructID,
+           i1.name AS instrName,
+           i2.name AS actualInstrName,
+           u.name AS checkerName
+    FROM attendance a
+    JOIN classschedule cs ON a.classCode = cs.classCode
+    LEFT JOIN instructor i1 ON cs.instructID = i1.instructID
+    LEFT JOIN instructor i2 ON a.actualInstructID = i2.instructID
+    LEFT JOIN systemuser u ON a.checkedBy = u.userID
+    ORDER BY a.startDate DESC
+    """;
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
-                Attendance attendance = new Attendance(
+                Attendance a = new Attendance(
                         rs.getInt("attendanceID"),
                         rs.getDate("startDate"),
                         rs.getDate("endDate"),
@@ -1192,10 +1360,15 @@ public class DataAccess {
                         rs.getInt("assignedInstructID"),
                         (Integer) rs.getObject("actualInstructID"),
                         (Integer) rs.getObject("leaveRequestID"),
-                        rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0
+                        (Integer) rs.getObject("checkedBy")
                 );
 
-                list.add(attendance);
+                // Map the names from the SQL result to the object
+                a.setInstructorName(rs.getString("instrName"));
+                a.setActualInstructorName(rs.getString("actualInstrName"));
+                a.setCheckerName(rs.getString("checkerName"));
+
+                list.add(a);
             }
         } catch (SQLException e) {
             e.printStackTrace();

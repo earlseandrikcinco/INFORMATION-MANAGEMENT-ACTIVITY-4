@@ -8,15 +8,16 @@ import ref.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.sql.Time;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CreateSchedulePanel extends BasePanel {
-
+    private JComboBox<String> buildingCombo;
+    private JComboBox<String> floorCombo;
     private final DataAccess db;
     private final SystemUser currentUser;
 
@@ -31,6 +32,7 @@ public class CreateSchedulePanel extends BasePanel {
 
     private JComboBox<Room> roomCombo;
     private JComboBox<Instructor> instructorCombo;
+    private JComboBox<SystemUser> checkerCombo;
 
     private static final String[] DAY_LABELS = {"M", "T", "W", "Th", "F", "S"};
 
@@ -38,6 +40,7 @@ public class CreateSchedulePanel extends BasePanel {
         super(controller);
         this.db = db;
         this.currentUser = currentUser;
+
         buildUI();
     }
 
@@ -74,6 +77,7 @@ public class CreateSchedulePanel extends BasePanel {
         daysPanel.setOpaque(false);
 
         dayBoxes = new JCheckBox[DAY_LABELS.length];
+
         for (int i = 0; i < DAY_LABELS.length; i++) {
             dayBoxes[i] = new JCheckBox(DAY_LABELS[i]);
             dayBoxes[i].setOpaque(false);
@@ -85,7 +89,11 @@ public class CreateSchedulePanel extends BasePanel {
 
         roomCombo = new JComboBox<>();
         roomCombo.addItem(null);
-        for (Room r : db.getAllRooms()) roomCombo.addItem(r);
+
+        for (Room r : db.getAllRooms()) {
+            roomCombo.addItem(r);
+        }
+
         card.add(formRow("Room", roomCombo));
         card.add(Box.createVerticalStrut(10));
 
@@ -93,24 +101,42 @@ public class CreateSchedulePanel extends BasePanel {
         instructorCombo.addItem(null);
 
         int deptID = getDeptID();
-        List<Instructor> instructors =
-                deptID > 0 ? db.getInstructorsByDept(deptID) : db.getInstructors();
 
-        for (Instructor i : instructors) instructorCombo.addItem(i);
+        List<Instructor> instructors =
+                deptID > 0
+                        ? db.getInstructorsByDept(deptID)
+                        : db.getInstructors();
+
+        for (Instructor i : instructors) {
+            instructorCombo.addItem(i);
+        }
 
         card.add(formRow("Instructor", instructorCombo));
+        card.add(Box.createVerticalStrut(10));
+
+        // BUG 7: checker input field
+        checkerCombo = new JComboBox<>();
+        checkerCombo.addItem(null);
+
+        for (SystemUser checker : db.getCheckers()) {
+            checkerCombo.addItem(checker);
+        }
+
+        card.add(formRow("Checker", checkerCombo));
         card.add(Box.createVerticalStrut(10));
 
         JLabel statusLabel = new JLabel(" ");
         card.add(statusLabel);
 
         JButton submitBtn = UIHelper.button("Save Schedule");
+
         card.add(Box.createVerticalStrut(10));
         card.add(submitBtn);
 
         submitBtn.addActionListener(e -> {
 
             String err = validateForm();
+
             if (err != null) {
                 statusLabel.setForeground(Color.RED);
                 statusLabel.setText(err);
@@ -118,6 +144,7 @@ public class CreateSchedulePanel extends BasePanel {
             }
 
             List<ClassSchedule> conflicts = new ArrayList<>();
+
             boolean ok = submit(conflicts);
 
             if (!ok && !conflicts.isEmpty()) {
@@ -125,6 +152,7 @@ public class CreateSchedulePanel extends BasePanel {
                 StringBuilder msg = new StringBuilder("Schedule conflict detected:\n\n");
 
                 for (ClassSchedule c : conflicts) {
+
                     msg.append("Class ")
                             .append(c.getClassCode())
                             .append(" | ")
@@ -147,6 +175,7 @@ public class CreateSchedulePanel extends BasePanel {
 
                 statusLabel.setForeground(Color.RED);
                 statusLabel.setText("Schedule conflict exists.");
+
                 return;
             }
 
@@ -169,23 +198,21 @@ public class CreateSchedulePanel extends BasePanel {
     }
 
     private String validateForm() {
-        // 1. Get the text from the field
+
         String classCode = classCodeField.getText().trim();
 
         if (classCode.isBlank())
             return "Class code is required.";
 
-        // We removed the Integer.parseInt block because the DB is VARCHAR
-
         if (courseNoField.getText().isBlank())
             return "Course number required.";
 
-        // 2. Now 'classCode' is defined as a String above, so this will work:
         if (classCodeExists(classCode))
             return "Class code already exists.";
 
         int sh = (int) startHourSpinner.getValue();
         int sm = (int) startMinSpinner.getValue();
+
         int eh = (int) endHourSpinner.getValue();
         int em = (int) endMinSpinner.getValue();
 
@@ -193,8 +220,13 @@ public class CreateSchedulePanel extends BasePanel {
             return "End time must be after start time.";
 
         boolean anyDay = false;
-        for (JCheckBox cb : dayBoxes)
-            if (cb.isSelected()) anyDay = true;
+
+        for (JCheckBox cb : dayBoxes) {
+            if (cb.isSelected()) {
+                anyDay = true;
+                break;
+            }
+        }
 
         if (!anyDay)
             return "Select at least one day.";
@@ -210,6 +242,7 @@ public class CreateSchedulePanel extends BasePanel {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, code);
+
             ResultSet rs = stmt.executeQuery();
 
             return rs.next();
@@ -226,6 +259,7 @@ public class CreateSchedulePanel extends BasePanel {
 
         int sh = (int) startHourSpinner.getValue();
         int sm = (int) startMinSpinner.getValue();
+
         int eh = (int) endHourSpinner.getValue();
         int em = (int) endMinSpinner.getValue();
 
@@ -233,12 +267,18 @@ public class CreateSchedulePanel extends BasePanel {
         Time end = Time.valueOf(String.format("%02d:%02d:00", eh, em));
 
         StringBuilder days = new StringBuilder();
-        for (JCheckBox cb : dayBoxes)
-            if (cb.isSelected()) days.append(cb.getText());
+
+        for (JCheckBox cb : dayBoxes) {
+            if (cb.isSelected()) {
+                days.append(cb.getText());
+            }
+        }
 
         Room room = (Room) roomCombo.getSelectedItem();
         Instructor inst = (Instructor) instructorCombo.getSelectedItem();
-        Integer checker = (Integer) null; // TODO Add a checker input field
+
+        // BUG 8: assign checker from input field
+        SystemUser checker = (SystemUser) checkerCombo.getSelectedItem();
 
         ClassSchedule cs = new ClassSchedule(
                 classCode,
@@ -248,26 +288,38 @@ public class CreateSchedulePanel extends BasePanel {
                 days.toString(),
                 inst != null ? inst.getInstructorID() : null,
                 room != null ? room.getRoomID() : null,
-                null
-                //TODO room != null ? checker.getCheckerID() : null
-                );
+                checker != null ? checker.getUserID() : null
+        );
 
         return db.insertClassSchedule(cs, conflictsOut);
     }
 
     private void clearForm() {
+
         classCodeField.setText("");
         courseNoField.setText("");
+
+        for (JCheckBox cb : dayBoxes) {
+            cb.setSelected(false);
+        }
+
+        roomCombo.setSelectedIndex(0);
+        instructorCombo.setSelectedIndex(0);
+        checkerCombo.setSelectedIndex(0);
     }
 
     private int getDeptID() {
+
         if (currentUser.getRole().equalsIgnoreCase("DeptHead")) {
+
             Integer id = currentUser.getDepartmentID();
 
             return (id != null) ? id : -1;
         }
+
         return -1;
     }
+
     private JSpinner hourSpinner() {
         return new JSpinner(new SpinnerNumberModel(7, 0, 23, 1));
     }
@@ -277,16 +329,22 @@ public class CreateSchedulePanel extends BasePanel {
     }
 
     private JPanel timeRow(JComponent a, JComponent b) {
+
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
         p.setOpaque(false);
+
         p.add(a);
         p.add(new JLabel(":"));
         p.add(b);
+
         return p;
     }
 
     private JPanel formRow(String label, JComponent input) {
+
         JPanel row = new JPanel(new BorderLayout(8, 0));
+
         row.setOpaque(false);
 
         JLabel lbl = new JLabel(label);

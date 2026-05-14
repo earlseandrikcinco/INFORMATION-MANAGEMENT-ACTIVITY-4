@@ -71,9 +71,18 @@ public class ClassScheduleDetailDialog extends JDialog {
         addReadRow(info, "End Time:",    String.valueOf(schedule.getEndTime()));
 
         // Room — resolved via roomDescription set by DataAccess.getScheduleWithDetails
-        String roomDisplay = schedule.getRoomDescription() != null
-                ? schedule.getRoomDescription()
-                : (schedule.getRoomID() != null ? "Room ID " + schedule.getRoomID() : "—");
+        Room room = db.getRoomByID(schedule.getRoomID());
+
+        String roomDisplay = "—";
+
+        if (room != null) {
+            roomDisplay =
+                    "Room " + room.getRoomID()
+                            + " | Building " + room.getBuilding()
+                            + " | Floor " + room.getFloor()
+                            + " | Capacity " + room.getCapacity()
+                            + " | Type " + room.getRoomType();
+        }
         addReadRow(info, "Room:", roomDisplay);
 
         root.add(info);

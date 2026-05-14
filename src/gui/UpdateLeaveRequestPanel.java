@@ -75,9 +75,26 @@ public class UpdateLeaveRequestPanel extends BasePanel {
     }
 
 
+    private int getDeptID() {
+        if (currentUser.getRole().equalsIgnoreCase("DeptHead")) {
+            Integer id = currentUser.getDepartmentID();
+
+            return (id != null) ? id : -1;
+        }
+        return -1;
+    }
+
     private void loadRequests() {
         int deptID = getDeptID();
+
+        // DEBUG: Check your console to see if this is -1 or a real ID
+        System.out.println("LOG: DeptHead " + currentUser.getName() + " is fetching leaves for DeptID: " + deptID);
+
+        // If you want a "Super Admin" who sees everything, you'd check for -1 here
         List<LeaveRequest> all = db.getLeaveRequestsByStatusAndDept("Pending", deptID);
+
+        System.out.println("LOG: Found " + all.size() + " pending requests.");
+
         currentList = all;
         tableModel.setRowCount(0);
         for (LeaveRequest lr : all) {
@@ -92,34 +109,21 @@ public class UpdateLeaveRequestPanel extends BasePanel {
         }
     }
 
-    private int getDeptID() {
-        if (currentUser.getRole().equalsIgnoreCase("DeptHead")) {
-            Integer id = currentUser.getDepartmentID();
-
-            return (id != null) ? id : -1;
-        }
-        return -1;
-    }
-
     private void resolveSelected(String newStatus) {
         int row = table.getSelectedRow();
         if (row < 0) {
-            JOptionPane.showMessageDialog(this,
-                    "Please select a leave request first.",
-                    "No Selection", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Please select a leave request.");
             return;
         }
+
         LeaveRequest lr = currentList.get(row);
-        String label = "Approved".equals(newStatus) ? "approve" : "reject";
+
+        // Confirmation Dialog
         int confirm = JOptionPane.showConfirmDialog(this,
-                "Are you sure you want to " + label + " this leave request?\n\n"
-                        + "Instructor: " + (lr.getInstructorName() != null ? lr.getInstructorName() : lr.getInstructID()) + "\n"
-                        + "Type: " + lr.getLeaveType() + "\n"
-                        + lr.getStartDate() + " → " + lr.getEndDate(),
-                "Confirm " + newStatus,
-                JOptionPane.YES_NO_OPTION);
+                "Set Request #" + lr.getLeaveRequestID() + " to " + newStatus + "?");
         if (confirm != JOptionPane.YES_OPTION) return;
 
+        // 1. Update the status in the database
         boolean ok = db.resolveLeaveRequest(
                 lr.getInstructID(),
                 lr.getLeaveRequestID(),
@@ -127,16 +131,16 @@ public class UpdateLeaveRequestPanel extends BasePanel {
                 currentUser.getUserID()
         );
 
-
         if (ok) {
-            JOptionPane.showMessageDialog(this,
-                    "Leave request " + newStatus.toLowerCase() + " successfully.",
-                    "Done", JOptionPane.INFORMATION_MESSAGE);
-            loadRequests();
+            // 2. CRITICAL: If approved, flip any unexcused absences to the leave type
+            if ("Approved".equalsIgnoreCase(newStatus)) {
+                db.syncLeaveToAttendance(lr);
+            }
+
+            JOptionPane.showMessageDialog(this, "Status updated to " + newStatus);
+            loadRequests(); // Refresh table
         } else {
-            JOptionPane.showMessageDialog(this,
-                    "Failed to update the leave request. Please try again.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Database update failed.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

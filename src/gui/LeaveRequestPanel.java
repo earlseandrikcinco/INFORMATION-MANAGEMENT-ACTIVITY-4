@@ -246,8 +246,13 @@ public class LeaveRequestPanel extends BasePanel {
                         lr.getLeaveRequestID(),
                         "Approved",
                         currentUser.getUserID())) {
+
+                    // ADD THIS: Automatically flip existing absences to excused
+                    db.syncLeaveToAttendance(lr);
+
                     dialog.dispose();
                     applyFilter();
+                    JOptionPane.showMessageDialog(this, "Leave Approved and existing absences updated.");
                 }
             });
 
@@ -269,8 +274,9 @@ public class LeaveRequestPanel extends BasePanel {
             JButton syncBtn = UIHelper.button("Sync to Attendance");
 
             syncBtn.addActionListener(e -> {
-                db.syncLeaveToAttendance(lr.getLeaveRequestID());
-                JOptionPane.showMessageDialog(dialog, "Absences updated in advance for this leave.");
+                // Updated to pass the object
+                db.syncLeaveToAttendance(lr);
+                JOptionPane.showMessageDialog(dialog, "Absences updated to '" + lr.getLeaveType() + "' for this leave period.");
                 dialog.dispose();
             });
 

@@ -16,14 +16,21 @@ public class AttendanceDetailPanel extends BasePanel {
     private final DataAccess db;
     private final Instructor instructor;
 
+    private JPanel statsRow;
+    private DefaultTableModel lModel;
+    private DefaultTableModel aModel;
+    private JTable attTable; // Moved to class level
+
     public AttendanceDetailPanel(AppController controller, DataAccess db, Instructor instructor) {
         super(controller);
         this.db = db;
         this.instructor = instructor;
         buildUI();
+        refreshData();
     }
 
     private void buildUI() {
+        setLayout(new BorderLayout());
         add(UIHelper.topBar("Instructor Attendance Overview",
                 instructor.getName() + "  ·  ID: " + instructor.getInstructorID()), BorderLayout.NORTH);
 
@@ -31,31 +38,16 @@ public class AttendanceDetailPanel extends BasePanel {
         body.setBackground(UIHelper.BG);
         body.setBorder(BorderFactory.createEmptyBorder(12, 18, 10, 18));
 
-        int present = db.getPresentCount(instructor.getInstructorID());
-        int absent  = db.getAbsenceCount(instructor.getInstructorID());
-        List<LeaveRequest> leaves = db.getLeaveRequestsByInstructor(instructor.getInstructorID());
-
-        JPanel statsRow = new JPanel(new GridLayout(1, 3, 12, 0));
+        statsRow = new JPanel(new GridLayout(1, 3, 12, 0));
         statsRow.setOpaque(false);
-        statsRow.add(UIHelper.statChip("Classes Present", String.valueOf(present)));
-        statsRow.add(UIHelper.statChip("Unexcused Absences", String.valueOf(absent)));
-        statsRow.add(UIHelper.statChip("Leave Requests", String.valueOf(leaves.size())));
 
+        // --- Leave Section ---
         JLabel leaveTitle = new JLabel("Leave History");
         leaveTitle.setFont(UIHelper.FONT_LABEL);
-        leaveTitle.setBorder(BorderFactory.createEmptyBorder(8, 0, 4, 0));
-
         String[] lCols = {"Req ID", "Type", "Start Date", "End Date", "Status"};
-        DefaultTableModel lModel = new DefaultTableModel(lCols, 0);
-        for (LeaveRequest lr : leaves) {
-            lModel.addRow(new Object[]{
-                    lr.getLeaveRequestID(),
-                    lr.getLeaveType(),
-                    lr.getStartDate(),
-                    lr.getEndDate(),
-                    lr.getStatus()
-            });
-        }
+        lModel = new DefaultTableModel(lCols, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
         JTable leaveTable = UIHelper.makeTable(lModel);
 
         JPanel leaveSection = new JPanel(new BorderLayout());
@@ -63,23 +55,31 @@ public class AttendanceDetailPanel extends BasePanel {
         leaveSection.add(leaveTitle, BorderLayout.NORTH);
         leaveSection.add(UIHelper.scroll(leaveTable), BorderLayout.CENTER);
 
+        // --- Attendance Section ---
         JLabel attTitle = new JLabel("Detailed Class Attendance");
         attTitle.setFont(UIHelper.FONT_LABEL);
-        attTitle.setBorder(BorderFactory.createEmptyBorder(8, 0, 4, 0));
 
-        List<Attendance> attList = db.getAttendanceByInstructor(instructor.getInstructorID());
-        String[] aCols = {"Class Code", "Date", "Status", "Substitute?", "Leave Linked"};
-        DefaultTableModel aModel = new DefaultTableModel(aCols, 0);
+        // Match the columns used in refreshData
+        String[] aCols = {"Class Code", "Date", "Status", "Substitute", "Leave Linked"};
+        aModel = new DefaultTableModel(aCols, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+        attTable = UIHelper.makeTable(aModel);
 
-        for (Attendance a : attList) {
-            aModel.addRow(new Object[]{
-                    a.getClassCode(),
-                    a.getStartDate(),
-                    translateStatus(a.getInstructorStatus()),
-                    (a.getLeaveRequestID() != null && a.getLeaveRequestID() > 0) ? "Req #" + a.getLeaveRequestID() : "-"
-            });
-        }
-        JTable attTable = UIHelper.makeTable(aModel);
+        // Red/Green Color Renderer
+        attTable.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object v, boolean s, boolean f, int r, int c) {
+                Component comp = super.getTableCellRendererComponent(t, v, s, f, r, c);
+                if (t.getValueAt(r, 2) != null) {
+                    String status = t.getValueAt(r, 2).toString();
+                    if (status.contains("Absent")) comp.setForeground(Color.RED);
+                    else if (status.equals("Present")) comp.setForeground(new Color(0, 120, 0));
+                    else comp.setForeground(Color.BLACK);
+                }
+                return comp;
+            }
+        });
 
         JPanel attSection = new JPanel(new BorderLayout());
         attSection.setOpaque(false);
@@ -88,9 +88,8 @@ public class AttendanceDetailPanel extends BasePanel {
 
         JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, leaveSection, attSection);
         split.setDividerLocation(200);
-        split.setResizeWeight(0.5);
-        split.setBorder(null);
         split.setOpaque(false);
+        split.setBorder(null);
 
         body.add(statsRow, BorderLayout.NORTH);
         body.add(split, BorderLayout.CENTER);
@@ -105,15 +104,63 @@ public class AttendanceDetailPanel extends BasePanel {
         add(bar, BorderLayout.SOUTH);
     }
 
+    public void refreshData() {
+        int instructorID = instructor.getInstructorID();
+
+        // 1. Stats
+        int present = db.getPresentCount(instructorID);
+        int unexcused = db.getUnexcusedAbsenceCount(instructorID); // Use the new logic
+        List<LeaveRequest> leaves = db.getLeaveRequestsByInstructor(instructorID);
+
+        statsRow.removeAll();
+        statsRow.add(UIHelper.statChip("Classes Present", String.valueOf(present)));
+        statsRow.add(UIHelper.statChip("Unexcused Absences", String.valueOf(unexcused)));
+        statsRow.add(UIHelper.statChip("Leave Requests", String.valueOf(leaves.size())));
+
+        // 2. Leave Table
+        lModel.setRowCount(0);
+        for (LeaveRequest lr : leaves) {
+            lModel.addRow(new Object[]{
+                    lr.getLeaveRequestID(), lr.getLeaveType(),
+                    lr.getStartDate(), lr.getEndDate(), lr.getStatus()
+            });
+        }
+
+        // 3. Attendance Table (Fixed Logic)
+        aModel.setRowCount(0);
+        List<Attendance> attList = db.getAttendanceByInstructor(instructorID);
+        for (Attendance a : attList) {
+            String subInfo = "-";
+
+            // Check if this specific session had a substitute
+            if (a.getActualInstructID() != null && a.getActualInstructID() != instructorID) {
+                subInfo = "Sub: " + db.getActualInstructorName(a.getActualInstructID());
+            }
+
+            aModel.addRow(new Object[]{
+                    a.getClassCode(),
+                    a.getStartDate(), // Ensure ref.Attendance has getDate() or getStartDate()
+                    translateStatus(a.getInstructorStatus()),
+                    subInfo,
+                    (a.getLeaveRequestID() != null && a.getLeaveRequestID() > 0)
+                            ? "Req #" + a.getLeaveRequestID() : "-"
+            });
+        }
+
+        statsRow.revalidate();
+        statsRow.repaint();
+    }
+
     private String translateStatus(String status) {
         if (status == null) return "Pending";
-        return switch (status) {
-            case "P" -> "Present";
-            case "A" -> "Absent (Unexcused)";
-            case "SL" -> "Sick Leave";
-            case "OB" -> "Official Business";
-            case "PL" -> "Personal Leave";
-            default -> status;
+        return switch (status.toUpperCase()) {
+            case "P", "PRESENT" -> "Present";
+            case "A", "ABSENT"  -> "Absent (Unexcused)";
+            case "SL"           -> "Sick Leave (Excused)";
+            case "OB"           -> "Official Business (Excused)";
+            case "PL"           -> "Personal Leave (Excused)";
+            case "SUBSTITUTED"  -> "Substituted";
+            default             -> status;
         };
     }
 }
