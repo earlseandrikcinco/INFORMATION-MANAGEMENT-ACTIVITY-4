@@ -7,6 +7,7 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("CallToPrintStackTrace")
 public class DataAccess {
     public SystemUser getUser(String username) {
         try (Connection conn = DataPB.getConnection();
@@ -1931,7 +1932,9 @@ public class DataAccess {
             e.printStackTrace();
         }
         return null;
-    }public void saveOrUpdateAttendance(Attendance att) {
+    }
+
+    public void saveOrUpdateAttendance(Attendance att) {
         try (Connection conn = DataPB.getConnection();
              CallableStatement stmt = conn.prepareCall("{call sp_CheckAttendance(?, ?, ?, ?, ?, ?, ?)}")) {
 
@@ -1940,6 +1943,7 @@ public class DataAccess {
             stmt.setString(3, att.getInstructorStatus());
             stmt.setInt(4, att.getCheckedBy());
 
+            // Handle nullable integers
             if (att.getActualInstructID() != null) stmt.setInt(5, att.getActualInstructID());
             else stmt.setNull(5, Types.INTEGER);
 

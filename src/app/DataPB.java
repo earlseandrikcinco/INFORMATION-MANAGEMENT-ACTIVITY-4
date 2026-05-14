@@ -7,7 +7,7 @@ public class DataPB {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             Connection conn = DriverManager.getConnection(
-                    "jdbc:mysql://127.0.0.1:3306/FINAL_FINAL_FINAL_SCHEMA",
+                    "jdbc:mysql://localhost:3306/pls",
                     "root",
                     ""
             );
