@@ -32,7 +32,7 @@ public class CheckerDetailsPanel extends BasePanel {
     private JTextField searchField;
 
     private static final String[] DAYS = {
-        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+            "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
     };
 
     public CheckerDetailsPanel(AppController controller, DataAccess db) {
@@ -87,7 +87,7 @@ public class CheckerDetailsPanel extends BasePanel {
 
         // ── table ─────────────────────────────────────────────────────────
         String[] cols = {"Checker", "Schedule ID", "Day", "Shift Start", "Shift End",
-                         "Building", "Floor"};
+                "Building", "Floor"};
         tableModel = new DefaultTableModel(cols, 0);
         table = UIHelper.makeTable(tableModel);
         table.getColumnModel().getColumn(0).setPreferredWidth(160);
@@ -117,20 +117,20 @@ public class CheckerDetailsPanel extends BasePanel {
         for (CheckerDetail cd : currentRows) {
             if (!f.isEmpty()) {
                 boolean match =
-                    (cd.getCheckerName() != null && cd.getCheckerName().toLowerCase().contains(f))
-                    || cd.getBuilding().toLowerCase().contains(f)
-                    || cd.getFloor().toLowerCase().contains(f)
-                    || cd.getDay().toLowerCase().contains(f);
+                        (cd.getCheckerName() != null && cd.getCheckerName().toLowerCase().contains(f))
+                                || cd.getBuilding().toLowerCase().contains(f)
+                                || cd.getFloor().toLowerCase().contains(f)
+                                || cd.getDay().toLowerCase().contains(f);
                 if (!match) continue;
             }
             tableModel.addRow(new Object[]{
-                cd.getCheckerName() != null ? cd.getCheckerName() : "ID " + cd.getCheckerID(),
-                cd.getScheduleID(),
-                cd.getDay(),
-                cd.getShiftStart(),
-                cd.getShiftEnd(),
-                cd.getBuilding(),
-                cd.getFloor()
+                    cd.getCheckerName() != null ? cd.getCheckerName() : "ID " + cd.getCheckerID(),
+                    cd.getScheduleID(),
+                    cd.getDay(),
+                    cd.getShiftStart(),
+                    cd.getShiftEnd(),
+                    cd.getBuilding(),
+                    cd.getFloor()
             });
         }
     }
@@ -145,7 +145,7 @@ public class CheckerDetailsPanel extends BasePanel {
         String checkerName = (String) tableModel.getValueAt(row, 0);
         for (CheckerDetail cd : currentRows) {
             if (cd.getScheduleID() == scheduleID &&
-                (cd.getCheckerName() != null && cd.getCheckerName().equals(checkerName))) {
+                    (cd.getCheckerName() != null && cd.getCheckerName().equals(checkerName))) {
                 return cd;
             }
         }
@@ -162,11 +162,14 @@ public class CheckerDetailsPanel extends BasePanel {
             CheckerDetail cd = dlg.getResult();
             boolean ok = db.createCheckerDetail(cd);
             if (ok) {
-                JOptionPane.showMessageDialog(this, "Checker detail added successfully.",
-                        "Success", JOptionPane.INFORMATION_MESSAGE);
+                // BUG 3 – auto-assign checker to matching class schedules
+                int assigned = db.autoAssignCheckerToSchedules(cd);
+                String msg = "Checker detail added successfully.";
+                if (assigned > 0) {
+                    msg += "\n" + assigned + " class schedule(s) automatically assigned to this checker.";
+                }
+                JOptionPane.showMessageDialog(this, msg, "Success", JOptionPane.INFORMATION_MESSAGE);
                 refreshTable(searchField.getText().trim());
-
-                // TODO Update every class schedule affected by the creation of new checker details
             } else {
                 JOptionPane.showMessageDialog(this,
                         "Failed to add checker detail. The checker/schedule combination may already exist.",
@@ -212,12 +215,12 @@ public class CheckerDetailsPanel extends BasePanel {
 
         int confirm = JOptionPane.showConfirmDialog(this,
                 "<html>Delete the following checker detail?<br><br>" +
-                "<b>Checker:</b> " + checkerLabel + "<br>" +
-                "<b>Schedule ID:</b> " + selected.getScheduleID() + "<br>" +
-                "<b>Day / Shift:</b> " + selected.getDay() + " | "
+                        "<b>Checker:</b> " + checkerLabel + "<br>" +
+                        "<b>Schedule ID:</b> " + selected.getScheduleID() + "<br>" +
+                        "<b>Day / Shift:</b> " + selected.getDay() + " | "
                         + selected.getShiftStart() + "–" + selected.getShiftEnd() + "<br><br>" +
-                "<i>Any class schedules assigned to this checker will have their<br>" +
-                "checker assignment cleared (set to none).</i></html>",
+                        "<i>Any class schedules assigned to this checker will have their<br>" +
+                        "checker assignment cleared (set to none).</i></html>",
                 "Confirm Delete",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE);
@@ -246,8 +249,10 @@ public class CheckerDetailsPanel extends BasePanel {
         private CheckerDetail result;
 
         private JComboBox<SystemUser> checkerCombo;
-        private JTextField scheduleIDField; // TODO Remove and auto increment instead of an input
-        private JComboBox<String> dayCombo; // TODO Make it checkbox, multiple days allowed
+        // BUG 4: scheduleID is auto-incremented — no input field needed
+        private int autoScheduleID = -1;
+        // BUG 5: multiple-day checkboxes
+        private JCheckBox[] dayBoxes;
         private JTextField shiftStartField;
         private JTextField shiftEndField;
         private JTextField buildingField;
@@ -256,7 +261,7 @@ public class CheckerDetailsPanel extends BasePanel {
         /** Pass {@code existing = null} for "Add" mode, or an existing record for "Edit". */
         CheckerDetailDialog(Window owner, DataAccess db, CheckerDetail existing) {
             super(owner, existing == null ? "Add Checker Detail" : "Edit Checker Detail",
-                  ModalityType.APPLICATION_MODAL);
+                    ModalityType.APPLICATION_MODAL);
             setSize(420, 420);
             setLocationRelativeTo(owner);
             setResizable(false);
@@ -273,15 +278,22 @@ public class CheckerDetailsPanel extends BasePanel {
             panel.add(formRow("Checker", checkerCombo));
             panel.add(Box.createVerticalStrut(8));
 
-            // ── Schedule ID ────────────────────────────────────────────────
-            scheduleIDField = new JTextField();
-            scheduleIDField.setFont(UIHelper.FONT_TABLE);
-            panel.add(formRow("Schedule ID", scheduleIDField));
-            panel.add(Box.createVerticalStrut(8));
+            // BUG 4: Schedule ID is auto-incremented — no input field; auto-compute on save
+            if (existing == null) {
+                autoScheduleID = db.getNextCheckerScheduleID();
+            }
 
-            // ── Day ────────────────────────────────────────────────────────
-            dayCombo = new JComboBox<>(DAYS);
-            panel.add(formRow("Day", dayCombo));
+            // BUG 5: Multi-day checkboxes
+            JPanel dayPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+            dayPanel.setOpaque(false);
+            dayBoxes = new JCheckBox[DAYS.length];
+            for (int i = 0; i < DAYS.length; i++) {
+                dayBoxes[i] = new JCheckBox(DAYS[i]);
+                dayBoxes[i].setOpaque(false);
+                dayBoxes[i].setFont(UIHelper.FONT_TABLE);
+                dayPanel.add(dayBoxes[i]);
+            }
+            panel.add(formRow("Day(s)", dayPanel));
             panel.add(Box.createVerticalStrut(8));
 
             // ── Shift Start ────────────────────────────────────────────────
@@ -319,15 +331,13 @@ public class CheckerDetailsPanel extends BasePanel {
                         break;
                     }
                 }
-                // Lock checker+schedule in edit mode — they form the PK
+                // Lock checker in edit mode — forms part of PK
                 checkerCombo.setEnabled(false);
-                scheduleIDField.setText(String.valueOf(existing.getScheduleID()));
-                scheduleIDField.setEnabled(false);
-                for (int i = 0; i < DAYS.length; i++) {
-                    if (DAYS[i].equalsIgnoreCase(existing.getDay())) {
-                        dayCombo.setSelectedIndex(i);
-                        break;
-                    }
+                autoScheduleID = existing.getScheduleID();
+                // Pre-tick day checkboxes from comma-separated day string
+                String existingDay = existing.getDay() != null ? existing.getDay() : "";
+                for (JCheckBox cb : dayBoxes) {
+                    cb.setSelected(existingDay.contains(cb.getText()));
                 }
                 shiftStartField.setText(existing.getShiftStart().toString());
                 shiftEndField.setText(existing.getShiftEnd().toString());
@@ -355,11 +365,16 @@ public class CheckerDetailsPanel extends BasePanel {
             // Validate
             SystemUser checker = (SystemUser) checkerCombo.getSelectedItem();
             if (checker == null) { warn("Please select a checker."); return; }
-            String sidText = scheduleIDField.getText().trim();
-            if (sidText.isEmpty()) { warn("Schedule ID is required."); return; }
-            int sid;
-            try { sid = Integer.parseInt(sidText); }
-            catch (NumberFormatException e) { warn("Schedule ID must be a number."); return; }
+            // BUG 5: build day string from selected checkboxes
+            StringBuilder dayBuilder = new StringBuilder();
+            for (JCheckBox cb : dayBoxes) {
+                if (cb.isSelected()) {
+                    if (dayBuilder.length() > 0) dayBuilder.append(",");
+                    dayBuilder.append(cb.getText());
+                }
+            }
+            String day = dayBuilder.toString();
+            if (day.isEmpty()) { warn("Please select at least one day."); return; }
             String start = shiftStartField.getText().trim();
             String end   = shiftEndField.getText().trim();
             if (!start.matches("\\d{2}:\\d{2}")) { warn("Shift Start must be HH:mm (e.g. 07:00)."); return; }
@@ -369,10 +384,10 @@ public class CheckerDetailsPanel extends BasePanel {
             if (building.isEmpty()) { warn("Building is required."); return; }
             if (floor.isEmpty())    { warn("Floor is required."); return; }
 
-            String day = (String) dayCombo.getSelectedItem();
+            // BUG 4: use autoScheduleID (no user input)
+            int sid = autoScheduleID;
 
             try {
-                // Append ":00" because Time.valueOf() requires HH:mm:ss format
                 java.sql.Time startTime = java.sql.Time.valueOf(start + ":00");
                 java.sql.Time endTime   = java.sql.Time.valueOf(end + ":00");
 

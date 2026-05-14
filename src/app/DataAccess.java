@@ -1747,6 +1747,70 @@ public class DataAccess {
         }
     }
 
+    /** BUG 4 – Returns the next auto-incremented scheduleID for a checker's detail records. */
+    public int getNextCheckerScheduleID() {
+        String sql = "SELECT COALESCE(MAX(scheduleID), 0) + 1 FROM checkerdetails";
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 1;
+    }
+
+    /** BUG 3 – After a new checker detail is created, automatically assign this checker
+     * to every class schedule whose room is in the same building+floor AND whose days
+     * overlap the checker's day(s) AND whose time overlaps the checker's shift window.
+     *
+     * Day overlap: the checker's day string is treated as a set of MWF-style tokens;
+     * a schedule day token matches if it appears anywhere in the checker's day string.
+     *
+     * @return number of class schedules updated
+     */
+    public int autoAssignCheckerToSchedules(ref.CheckerDetail cd) {
+        // Find all class schedules in the matching building+floor whose time overlaps
+        // the shift AND whose days overlap the checker day — only update if currently unassigned.
+        String sql =
+                "UPDATE classschedule cs " +
+                        "JOIN room r ON cs.roomID = r.roomID " +
+                        "SET cs.assignedChecker = ? " +
+                        "WHERE r.building = ? " +
+                        "  AND r.floor    = ? " +
+                        "  AND cs.startTime < ? " +     // schedule starts before shift ends
+                        "  AND cs.endTime   > ? " +     // schedule ends after shift starts
+                        "  AND cs.assignedChecker IS NULL " +
+                        "  AND EXISTS (" +
+                        "      SELECT 1 FROM (" +
+                        "          SELECT TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(?, ',', n.n), ',', -1)) AS tok" +
+                        "          FROM (SELECT 1 AS n UNION SELECT 2 UNION SELECT 3 UNION SELECT 4" +
+                        "                UNION SELECT 5 UNION SELECT 6 UNION SELECT 7) n" +
+                        "          WHERE n.n <= 1 + LENGTH(?) - LENGTH(REPLACE(?, ',', ''))" +
+                        "      ) tokens " +
+                        "      WHERE FIND_IN_SET(tokens.tok, cs.days) > 0 OR cs.days LIKE CONCAT('%', tokens.tok, '%')" +
+                        "  )";
+
+        try (Connection conn = DataPB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1,    cd.getCheckerID());
+            stmt.setString(2, cd.getBuilding());
+            stmt.setString(3, cd.getFloor());
+            stmt.setTime(4,   cd.getShiftEnd());    // cs.startTime < shiftEnd
+            stmt.setTime(5,   cd.getShiftStart());  // cs.endTime   > shiftStart
+            stmt.setString(6, cd.getDay());
+            stmt.setString(7, cd.getDay());
+            stmt.setString(8, cd.getDay());
+
+            return stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
     /** Update an existing checker-detail row (identified by checkerID + scheduleID). */
     public boolean updateCheckerDetail(ref.CheckerDetail cd) {
         String sql =

@@ -6,13 +6,13 @@ public class CheckerDashboard extends DashboardBase {
     public CheckerDashboard(AppController c) {
         super(c);
         buildDashboard("Checker", c.getCurrentUser().getName(), new String[][]{
-                {"View Class Schedules",    "schedules"},
+                {"My Class Schedules",      "mySchedules"},
                 {"Update Attendance",       "updateAttendance"},
                 {"View Attendance Records", "attendance"},
         });
     }
     @Override protected void handleAction(String cmd) {
-        if ("schedules".equals(cmd))        controller.showClassSchedules();
+        if ("mySchedules".equals(cmd))      controller.showClassSchedulesByChecker();
         if ("updateAttendance".equals(cmd)) controller.showUpdateAttendance();
         if ("attendance".equals(cmd))       controller.showAttendanceInstructorList();
     }

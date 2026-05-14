@@ -23,10 +23,10 @@ DROP TABLE IF EXISTS `admin`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `admin` (
-  `adminID` int NOT NULL,
-  `approvalCode` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  PRIMARY KEY (`adminID`),
-  CONSTRAINT `fk_admin_systemuser` FOREIGN KEY (`adminID`) REFERENCES `systemuser` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE
+                         `adminID` int NOT NULL,
+                         `approvalCode` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+                         PRIMARY KEY (`adminID`),
+                         CONSTRAINT `fk_admin_systemuser` FOREIGN KEY (`adminID`) REFERENCES `systemuser` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -48,15 +48,15 @@ DROP TABLE IF EXISTS `approval`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `approval` (
-  `leaveRequestID` int NOT NULL,
-  `userID` int NOT NULL,
-  `approvalDate` date NOT NULL,
-  `sequenceNumber` int NOT NULL,
-  `status` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
-  PRIMARY KEY (`leaveRequestID`,`userID`),
-  KEY `fk_approval_systemuser` (`userID`),
-  CONSTRAINT `fk_approval_leaverequest` FOREIGN KEY (`leaveRequestID`) REFERENCES `leaverequest` (`leaveRequestID`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `fk_approval_systemuser` FOREIGN KEY (`userID`) REFERENCES `systemuser` (`userID`) ON UPDATE CASCADE
+                            `leaveRequestID` int NOT NULL,
+                            `userID` int NOT NULL,
+                            `approvalDate` date NOT NULL,
+                            `sequenceNumber` int NOT NULL,
+                            `status` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+                            PRIMARY KEY (`leaveRequestID`,`userID`),
+                            KEY `fk_approval_systemuser` (`userID`),
+                            CONSTRAINT `fk_approval_leaverequest` FOREIGN KEY (`leaveRequestID`) REFERENCES `leaverequest` (`leaveRequestID`) ON DELETE CASCADE ON UPDATE CASCADE,
+                            CONSTRAINT `fk_approval_systemuser` FOREIGN KEY (`userID`) REFERENCES `systemuser` (`userID`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -78,25 +78,25 @@ DROP TABLE IF EXISTS `attendance`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `attendance` (
-  `attendanceID` int NOT NULL AUTO_INCREMENT,
-  `startDate` date NOT NULL,
-  `endDate` date NOT NULL,
-  `instructorStatus` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
-  `remarks` text COLLATE utf8mb4_general_ci,
-  `classCode` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
-  `actualInstructID` int DEFAULT NULL,
-  `leaveRequestID` int DEFAULT NULL,
-  `checkedBy` int DEFAULT NULL,
-  PRIMARY KEY (`attendanceID`),
-  UNIQUE KEY `uq_attendance_class_date` (`classCode`,`startDate`),
-  KEY `fk_attendance_classschedule` (`classCode`),
-  KEY `fk_attendance_actualinstructor` (`actualInstructID`),
-  KEY `fk_attendance_leaverequest` (`leaveRequestID`),
-  KEY `fk_attendance_checkedby` (`checkedBy`),
-  CONSTRAINT `fk_attendance_actualinstructor` FOREIGN KEY (`actualInstructID`) REFERENCES `instructor` (`instructID`) ON UPDATE CASCADE,
-  CONSTRAINT `fk_attendance_checkedby` FOREIGN KEY (`checkedBy`) REFERENCES `systemuser` (`userID`) ON UPDATE CASCADE,
-  CONSTRAINT `fk_attendance_classschedule` FOREIGN KEY (`classCode`) REFERENCES `classschedule` (`classCode`) ON UPDATE CASCADE,
-  CONSTRAINT `fk_attendance_leaverequest` FOREIGN KEY (`leaveRequestID`) REFERENCES `leaverequest` (`leaveRequestID`) ON UPDATE CASCADE
+                              `attendanceID` int NOT NULL AUTO_INCREMENT,
+                              `startDate` date NOT NULL,
+                              `endDate` date NOT NULL,
+                              `instructorStatus` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+                              `remarks` text COLLATE utf8mb4_general_ci,
+                              `classCode` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+                              `actualInstructID` int DEFAULT NULL,
+                              `leaveRequestID` int DEFAULT NULL,
+                              `checkedBy` int DEFAULT NULL,
+                              PRIMARY KEY (`attendanceID`),
+                              UNIQUE KEY `uq_attendance_class_date` (`classCode`,`startDate`),
+                              KEY `fk_attendance_classschedule` (`classCode`),
+                              KEY `fk_attendance_actualinstructor` (`actualInstructID`),
+                              KEY `fk_attendance_leaverequest` (`leaveRequestID`),
+                              KEY `fk_attendance_checkedby` (`checkedBy`),
+                              CONSTRAINT `fk_attendance_actualinstructor` FOREIGN KEY (`actualInstructID`) REFERENCES `instructor` (`instructID`) ON UPDATE CASCADE,
+                              CONSTRAINT `fk_attendance_checkedby` FOREIGN KEY (`checkedBy`) REFERENCES `systemuser` (`userID`) ON UPDATE CASCADE,
+                              CONSTRAINT `fk_attendance_classschedule` FOREIGN KEY (`classCode`) REFERENCES `classschedule` (`classCode`) ON UPDATE CASCADE,
+                              CONSTRAINT `fk_attendance_leaverequest` FOREIGN KEY (`leaveRequestID`) REFERENCES `leaverequest` (`leaveRequestID`) ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -118,9 +118,9 @@ DROP TABLE IF EXISTS `checker`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `checker` (
-  `checkerID` int NOT NULL,
-  PRIMARY KEY (`checkerID`),
-  CONSTRAINT `fk_checker_systemuser` FOREIGN KEY (`checkerID`) REFERENCES `systemuser` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE
+                           `checkerID` int NOT NULL,
+                           PRIMARY KEY (`checkerID`),
+                           CONSTRAINT `fk_checker_systemuser` FOREIGN KEY (`checkerID`) REFERENCES `systemuser` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -142,15 +142,15 @@ DROP TABLE IF EXISTS `checkerdetails`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `checkerdetails` (
-  `checkerID` int NOT NULL,
-  `scheduleID` int NOT NULL,
-  `shiftStart` time NOT NULL,
-  `shiftEnd` time NOT NULL,
-  `building` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `floor` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
-  `day` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
-  PRIMARY KEY (`checkerID`,`scheduleID`),
-  CONSTRAINT `fk_checkerdetails_checker` FOREIGN KEY (`checkerID`) REFERENCES `checker` (`checkerID`) ON DELETE CASCADE ON UPDATE CASCADE
+                                  `checkerID` int NOT NULL,
+                                  `scheduleID` int NOT NULL,
+                                  `shiftStart` time NOT NULL,
+                                  `shiftEnd` time NOT NULL,
+                                  `building` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+                                  `floor` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+                                  `day` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+                                  PRIMARY KEY (`checkerID`,`scheduleID`),
+                                  CONSTRAINT `fk_checkerdetails_checker` FOREIGN KEY (`checkerID`) REFERENCES `checker` (`checkerID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -172,21 +172,21 @@ DROP TABLE IF EXISTS `classschedule`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `classschedule` (
-  `classCode` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
-  `courseNo` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
-  `startTime` time NOT NULL,
-  `endTime` time NOT NULL,
-  `days` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `instructID` int DEFAULT NULL,
-  `roomID` int DEFAULT NULL,
-  `assignedChecker` int DEFAULT NULL,
-  PRIMARY KEY (`classCode`),
-  KEY `fk_classschedule_instructor` (`instructID`),
-  KEY `fk_classschedule_room` (`roomID`),
-  KEY `fk_classschedule_checker` (`assignedChecker`),
-  CONSTRAINT `fk_classschedule_checker` FOREIGN KEY (`assignedChecker`) REFERENCES `checker` (`checkerID`) ON UPDATE CASCADE,
-  CONSTRAINT `fk_classschedule_instructor` FOREIGN KEY (`instructID`) REFERENCES `instructor` (`instructID`) ON UPDATE CASCADE,
-  CONSTRAINT `fk_classschedule_room` FOREIGN KEY (`roomID`) REFERENCES `room` (`roomID`) ON UPDATE CASCADE
+                                 `classCode` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+                                 `courseNo` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+                                 `startTime` time NOT NULL,
+                                 `endTime` time NOT NULL,
+                                 `days` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+                                 `instructID` int DEFAULT NULL,
+                                 `roomID` int DEFAULT NULL,
+                                 `assignedChecker` int DEFAULT NULL,
+                                 PRIMARY KEY (`classCode`),
+                                 KEY `fk_classschedule_instructor` (`instructID`),
+                                 KEY `fk_classschedule_room` (`roomID`),
+                                 KEY `fk_classschedule_checker` (`assignedChecker`),
+                                 CONSTRAINT `fk_classschedule_checker` FOREIGN KEY (`assignedChecker`) REFERENCES `checker` (`checkerID`) ON UPDATE CASCADE,
+                                 CONSTRAINT `fk_classschedule_instructor` FOREIGN KEY (`instructID`) REFERENCES `instructor` (`instructID`) ON UPDATE CASCADE,
+                                 CONSTRAINT `fk_classschedule_room` FOREIGN KEY (`roomID`) REFERENCES `room` (`roomID`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -208,10 +208,10 @@ DROP TABLE IF EXISTS `department`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `department` (
-  `departmentID` int NOT NULL AUTO_INCREMENT,
-  `departmentName` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `school` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  PRIMARY KEY (`departmentID`)
+                              `departmentID` int NOT NULL AUTO_INCREMENT,
+                              `departmentName` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+                              `school` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+                              PRIMARY KEY (`departmentID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -233,12 +233,12 @@ DROP TABLE IF EXISTS `instructor`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `instructor` (
-  `instructID` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `departmentID` int NOT NULL,
-  PRIMARY KEY (`instructID`),
-  KEY `fk_instructor_department` (`departmentID`),
-  CONSTRAINT `fk_instructor_department` FOREIGN KEY (`departmentID`) REFERENCES `department` (`departmentID`) ON UPDATE CASCADE
+                              `instructID` int NOT NULL AUTO_INCREMENT,
+                              `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+                              `departmentID` int NOT NULL,
+                              PRIMARY KEY (`instructID`),
+                              KEY `fk_instructor_department` (`departmentID`),
+                              CONSTRAINT `fk_instructor_department` FOREIGN KEY (`departmentID`) REFERENCES `department` (`departmentID`) ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -260,19 +260,19 @@ DROP TABLE IF EXISTS `leaverequest`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `leaverequest` (
-  `leaveRequestID` int NOT NULL AUTO_INCREMENT,
-  `leaveType` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `startDate` date NOT NULL,
-  `endDate` date NOT NULL,
-  `status` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
-  `leaveReason` text COLLATE utf8mb4_general_ci NOT NULL,
-  `instructID` int NOT NULL,
-  `approvedBy` int DEFAULT NULL,
-  PRIMARY KEY (`leaveRequestID`),
-  KEY `fk_leaverequest_instructor` (`instructID`),
-  KEY `fk_leave_whoApproved_idx` (`approvedBy`),
-  CONSTRAINT `fk_leave_whoApproved` FOREIGN KEY (`approvedBy`) REFERENCES `systemuser` (`userID`) ON UPDATE CASCADE,
-  CONSTRAINT `fk_leaverequest_instructor` FOREIGN KEY (`instructID`) REFERENCES `instructor` (`instructID`) ON UPDATE CASCADE
+                                `leaveRequestID` int NOT NULL AUTO_INCREMENT,
+                                `leaveType` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+                                `startDate` date NOT NULL,
+                                `endDate` date NOT NULL,
+                                `status` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+                                `leaveReason` text COLLATE utf8mb4_general_ci NOT NULL,
+                                `instructID` int NOT NULL,
+                                `approvedBy` int DEFAULT NULL,
+                                PRIMARY KEY (`leaveRequestID`),
+                                KEY `fk_leaverequest_instructor` (`instructID`),
+                                KEY `fk_leave_whoApproved_idx` (`approvedBy`),
+                                CONSTRAINT `fk_leave_whoApproved` FOREIGN KEY (`approvedBy`) REFERENCES `systemuser` (`userID`) ON UPDATE CASCADE,
+                                CONSTRAINT `fk_leaverequest_instructor` FOREIGN KEY (`instructID`) REFERENCES `instructor` (`instructID`) ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -294,12 +294,12 @@ DROP TABLE IF EXISTS `room`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `room` (
-  `roomID` int NOT NULL AUTO_INCREMENT,
-  `floor` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
-  `building` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `capacity` int NOT NULL,
-  `roomType` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  PRIMARY KEY (`roomID`)
+                        `roomID` int NOT NULL AUTO_INCREMENT,
+                        `floor` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+                        `building` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+                        `capacity` int NOT NULL,
+                        `roomType` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+                        PRIMARY KEY (`roomID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -321,20 +321,20 @@ DROP TABLE IF EXISTS `systemuser`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `systemuser` (
-  `userID` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `username` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `email` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
-  `password` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `role` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
-  `createdBy` int NOT NULL,
-  `departmentID` int DEFAULT NULL,
-  PRIMARY KEY (`userID`),
-  UNIQUE KEY `ak_systemuser_username` (`username`),
-  UNIQUE KEY `ak_systemuser_email` (`email`),
-  KEY `fk_systemuser_createdby` (`createdBy`),
-  KEY `fk_department_idx` (`departmentID`),
-  CONSTRAINT `fk_department` FOREIGN KEY (`departmentID`) REFERENCES `department` (`departmentID`) ON UPDATE CASCADE
+                              `userID` int NOT NULL AUTO_INCREMENT,
+                              `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+                              `username` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+                              `email` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+                              `password` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+                              `role` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+                              `createdBy` int NOT NULL,
+                              `departmentID` int DEFAULT NULL,
+                              PRIMARY KEY (`userID`),
+                              UNIQUE KEY `ak_systemuser_username` (`username`),
+                              UNIQUE KEY `ak_systemuser_email` (`email`),
+                              KEY `fk_systemuser_createdby` (`createdBy`),
+                              KEY `fk_department_idx` (`departmentID`),
+                              CONSTRAINT `fk_department` FOREIGN KEY (`departmentID`) REFERENCES `department` (`departmentID`) ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -379,21 +379,21 @@ BEGIN
     -- Standardizing the variable name to v_count
     DECLARE v_count INT DEFAULT 0;
 
-    SELECT COUNT(*) INTO v_count
-    FROM classschedule
-    WHERE 
-      -- Force collation on the comparison to prevent the 'Illegal mix' crash
-      (p_excludeClassCode IS NULL OR classCode <> p_excludeClassCode COLLATE utf8mb4_general_ci)
-      AND (
-          (roomID = p_roomID AND p_roomID IS NOT NULL)
-          OR 
-          (instructID = p_instructID AND p_instructID IS NOT NULL)
-      )
-      -- Using REGEXP to check if any specific day overlaps
-      AND days REGEXP CONCAT('[', p_days COLLATE utf8mb4_general_ci, ']')
+SELECT COUNT(*) INTO v_count
+FROM classschedule
+WHERE
+  -- Force collation on the comparison to prevent the 'Illegal mix' crash
+    (p_excludeClassCode IS NULL OR classCode <> p_excludeClassCode COLLATE utf8mb4_general_ci)
+  AND (
+    (roomID = p_roomID AND p_roomID IS NOT NULL)
+        OR
+    (instructID = p_instructID AND p_instructID IS NOT NULL)
+    )
+  -- Using REGEXP to check if any specific day overlaps
+  AND days REGEXP CONCAT('[', p_days COLLATE utf8mb4_general_ci, ']')
       AND (p_startTime < endTime AND p_endTime > startTime);
 
-    RETURN IF(v_count > 0, 1, 0);
+RETURN IF(v_count > 0, 1, 0);
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -421,7 +421,7 @@ BEGIN
     IF (d1 LIKE '%S%' AND d2 LIKE '%S%') THEN RETURN TRUE; END IF;
     -- Check for T by removing Th to ensure it's a standalone Tuesday
     IF (REPLACE(d1, 'Th', '') LIKE '%T%' AND REPLACE(d2, 'Th', '') LIKE '%T%') THEN RETURN TRUE; END IF;
-    RETURN FALSE;
+RETURN FALSE;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -443,18 +443,18 @@ CREATE DEFINER=`root`@`localhost` FUNCTION `fn_GetInstructorAttendanceRate`(p_in
 BEGIN
     DECLARE total_classes INT;
     DECLARE present_classes INT;
-    
-    SELECT COUNT(*) INTO total_classes 
-    FROM attendance a JOIN classschedule cs ON a.classCode = cs.classCode 
-    WHERE cs.instructID = p_instructID;
-    
-    IF total_classes = 0 THEN RETURN 0.00; END IF;
-    
-    SELECT COUNT(*) INTO present_classes 
-    FROM attendance a JOIN classschedule cs ON a.classCode = cs.classCode 
-    WHERE cs.instructID = p_instructID AND a.instructorStatus = 'Present';
-    
-    RETURN (present_classes / total_classes) * 100;
+
+SELECT COUNT(*) INTO total_classes
+FROM attendance a JOIN classschedule cs ON a.classCode = cs.classCode
+WHERE cs.instructID = p_instructID;
+
+IF total_classes = 0 THEN RETURN 0.00; END IF;
+
+SELECT COUNT(*) INTO present_classes
+FROM attendance a JOIN classschedule cs ON a.classCode = cs.classCode
+WHERE cs.instructID = p_instructID AND a.instructorStatus = 'Present';
+
+RETURN (present_classes / total_classes) * 100;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -475,9 +475,9 @@ CREATE DEFINER=`root`@`localhost` FUNCTION `fn_GetRoomDescription`(p_roomID INT)
     DETERMINISTIC
 BEGIN
     DECLARE v_desc VARCHAR(255);
-    SELECT CONCAT(building, ' – ', floor, ' (', roomType, ')') INTO v_desc
-    FROM room WHERE roomID = p_roomID;
-    RETURN v_desc;
+SELECT CONCAT(building, ' – ', floor, ' (', roomType, ')') INTO v_desc
+FROM room WHERE roomID = p_roomID;
+RETURN v_desc;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -497,7 +497,7 @@ DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` FUNCTION `fn_IsUsernameAvailable`(p_username VARCHAR(50)) RETURNS tinyint(1)
     DETERMINISTIC
 BEGIN
-    RETURN (SELECT COUNT(*) FROM systemuser WHERE username = p_username) = 0;
+RETURN (SELECT COUNT(*) FROM systemuser WHERE username = p_username) = 0;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -517,7 +517,7 @@ DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` FUNCTION `fn_ValidateAdminApproval`(p_adminID INT, p_code VARCHAR(50)) RETURNS tinyint(1)
     DETERMINISTIC
 BEGIN
-    RETURN (SELECT COUNT(*) FROM admin WHERE adminID = p_adminID AND approvalCode = p_code) > 0;
+RETURN (SELECT COUNT(*) FROM admin WHERE adminID = p_adminID AND approvalCode = p_code) > 0;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -544,18 +544,18 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_CheckAttendance`(
     IN p_remarks         TEXT
 )
 BEGIN
-    INSERT INTO attendance
-        (classCode, startDate, endDate, instructorStatus, checkedBy,
-         actualInstructID, leaveRequestID, remarks)
-    VALUES
-        (p_classCode, p_date, p_date, p_status, p_checkerID,
-         p_actualInstructID, p_leaveRequestID, p_remarks)
+INSERT INTO attendance
+(classCode, startDate, endDate, instructorStatus, checkedBy,
+ actualInstructID, leaveRequestID, remarks)
+VALUES
+    (p_classCode, p_date, p_date, p_status, p_checkerID,
+     p_actualInstructID, p_leaveRequestID, p_remarks)
     ON DUPLICATE KEY UPDATE
-        instructorStatus  = VALUES(instructorStatus),
-        checkedBy         = VALUES(checkedBy),
-        actualInstructID  = VALUES(actualInstructID),
-        leaveRequestID    = VALUES(leaveRequestID),
-        remarks           = VALUES(remarks);
+                         instructorStatus  = VALUES(instructorStatus),
+                         checkedBy         = VALUES(checkedBy),
+                         actualInstructID  = VALUES(actualInstructID),
+                         leaveRequestID    = VALUES(leaveRequestID),
+                         remarks           = VALUES(remarks);
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -677,11 +677,11 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_GetClassSchedulesByInstructor`(IN p_instructID INT)
 BEGIN
-    SELECT s.*, i.name AS instructorName
-    FROM classschedule s
-    LEFT JOIN instructor i ON s.instructID = i.instructID
-    WHERE s.instructID = p_instructID
-    ORDER BY s.startTime;
+SELECT s.*, i.name AS instructorName
+FROM classschedule s
+         LEFT JOIN instructor i ON s.instructID = i.instructID
+WHERE s.instructID = p_instructID
+ORDER BY s.startTime;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -700,11 +700,11 @@ DELIMITER ;
 DELIMITER ;;
 CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_GetClassSchedulesByRoom`(IN p_roomID INT)
 BEGIN
-    SELECT s.*, i.name AS instructorName
-    FROM classschedule s
-    LEFT JOIN instructor i ON s.instructID = i.instructID
-    WHERE s.roomID = p_roomID
-    ORDER BY s.startTime;
+SELECT s.*, i.name AS instructorName
+FROM classschedule s
+         LEFT JOIN instructor i ON s.instructID = i.instructID
+WHERE s.roomID = p_roomID
+ORDER BY s.startTime;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -727,13 +727,13 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_GetClassSchedulesByTimeRange`(
     IN p_end     TIME
 )
 BEGIN
-    SELECT s.*, i.name AS instructorName
-    FROM classschedule s
-    LEFT JOIN instructor i ON s.instructID = i.instructID
-    WHERE fn_DaysOverlap(s.days, p_dayCode)
-      AND s.startTime < p_end
-      AND s.endTime   > p_start
-    ORDER BY s.startTime;
+SELECT s.*, i.name AS instructorName
+FROM classschedule s
+         LEFT JOIN instructor i ON s.instructID = i.instructID
+WHERE fn_DaysOverlap(s.days, p_dayCode)
+  AND s.startTime < p_end
+  AND s.endTime   > p_start
+ORDER BY s.startTime;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -746,7 +746,7 @@ DELIMITER ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
 /*!50003 SET character_set_client  = utf8mb4 */ ;
 /*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
@@ -755,8 +755,8 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_GetSystemUser`(
     IN p_username VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci
 )
 BEGIN
-    SELECT * FROM systemuser 
-    WHERE username = p_username;
+SELECT * FROM systemuser
+WHERE username = p_username;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -780,12 +780,12 @@ BEGIN
     DECLARE v_instructID INT;
     DECLARE v_curr       DATE;
 
-    SELECT startDate, endDate, instructID
-    INTO v_start, v_end, v_instructID
-    FROM leaverequest
-    WHERE leaveRequestID = p_leaveRequestID;
+SELECT startDate, endDate, instructID
+INTO v_start, v_end, v_instructID
+FROM leaverequest
+WHERE leaveRequestID = p_leaveRequestID;
 
-    SET v_curr = v_start;
+SET v_curr = v_start;
 
     WHILE v_curr <= v_end DO
         SET @dayLetter = CASE DAYOFWEEK(v_curr)
@@ -796,20 +796,20 @@ BEGIN
             WHEN 6 THEN 'F'
             WHEN 7 THEN 'S'
             ELSE ''
-        END;
+END;
 
-        INSERT INTO attendance
-            (classCode, startDate, endDate, instructorStatus, leaveRequestID)
-        SELECT cs.classCode, v_curr, v_curr, 'Absent', p_leaveRequestID
-        FROM classschedule cs
-        WHERE cs.instructID = v_instructID
-          AND fn_DaysOverlap(cs.days, @dayLetter)
-        ON DUPLICATE KEY UPDATE
-            instructorStatus = 'Absent',
-            leaveRequestID   = p_leaveRequestID;
+INSERT INTO attendance
+(classCode, startDate, endDate, instructorStatus, leaveRequestID)
+SELECT cs.classCode, v_curr, v_curr, 'Absent', p_leaveRequestID
+FROM classschedule cs
+WHERE cs.instructID = v_instructID
+  AND fn_DaysOverlap(cs.days, @dayLetter)
+    ON DUPLICATE KEY UPDATE
+                         instructorStatus = 'Absent',
+                         leaveRequestID   = p_leaveRequestID;
 
-        SET v_curr = DATE_ADD(v_curr, INTERVAL 1 DAY);
-    END WHILE;
+SET v_curr = DATE_ADD(v_curr, INTERVAL 1 DAY);
+END WHILE;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -838,18 +838,18 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_UpsertAttendance`(
 BEGIN
     -- Requires UNIQUE KEY on (classCode, startDate) for ON DUPLICATE KEY to work.
     -- See ALTER TABLE at the bottom of this file.
-    INSERT INTO attendance
-        (classCode, startDate, endDate, instructorStatus, checkedBy,
-         actualInstructID, leaveRequestID, remarks)
-    VALUES
-        (p_classCode, p_date, p_date, p_status, p_checkerID,
-         p_actualInstructID, p_leaveRequestID, p_remarks)
+INSERT INTO attendance
+(classCode, startDate, endDate, instructorStatus, checkedBy,
+ actualInstructID, leaveRequestID, remarks)
+VALUES
+    (p_classCode, p_date, p_date, p_status, p_checkerID,
+     p_actualInstructID, p_leaveRequestID, p_remarks)
     ON DUPLICATE KEY UPDATE
-        instructorStatus  = VALUES(instructorStatus),
-        checkedBy         = VALUES(checkedBy),
-        actualInstructID  = VALUES(actualInstructID),
-        leaveRequestID    = VALUES(leaveRequestID),
-        remarks           = VALUES(remarks);
+                         instructorStatus  = VALUES(instructorStatus),
+                         checkedBy         = VALUES(checkedBy),
+                         actualInstructID  = VALUES(actualInstructID),
+                         leaveRequestID    = VALUES(leaveRequestID),
+                         remarks           = VALUES(remarks);
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;

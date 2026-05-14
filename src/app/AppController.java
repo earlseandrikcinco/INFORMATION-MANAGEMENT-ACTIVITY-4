@@ -87,13 +87,13 @@ public class AppController {
         frame.showPanel(new ClassSchedulePanel(this, db, currentUser));
     }
 
-    // TODO Create a checker bound class schedules
+    /** Shows a read-only panel of class schedules assigned to the current checker. */
     public void showClassSchedulesByChecker() {
-        if ("Checker".equalsIgnoreCase(currentUser.getRole())) {
-            return; // do nothing
+        if (!"Checker".equalsIgnoreCase(currentUser.getRole())) {
+            frame.showError("This view is for Checkers only.");
+            return;
         }
-
-        frame.showPanel(new ClassSchedulePanel(this, db, currentUser));
+        frame.showPanel(new CheckerSchedulePanel(this, db, currentUser));
     }
 
     public void showCreateSchedule() {
