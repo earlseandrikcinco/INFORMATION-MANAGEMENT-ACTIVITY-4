@@ -346,6 +346,65 @@ LOCK TABLES `systemuser` WRITE;
 INSERT INTO `systemuser` VALUES (1,'John Admin','johnadmin','johnadmin@email.com','pass123','ADMIN',0,NULL),(2,'Maria Admin','mariaadmin','mariaadmin@email.com','pass123','ADMIN',1,NULL),(3,'Kevin Checker','kevinchecker','kevinchecker@email.com','pass123','CHECKER',1,NULL),(4,'Anna Checker','annachecker','annachecker@email.com','pass123','CHECKER',1,NULL),(5,'Harrison Ford','harryforddeptcs','harrythebaddie@slu.edu.ph','pass123','DEPTHEAD',1,NULL),(6,'Sara Bellum','MissBellum','powerpuffsec@gmail.com','pass123','SECRETARY',1,NULL),(7,'Robert Robertson','mechaman','dispatch@gmail.com','pass123','DEPTHEAD',1,NULL);
 /*!40000 ALTER TABLE `systemuser` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Dumping events for database 'final_final_final_schema'
+--
+
+--
+-- Dumping routines for database 'final_final_final_schema'
+--
+/*!50003 DROP FUNCTION IF EXISTS `fn_CheckScheduleConflict` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = '' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` FUNCTION `fn_CheckScheduleConflict`(
+    p_excludeClassCode VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+    p_roomID INT,
+    p_instructID INT,
+    p_days VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+    p_startTime TIME,
+    p_endTime TIME
+) RETURNS tinyint(1)
+    READS SQL DATA
+    DETERMINISTIC
+BEGIN
+    DECLARE v_conflict_count INT;
+
+    SELECT COUNT(*) INTO v_conflict_count
+    FROM classschedule
+    WHERE 
+      -- Exclude the current record if we are updating
+      (p_excludeClassCode IS NULL OR classCode <> p_excludeClassCode)
+      AND (
+          -- Check if the ROOM is double-booked
+          (roomID = p_roomID AND p_roomID IS NOT NULL)
+          OR 
+          -- Check if the INSTRUCTOR is double-booked
+          (instructID = p_instructID AND p_instructID IS NOT NULL)
+      )
+      -- Check for day overlaps
+      AND days REGEXP CONCAT('[', p_days, ']')
+      -- Check for time overlaps
+      AND (p_startTime < endTime AND p_endTime > startTime);
+
+    IF v_conflict_count > 0 THEN
+        RETURN 1; -- Conflict exists
+    ELSE
+        RETURN 0; -- No conflict
+    END IF;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -356,4 +415,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-14 18:49:26
+-- Dump completed on 2026-05-14 19:05:14
