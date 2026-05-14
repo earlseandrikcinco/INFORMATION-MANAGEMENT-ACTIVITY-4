@@ -204,7 +204,7 @@ public class CreateSchedulePanel extends BasePanel {
 
     private boolean classCodeExists(String code) {
 
-        String sql = "SELECT 1 FROM CLASS_SCHEDULE WHERE classCode = ?";
+        String sql = "SELECT 1 FROM CLASSSCHEDULE WHERE classCode = ?";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
