@@ -231,11 +231,15 @@ public class ClassScheduleDetailDialog extends JDialog {
      */
     private List<Instructor> getInstructorList() {
         String role = currentUser.getRole();
-        if (role.equalsIgnoreCase("DeptHead")) {
-            return db.getInstructorsByDept(currentUser.getDepartmentID());
-        } else if (role.equalsIgnoreCase("Secretary")) {
-            return db.getInstructorsByDept(currentUser.getDepartmentID());
+
+        if (role.equalsIgnoreCase("DeptHead") || role.equalsIgnoreCase("Secretary")) {
+
+            Integer deptIDObj = currentUser.getDepartmentID();
+            int deptID = (deptIDObj != null) ? deptIDObj : -1;
+
+            return db.getInstructorsByDept(deptID);
         }
+
         return db.getInstructors();
     }
 

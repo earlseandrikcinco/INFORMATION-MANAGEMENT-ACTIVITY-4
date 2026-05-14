@@ -202,7 +202,6 @@ public class DataAccess {
         return list;
     }
 
-    // Stored procedure: sp_GetClassSchedulesByDept
     public List<ClassSchedule> getClassSchedulesByDept(int deptID) {
         List<ClassSchedule> list = new ArrayList<>();
 
@@ -233,7 +232,6 @@ public class DataAccess {
         return list;
     }
 
-    // Stored procedure: sp_GetClassSchedulesByRoom
     public List<ClassSchedule> getClassSchedulesByRoom(int roomID) {
         List<ClassSchedule> list = new ArrayList<>();
 
@@ -264,7 +262,6 @@ public class DataAccess {
         return list;
     }
 
-    // Stored procedure: sp_GetClassSchedulesByInstructor
     public List<ClassSchedule> getClassSchedulesByInstructor(int instructID) {
         List<ClassSchedule> list = new ArrayList<>();
 
@@ -295,7 +292,6 @@ public class DataAccess {
         return list;
     }
 
-    // Stored procedure: sp_GetClassSchedulesByTimeRange
     public List<ClassSchedule> getClassSchedulesByTimeRange(String dayCode, Time start, Time end) {
         List<ClassSchedule> list = new ArrayList<>();
 
@@ -774,6 +770,7 @@ public class DataAccess {
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, deptID);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -1183,6 +1180,7 @@ public class DataAccess {
         }
     }
 
+    // TODO java.sql.SQLException: Illegal mix of collations (utf8mb4_general_ci,IMPLICIT) and (utf8mb4_0900_ai_ci,IMPLICIT) for operation '='
     public boolean upsertAttendance(
             String classCode,
             Date date,

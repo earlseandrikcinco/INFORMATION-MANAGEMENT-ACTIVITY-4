@@ -30,8 +30,14 @@ public class LeaveRequestPanel extends BasePanel {
         this.currentUser = user;
         if (currentUser.getRole().equalsIgnoreCase("Secretary")
                 || currentUser.getRole().equalsIgnoreCase("DeptHead")) {
-            deptID = currentUser.getDepartmentID();
+
+            Integer id = currentUser.getDepartmentID();
+
+            this.deptID = (id != null) ? id : -1;
+        } else {
+            this.deptID = -1;
         }
+
         buildUI();
     }
 

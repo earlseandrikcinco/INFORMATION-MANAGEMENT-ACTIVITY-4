@@ -360,8 +360,8 @@ public class CheckerDetailsPanel extends BasePanel {
             catch (NumberFormatException e) { warn("Schedule ID must be a number."); return; }
             String start = shiftStartField.getText().trim();
             String end   = shiftEndField.getText().trim();
-            if (!start.matches("\\d{2}:\\d{2}")) { warn("Shift Start must be HH:mm (e.g. 07:00)."); return; }
-            if (!end.matches("\\d{2}:\\d{2}"))   { warn("Shift End must be HH:mm (e.g. 12:00)."); return; }
+            if (!start.matches("\\d{2}:\\d{2}:00")) { warn("Shift Start must be HH:mm (e.g. 07:00)."); return; }
+            if (!end.matches("\\d{2}:\\d{2}:00"))   { warn("Shift End must be HH:mm (e.g. 12:00)."); return; }
             String building = buildingField.getText().trim();
             String floor    = floorField.getText().trim();
             if (building.isEmpty()) { warn("Building is required."); return; }
