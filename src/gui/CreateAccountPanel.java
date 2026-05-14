@@ -8,6 +8,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Admin panel for creating new system user accounts.
@@ -135,9 +136,10 @@ public class CreateAccountPanel extends BasePanel {
 
         switch (role == null ? "" : role) {
             case "Checker":
-                extraLabel.setText("Floor #");
-                floorField.setText("");
-                extraPanel.add(floorField, BorderLayout.CENTER);
+                extraLabel.setText("Assignment:");
+                JLabel msg = new JLabel("Details added via Schedule Manager");
+                msg.setFont(UIHelper.FONT_SUB);
+                extraPanel.add(msg, BorderLayout.CENTER);
                 extraPanel.setVisible(true);
                 break;
             case "Secretary":
@@ -163,18 +165,23 @@ public class CreateAccountPanel extends BasePanel {
         if (nameField.getText().isBlank())      return "Full name is required.";
         if (usernameField.getText().isBlank())  return "Username is required.";
         if (emailField.getText().isBlank())     return "Email is required.";
+
         String pw = new String(passwordField.getPassword());
         String pw2 = new String(confirmPasswordField.getPassword());
         if (pw.isBlank())                       return "Password is required.";
         if (!pw.equals(pw2))                    return "Passwords do not match.";
+
         String role = (String) roleCombo.getSelectedItem();
         if (role == null || role.startsWith("—")) return "Please select a role.";
-        if ("Checker".equals(role)) {
-            try { Integer.parseInt(floorField.getText().trim()); }
-            catch (NumberFormatException ex) { return "Floor must be a number."; }
+
+        if (("Secretary".equals(role) || "DeptHead".equals(role)) && deptCombo.getSelectedItem() == null) {
+            return "Department selection is required.";
         }
-        if ("Admin".equals(role) && approvalCodeField.getText().isBlank())
+
+        if ("Admin".equals(role) && approvalCodeField.getText().isBlank()) {
             return "Approval code is required.";
+        }
+
         return null;
     }
 
@@ -192,14 +199,14 @@ public class CreateAccountPanel extends BasePanel {
                 adminID
         );
 
-        Object extra = switch (role) {
-            case "Checker"   -> Integer.parseInt(floorField.getText().trim());
-            case "Secretary",
-                 "DeptHead"  -> ((Department) deptCombo.getSelectedItem()).getDepartmentID();
-            case "Admin"     -> approvalCodeField.getText().trim();
-            default          -> null;
-        };
-
+        if ("Secretary".equals(role) || "DeptHead".equals(role)) {
+            Department selectedDept = (Department) deptCombo.getSelectedItem();
+            if (selectedDept != null) {
+                user.setDepartmentID(selectedDept.getDepartmentID());
+            }
+        } else if ("Admin".equals(role)) {
+            user.setApprovalCode(approvalCodeField.getText().trim());
+        }
         return db.addSystemUser(user);
     }
 

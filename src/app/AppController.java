@@ -91,7 +91,6 @@ public class AppController {
         frame.showPanel(new CreateSchedulePanel(this, db, currentUser));
     }
 
-    /** NEW — shows classes that are missing instructor or checker */
     public void showClassesNeedingAttention() {
         frame.showPanel(new ClassesNeedingAttentionPanel(this, db, currentUser));
     }
@@ -104,7 +103,6 @@ public class AppController {
         frame.showPanel(new UpdateAttendancePanel(this, db, currentUser));
     }
 
-    /** Admin – manage checker detail records. */
     public void showCheckerDetails() {
         if (!currentUser.getRole().equalsIgnoreCase("Admin")) {
             frame.showError("Insufficient privileges.");
