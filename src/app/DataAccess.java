@@ -1354,25 +1354,25 @@ public class DataAccess {
     }
 
     public boolean hasScheduleConflict(String classCode, Integer roomID, Integer instructID, String days, Time start, Time end) {
-        String sql = "{ ? = CALL fn_CheckScheduleConflict(?, ?, ?, ?, ?, ?) }";
+        String sql = "SELECT fn_CheckScheduleConflict(?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DataPB.getConnection();
-             CallableStatement stmt = conn.prepareCall(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            stmt.registerOutParameter(1, Types.BOOLEAN);
-            stmt.setString(2, classCode);
-            if (roomID != null) stmt.setInt(3, roomID); else stmt.setNull(3, Types.INTEGER);
-            if (instructID != null) stmt.setInt(4, instructID); else stmt.setNull(4, Types.INTEGER);
-            stmt.setString(5, days);
-            stmt.setTime(6, start);
-            stmt.setTime(7, end);
+            stmt.setString(1, classCode);
+            if (roomID != null) stmt.setInt(2, roomID); else stmt.setNull(2, Types.INTEGER);
+            if (instructID != null) stmt.setInt(3, instructID); else stmt.setNull(3, Types.INTEGER);
+            stmt.setString(4, days);
+            stmt.setTime(5, start);
+            stmt.setTime(6, end);
 
-            stmt.execute();
-            return stmt.getBoolean(1);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) return rs.getBoolean(1);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
-            return true;
         }
+        return true;
     }
 
     private boolean daysOverlap(String d1, String d2) {
