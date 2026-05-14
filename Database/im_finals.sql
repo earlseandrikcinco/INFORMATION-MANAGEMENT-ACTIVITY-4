@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.45, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.44, for Win64 (x86_64)
 --
--- Host: localhost    Database: pls
+-- Host: 127.0.0.1    Database: final_final_final_schema
 -- ------------------------------------------------------
--- Server version	5.5.5-10.4.32-MariaDB
+-- Server version	8.4.7
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -23,8 +23,8 @@ DROP TABLE IF EXISTS `admin`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `admin` (
-  `adminID` int(11) NOT NULL,
-  `approvalCode` varchar(50) NOT NULL,
+  `adminID` int NOT NULL,
+  `approvalCode` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`adminID`),
   CONSTRAINT `fk_admin_systemuser` FOREIGN KEY (`adminID`) REFERENCES `systemuser` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -48,11 +48,11 @@ DROP TABLE IF EXISTS `approval`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `approval` (
-  `leaveRequestID` int(11) NOT NULL,
-  `userID` int(11) NOT NULL,
+  `leaveRequestID` int NOT NULL,
+  `userID` int NOT NULL,
   `approvalDate` date NOT NULL,
-  `sequenceNumber` int(11) NOT NULL,
-  `status` varchar(20) NOT NULL,
+  `sequenceNumber` int NOT NULL,
+  `status` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`leaveRequestID`,`userID`),
   KEY `fk_approval_systemuser` (`userID`),
   CONSTRAINT `fk_approval_leaverequest` FOREIGN KEY (`leaveRequestID`) REFERENCES `leaverequest` (`leaveRequestID`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -78,15 +78,15 @@ DROP TABLE IF EXISTS `attendance`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `attendance` (
-  `attendanceID` int(11) NOT NULL AUTO_INCREMENT,
+  `attendanceID` int NOT NULL AUTO_INCREMENT,
   `startDate` date NOT NULL,
   `endDate` date NOT NULL,
-  `instructorStatus` varchar(20) NOT NULL,
-  `remarks` text DEFAULT NULL,
-  `classCode` varchar(20) NOT NULL,
-  `actualInstructID` int(11) DEFAULT NULL,
-  `leaveRequestID` int(11) DEFAULT NULL,
-  `checkedBy` int(11) DEFAULT NULL,
+  `instructorStatus` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `remarks` text COLLATE utf8mb4_general_ci,
+  `classCode` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `actualInstructID` int DEFAULT NULL,
+  `leaveRequestID` int DEFAULT NULL,
+  `checkedBy` int DEFAULT NULL,
   PRIMARY KEY (`attendanceID`),
   UNIQUE KEY `uq_attendance_class_date` (`classCode`,`startDate`),
   KEY `fk_attendance_classschedule` (`classCode`),
@@ -118,7 +118,7 @@ DROP TABLE IF EXISTS `checker`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `checker` (
-  `checkerID` int(11) NOT NULL,
+  `checkerID` int NOT NULL,
   PRIMARY KEY (`checkerID`),
   CONSTRAINT `fk_checker_systemuser` FOREIGN KEY (`checkerID`) REFERENCES `systemuser` (`userID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -142,13 +142,13 @@ DROP TABLE IF EXISTS `checkerdetails`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `checkerdetails` (
-  `checkerID` int(11) NOT NULL,
-  `scheduleID` int(11) NOT NULL,
+  `checkerID` int NOT NULL,
+  `scheduleID` int NOT NULL,
   `shiftStart` time NOT NULL,
   `shiftEnd` time NOT NULL,
-  `building` varchar(100) NOT NULL,
-  `floor` varchar(20) NOT NULL,
-  `day` varchar(20) NOT NULL,
+  `building` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `floor` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `day` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`checkerID`,`scheduleID`),
   CONSTRAINT `fk_checkerdetails_checker` FOREIGN KEY (`checkerID`) REFERENCES `checker` (`checkerID`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -172,14 +172,14 @@ DROP TABLE IF EXISTS `classschedule`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `classschedule` (
-  `classCode` varchar(20) NOT NULL,
-  `courseNo` varchar(20) NOT NULL,
+  `classCode` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `courseNo` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
   `startTime` time NOT NULL,
   `endTime` time NOT NULL,
-  `days` varchar(50) NOT NULL,
-  `instructID` int(11) DEFAULT NULL,
-  `roomID` int(11) DEFAULT NULL,
-  `assignedChecker` int(11) DEFAULT NULL,
+  `days` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `instructID` int DEFAULT NULL,
+  `roomID` int DEFAULT NULL,
+  `assignedChecker` int DEFAULT NULL,
   PRIMARY KEY (`classCode`),
   KEY `fk_classschedule_instructor` (`instructID`),
   KEY `fk_classschedule_room` (`roomID`),
@@ -196,7 +196,7 @@ CREATE TABLE `classschedule` (
 
 LOCK TABLES `classschedule` WRITE;
 /*!40000 ALTER TABLE `classschedule` DISABLE KEYS */;
-INSERT INTO `classschedule` VALUES ('CS101-A','CS101','08:00:00','09:30:00','MWF',1,1,3),('CS201-A','CS201','10:00:00','11:30:00','TTH',2,2,4),('ENG101-A','ENG101','15:00:00','16:30:00','TTH',4,3,4),('MATH101-A','MATH101','13:00:00','14:30:00','MWF',3,1,3),('MATH222','565','07:00:00','08:00:00','MTWThFS',3,2,NULL);
+INSERT INTO `classschedule` VALUES ('CS101-A','CS101','08:00:00','09:30:00','MWF',1,1,3),('CS201-A','CS201','10:00:00','11:30:00','TTH',2,2,4),('ENG101-A','ENG101','15:00:00','16:30:00','TTH',4,3,4),('MATH101-A','MATH101','13:00:00','14:30:00','MWF',3,1,3),('MATH222','565','07:00:00','08:00:00','MTWThFS',3,2,4),('MATH333','123','11:00:00','12:00:00','MWF',3,2,NULL);
 /*!40000 ALTER TABLE `classschedule` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -208,9 +208,9 @@ DROP TABLE IF EXISTS `department`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `department` (
-  `departmentID` int(11) NOT NULL AUTO_INCREMENT,
-  `departmentName` varchar(100) NOT NULL,
-  `school` varchar(100) NOT NULL,
+  `departmentID` int NOT NULL AUTO_INCREMENT,
+  `departmentName` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `school` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`departmentID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -233,9 +233,9 @@ DROP TABLE IF EXISTS `instructor`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `instructor` (
-  `instructID` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) NOT NULL,
-  `departmentID` int(11) NOT NULL,
+  `instructID` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `departmentID` int NOT NULL,
   PRIMARY KEY (`instructID`),
   KEY `fk_instructor_department` (`departmentID`),
   CONSTRAINT `fk_instructor_department` FOREIGN KEY (`departmentID`) REFERENCES `department` (`departmentID`) ON UPDATE CASCADE
@@ -260,14 +260,14 @@ DROP TABLE IF EXISTS `leaverequest`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `leaverequest` (
-  `leaveRequestID` int(11) NOT NULL AUTO_INCREMENT,
-  `leaveType` varchar(50) NOT NULL,
+  `leaveRequestID` int NOT NULL AUTO_INCREMENT,
+  `leaveType` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   `startDate` date NOT NULL,
   `endDate` date NOT NULL,
-  `status` varchar(20) NOT NULL,
-  `leaveReason` text NOT NULL,
-  `instructID` int(11) NOT NULL,
-  `approvedBy` int(11) DEFAULT NULL,
+  `status` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `leaveReason` text COLLATE utf8mb4_general_ci NOT NULL,
+  `instructID` int NOT NULL,
+  `approvedBy` int DEFAULT NULL,
   PRIMARY KEY (`leaveRequestID`),
   KEY `fk_leaverequest_instructor` (`instructID`),
   KEY `fk_leave_whoApproved_idx` (`approvedBy`),
@@ -294,11 +294,11 @@ DROP TABLE IF EXISTS `room`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `room` (
-  `roomID` int(11) NOT NULL AUTO_INCREMENT,
-  `floor` varchar(20) NOT NULL,
-  `building` varchar(100) NOT NULL,
-  `capacity` int(11) NOT NULL,
-  `roomType` varchar(50) NOT NULL,
+  `roomID` int NOT NULL AUTO_INCREMENT,
+  `floor` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `building` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `capacity` int NOT NULL,
+  `roomType` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`roomID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -321,21 +321,21 @@ DROP TABLE IF EXISTS `systemuser`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `systemuser` (
-  `userID` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) NOT NULL,
-  `username` varchar(50) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `role` varchar(20) NOT NULL,
-  `createdBy` int(11) NOT NULL,
-  `departmentID` int(11) DEFAULT NULL,
+  `userID` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `username` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+  `email` varchar(100) COLLATE utf8mb4_general_ci NOT NULL,
+  `password` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
+  `role` varchar(20) COLLATE utf8mb4_general_ci NOT NULL,
+  `createdBy` int NOT NULL,
+  `departmentID` int DEFAULT NULL,
   PRIMARY KEY (`userID`),
   UNIQUE KEY `ak_systemuser_username` (`username`),
   UNIQUE KEY `ak_systemuser_email` (`email`),
   KEY `fk_systemuser_createdby` (`createdBy`),
   KEY `fk_department_idx` (`departmentID`),
   CONSTRAINT `fk_department` FOREIGN KEY (`departmentID`) REFERENCES `department` (`departmentID`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -349,7 +349,11 @@ INSERT INTO `systemuser` VALUES (1,'John Admin','johnadmin','johnadmin@email.com
 UNLOCK TABLES;
 
 --
--- Dumping routines for database 'pls'
+-- Dumping events for database 'final_final_final_schema'
+--
+
+--
+-- Dumping routines for database 'final_final_final_schema'
 --
 /*!50003 DROP FUNCTION IF EXISTS `fn_CheckScheduleConflict` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -357,34 +361,39 @@ UNLOCK TABLES;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
 /*!50003 SET character_set_client  = utf8mb4 */ ;
 /*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` FUNCTION `fn_CheckScheduleConflict`(p_excludeClassCode VARCHAR(20),
+CREATE DEFINER=`root`@`localhost` FUNCTION `fn_CheckScheduleConflict`(
+    p_excludeClassCode VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
     p_roomID INT,
     p_instructID INT,
-    p_days VARCHAR(10),
+    p_days VARCHAR(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
     p_startTime TIME,
     p_endTime TIME
 ) RETURNS tinyint(1)
     READS SQL DATA
     DETERMINISTIC
 BEGIN
-    DECLARE v_conflict_count INT;
-    SELECT COUNT(*) INTO v_conflict_count
+    -- Standardizing the variable name to v_count
+    DECLARE v_count INT DEFAULT 0;
+
+    SELECT COUNT(*) INTO v_count
     FROM classschedule
     WHERE 
-      (p_excludeClassCode IS NULL OR classCode <> p_excludeClassCode)
+      -- Force collation on the comparison to prevent the 'Illegal mix' crash
+      (p_excludeClassCode IS NULL OR classCode <> p_excludeClassCode COLLATE utf8mb4_general_ci)
       AND (
           (roomID = p_roomID AND p_roomID IS NOT NULL)
           OR 
           (instructID = p_instructID AND p_instructID IS NOT NULL)
       )
-      AND days REGEXP CONCAT('[', p_days, ']')
+      -- Using REGEXP to check if any specific day overlaps
+      AND days REGEXP CONCAT('[', p_days COLLATE utf8mb4_general_ci, ']')
       AND (p_startTime < endTime AND p_endTime > startTime);
 
-    RETURN IF(v_conflict_count > 0, 1, 0);
+    RETURN IF(v_count > 0, 1, 0);
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -737,13 +746,17 @@ DELIMITER ;
 /*!50003 SET @saved_col_connection = @@collation_connection */ ;
 /*!50003 SET character_set_client  = utf8mb4 */ ;
 /*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_general_ci */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION' */ ;
+/*!50003 SET sql_mode              = '' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_GetSystemUser`(IN p_username VARCHAR(50))
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_GetSystemUser`(
+    -- Force the parameter to match the table's collation
+    IN p_username VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci
+)
 BEGIN
-    SELECT * FROM systemuser WHERE username = p_username;
+    SELECT * FROM systemuser 
+    WHERE username = p_username;
 END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -853,4 +866,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-14 20:07:31
+-- Dump completed on 2026-05-14 21:01:01
