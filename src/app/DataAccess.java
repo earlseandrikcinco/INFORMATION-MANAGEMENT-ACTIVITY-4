@@ -1354,11 +1354,13 @@ public class DataAccess {
     }
 
     public boolean hasScheduleConflict(String classCode, Integer roomID, Integer instructID, String days, Time start, Time end) {
-        String sql = "SELECT fn_CheckScheduleConflict(?, ?, ?, ?, ?, ?, ?)";
+        // We use SELECT instead of { ? = CALL } to avoid driver parameter-count bugs
+        String sql = "SELECT fn_CheckScheduleConflict(?, ?, ?, ?, ?, ?) AS conflict";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
+            // Index 1-6 match the 6 parameters in the function
             stmt.setString(1, classCode);
             if (roomID != null) stmt.setInt(2, roomID); else stmt.setNull(2, Types.INTEGER);
             if (instructID != null) stmt.setInt(3, instructID); else stmt.setNull(3, Types.INTEGER);
@@ -1367,11 +1369,15 @@ public class DataAccess {
             stmt.setTime(6, end);
 
             try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) return rs.getBoolean(1);
+                if (rs.next()) {
+                    // If it returns 1, there is a conflict (true). If 0, no conflict (false).
+                    return rs.getInt("conflict") == 1;
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        // Default to true (safe mode) if something fails
         return true;
     }
 
