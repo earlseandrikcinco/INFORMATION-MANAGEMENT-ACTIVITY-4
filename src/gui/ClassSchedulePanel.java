@@ -22,7 +22,7 @@ public class ClassSchedulePanel extends BasePanel {
 
     private final DataAccess db;
     private final SystemUser currentUser;
-    private final int deptID;           // -1 = Admin (sees all)
+    private final int deptID;           // -1 = Admin and Checker (sees all)
     private List<ClassSchedule> schedules;
 
     public ClassSchedulePanel(AppController controller, DataAccess db, SystemUser currentUser) {

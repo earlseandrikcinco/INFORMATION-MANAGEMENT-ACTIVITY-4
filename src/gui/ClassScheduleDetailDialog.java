@@ -26,6 +26,7 @@ public class ClassScheduleDetailDialog extends JDialog {
     private JComboBox<Instructor> instructorCombo;  // DeptHead / Secretary only
     private JComboBox<SystemUser> checkerCombo;     // all three roles
 
+    // TODO Join room to display all attributes from table room
     public ClassScheduleDetailDialog(Frame parent, DataAccess db,
                                      SystemUser currentUser,
                                      ClassSchedule schedule,

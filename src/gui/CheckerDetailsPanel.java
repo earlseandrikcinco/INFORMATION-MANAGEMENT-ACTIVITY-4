@@ -165,6 +165,8 @@ public class CheckerDetailsPanel extends BasePanel {
                 JOptionPane.showMessageDialog(this, "Checker detail added successfully.",
                         "Success", JOptionPane.INFORMATION_MESSAGE);
                 refreshTable(searchField.getText().trim());
+
+                // TODO Update every class schedule affected by the creation of new checker details
             } else {
                 JOptionPane.showMessageDialog(this,
                         "Failed to add checker detail. The checker/schedule combination may already exist.",
@@ -244,8 +246,8 @@ public class CheckerDetailsPanel extends BasePanel {
         private CheckerDetail result;
 
         private JComboBox<SystemUser> checkerCombo;
-        private JTextField scheduleIDField;
-        private JComboBox<String> dayCombo;
+        private JTextField scheduleIDField; // TODO Remove and auto increment instead of an input
+        private JComboBox<String> dayCombo; // TODO Make it checkbox, multiple days allowed
         private JTextField shiftStartField;
         private JTextField shiftEndField;
         private JTextField buildingField;
@@ -360,8 +362,8 @@ public class CheckerDetailsPanel extends BasePanel {
             catch (NumberFormatException e) { warn("Schedule ID must be a number."); return; }
             String start = shiftStartField.getText().trim();
             String end   = shiftEndField.getText().trim();
-            if (!start.matches("\\d{2}:\\d{2}:00")) { warn("Shift Start must be HH:mm (e.g. 07:00)."); return; }
-            if (!end.matches("\\d{2}:\\d{2}:00"))   { warn("Shift End must be HH:mm (e.g. 12:00)."); return; }
+            if (!start.matches("\\d{2}:\\d{2}")) { warn("Shift Start must be HH:mm (e.g. 07:00)."); return; }
+            if (!end.matches("\\d{2}:\\d{2}"))   { warn("Shift End must be HH:mm (e.g. 12:00)."); return; }
             String building = buildingField.getText().trim();
             String floor    = floorField.getText().trim();
             if (building.isEmpty()) { warn("Building is required."); return; }

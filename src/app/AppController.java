@@ -87,6 +87,15 @@ public class AppController {
         frame.showPanel(new ClassSchedulePanel(this, db, currentUser));
     }
 
+    // TODO Create a checker bound class schedules
+    public void showClassSchedulesByChecker() {
+        if ("Checker".equalsIgnoreCase(currentUser.getRole())) {
+            return; // do nothing
+        }
+
+        frame.showPanel(new ClassSchedulePanel(this, db, currentUser));
+    }
+
     public void showCreateSchedule() {
         frame.showPanel(new CreateSchedulePanel(this, db, currentUser));
     }

@@ -156,11 +156,7 @@ public class DataAccess {
 
     public List<ClassSchedule> getAllClassSchedules() {
         List<ClassSchedule> list = new ArrayList<>();
-        String sql =
-                "SELECT s.*, i.name AS instructorName " +
-                        "FROM classschedule s " +
-                        "LEFT JOIN instructor i ON s.instructID = i.instructID " +
-                        "ORDER BY s.startTime";
+        String sql = "CALL sp_GetAllClassSchedules";
 
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -606,32 +602,6 @@ public class DataAccess {
                             rs.getInt("checkedBy")
                     ));
                 }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<ClassSchedule> getClassSchedules() {
-        List<ClassSchedule> list = new ArrayList<>();
-        String sql = "SELECT * FROM classschedule";
-
-        try (Connection conn = DataPB.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                list.add(new ClassSchedule(
-                        rs.getString("classCode") /* classCode is VARCHAR */,
-                        rs.getString("courseNo"),
-                        rs.getTime("startTime"),
-                        rs.getTime("endTime"),
-                        rs.getString("days"),
-                        (Integer) rs.getObject("instructID"),
-                        (Integer) rs.getObject("roomID"),
-                        (Integer) rs.getObject("assignedChecker")
-                ));
             }
         } catch (SQLException e) {
             e.printStackTrace();
