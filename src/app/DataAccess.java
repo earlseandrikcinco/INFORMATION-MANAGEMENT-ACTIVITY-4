@@ -35,40 +35,6 @@ public class DataAccess {
         return null;
     }
 
-    public List<CheckerDetail> getCheckerDetails(int userID) {
-        List<CheckerDetail> list = new ArrayList<>();
-        String sql = "SELECT cd.*, su.name AS checkerName " +
-                "FROM checkerdetails cd " +
-                "JOIN systemuser su ON cd.checkerID = su.userID " +
-                "WHERE su.userID = ? " +
-                "ORDER BY su.name, cd.day, cd.shiftStart";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, userID); // This must be outside the try-with-resources parens
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    ref.CheckerDetail cd = new ref.CheckerDetail(
-                            rs.getInt("checkerID"), // Corrected from checkedBy to match your constructor
-                            rs.getInt("scheduleID"),
-                            rs.getTime("shiftStart"),
-                            rs.getTime("shiftEnd"),
-                            rs.getString("building"),
-                            rs.getString("floor"),
-                            rs.getString("day")
-                    );
-                    cd.setCheckerName(rs.getString("checkerName"));
-                    list.add(cd);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list; // Return the variable 'list', not the class 'CheckerDetail'
-    }
-
     public List<SystemUser> getCheckers() {
         List<SystemUser> checkers = new ArrayList<>();
         // Simply filter the collapsed table by the 'Checker' role
@@ -212,96 +178,6 @@ public class DataAccess {
         return list;
     }
 
-    public List<ClassSchedule> getClassSchedulesByRoom(int roomID) {
-        List<ClassSchedule> list = new ArrayList<>();
-
-        try (Connection conn = DataPB.getConnection();
-             CallableStatement cs = conn.prepareCall("{CALL sp_GetClassSchedulesByRoom(?)}")) {
-
-            cs.setInt(1, roomID);
-
-            try (ResultSet rs = cs.executeQuery()) {
-                while (rs.next()) {
-                    ClassSchedule schedule = new ClassSchedule(
-                            rs.getString("classCode"),
-                            rs.getString("courseNo"),
-                            rs.getTime("startTime"),
-                            rs.getTime("endTime"),
-                            rs.getString("days"),
-                            (Integer) rs.getObject("instructID"),
-                            (Integer) rs.getObject("roomID"),
-                            (Integer) rs.getObject("assignedChecker")
-                    );
-                    schedule.setInstructorName(rs.getString("instructorName"));
-                    list.add(schedule);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<ClassSchedule> getClassSchedulesByInstructor(int instructID) {
-        List<ClassSchedule> list = new ArrayList<>();
-
-        try (Connection conn = DataPB.getConnection();
-             CallableStatement cs = conn.prepareCall("{CALL sp_GetClassSchedulesByInstructor(?)}")) {
-
-            cs.setInt(1, instructID);
-
-            try (ResultSet rs = cs.executeQuery()) {
-                while (rs.next()) {
-                    ClassSchedule schedule = new ClassSchedule(
-                            rs.getString("classCode"),
-                            rs.getString("courseNo"),
-                            rs.getTime("startTime"),
-                            rs.getTime("endTime"),
-                            rs.getString("days"),
-                            (Integer) rs.getObject("instructID"),
-                            (Integer) rs.getObject("roomID"),
-                            (Integer) rs.getObject("assignedChecker")
-                    );
-                    schedule.setInstructorName(rs.getString("instructorName"));
-                    list.add(schedule);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<ClassSchedule> getClassSchedulesByTimeRange(String dayCode, Time start, Time end) {
-        List<ClassSchedule> list = new ArrayList<>();
-
-        try (Connection conn = DataPB.getConnection();
-             CallableStatement cs = conn.prepareCall("{CALL sp_GetClassSchedulesByTimeRange(?, ?, ?)}")) {
-
-            cs.setString(1, dayCode);
-            cs.setTime(2, start);
-            cs.setTime(3, end);
-
-            try (ResultSet rs = cs.executeQuery()) {
-                while (rs.next()) {
-                    ClassSchedule schedule = new ClassSchedule(
-                            rs.getString("classCode"),
-                            rs.getString("courseNo"),
-                            rs.getTime("startTime"),
-                            rs.getTime("endTime"),
-                            rs.getString("days"),
-                            (Integer) rs.getObject("instructID"),
-                            (Integer) rs.getObject("roomID"),
-                            (Integer) rs.getObject("assignedChecker")
-                    );
-                    schedule.setInstructorName(rs.getString("instructorName"));
-                    list.add(schedule);
-                }
-            }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return list;
-    }
-
     public List<String> getInstructorNameList() {
         List<String> instructors = new ArrayList<>();
         String sql = "SELECT name FROM instructor ORDER BY name";
@@ -337,79 +213,6 @@ public class DataAccess {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public List<Attendance> getUnauthorizedAbsences(int instructID) {
-        List<Attendance> list = new ArrayList<>();
-        String sql = """
-        SELECT a.*, cs.instructID AS assignedInstructID
-        FROM attendance a
-        JOIN classschedule cs
-            ON a.classCode = cs.classCode
-        WHERE cs.instructID = ?
-          AND instructorStatus = 'Absent'
-          AND leaveRequestID IS NULL
-        """;
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, instructID);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    list.add(new Attendance(
-                            rs.getInt("attendanceID"),
-                            rs.getDate("startDate"),
-                            rs.getDate("endDate"),
-                            rs.getString("instructorStatus"),
-                            rs.getString("remarks"),
-                            rs.getString("classCode"),
-                            rs.getInt("assignedInstructID"),
-                            (Integer) rs.getObject("actualInstructID"),
-                            (Integer) rs.getObject("leaveRequestID"),
-                            rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0
-                    ));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<Attendance> getAttendanceByDate(Date date) {
-        List<Attendance> list = new ArrayList<>();
-        String sql = """
-        SELECT a.*, cs.instructID AS assignedInstructID
-        FROM attendance a
-        JOIN classschedule cs ON a.classCode = cs.classCode
-        WHERE a.startDate = ?
-        """;
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setDate(1, date);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    list.add(new Attendance(
-                            rs.getInt("attendanceID"),
-                            rs.getDate("startDate"),
-                            rs.getDate("endDate"),
-                            rs.getString("instructorStatus"),
-                            rs.getString("remarks"),
-                            rs.getString("classCode"),
-                            rs.getInt("assignedInstructID"),
-                            (Integer) rs.getObject("actualInstructID"),
-                            (Integer) rs.getObject("leaveRequestID"),
-                            rs.getObject("checkedBy") != null ? rs.getInt("checkedBy") : 0
-                    ));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
     }
 
     public List<SystemUser> getAllAccounts() {
@@ -600,35 +403,6 @@ public class DataAccess {
                             (Integer) rs.getObject("actualInstructID"),
                             (Integer) rs.getObject("leaveRequestID"),
                             rs.getInt("checkedBy")
-                    ));
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    public List<ClassSchedule> getAllClassSchedulesByInstructor(int instructorID) {
-        List<ClassSchedule> list = new ArrayList<>();
-        String sql = "SELECT * FROM classschedule WHERE instructID = ?";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, instructorID);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    list.add(new ClassSchedule(
-                            rs.getString("classCode") /* classCode is VARCHAR */,
-                            rs.getString("courseNo"),
-                            rs.getTime("startTime"),
-                            rs.getTime("endTime"),
-                            rs.getString("days"),
-                            (Integer) rs.getObject("instructID"),
-                            (Integer) rs.getObject("roomID"),
-                            (Integer) rs.getObject("assignedChecker")
                     ));
                 }
             }
@@ -929,60 +703,6 @@ public class DataAccess {
         }
     }
 
-    public boolean insertLeaveRequest(LeaveRequest lr) {
-        String sql = "INSERT INTO leaverequest (instructID, leaveType, startDate, endDate, status, leaveReason) " +
-                "VALUES (?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, lr.getInstructID());
-            stmt.setString(2, lr.getLeaveType());
-            stmt.setDate(3, lr.getStartDate());
-            stmt.setDate(4, lr.getEndDate());
-            stmt.setString(5, lr.getStatus());
-            stmt.setString(6, lr.getLeaveReason());
-
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public List<Attendance> getAllAttendance() {
-
-        List<Attendance> list = new ArrayList<>();
-
-        try (Connection conn = DataPB.getConnection();
-             CallableStatement stmt = conn.prepareCall("{CALL sp_GetAllAttendance()}");
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-
-                Attendance attendance = new Attendance(
-                        rs.getInt("attendanceID"),
-                        rs.getDate("startDate"),
-                        rs.getDate("endDate"),
-                        rs.getString("instructorStatus"),
-                        rs.getString("remarks"),
-                        rs.getString("classCode"),
-                        rs.getInt("assignedInstructID"),
-                        (Integer) rs.getObject("actualInstructID"),
-                        (Integer) rs.getObject("leaveRequestID"),
-                        (Integer) rs.getObject("checkedBy")
-                );
-
-                list.add(attendance);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return list;
-    }
-
     public boolean updateLeaveStatus(int instructID, int reqID, String status, int adminID) {
 
         String sql = """
@@ -1002,22 +722,6 @@ public class DataAccess {
 
             return stmt.executeUpdate() > 0;
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean assignInstructorToClass(String classCode, int instructID) {
-        String sql = "UPDATE classschedule SET instructID = ? WHERE classCode = ?";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, instructID);
-            stmt.setString(2, classCode);
-
-            return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -1052,73 +756,6 @@ public class DataAccess {
         }
     }
 
-    public boolean linkAttendanceToLeave(String classCode, Date date, int leaveRequestID) {
-        String sql = "UPDATE attendance SET leaveRequestID = ? " +
-                "WHERE classCode = ? AND startDate = ?";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, leaveRequestID);
-            stmt.setString(2, classCode);
-            stmt.setDate(3, date);
-
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    private String getDayLetter(int dayOfWeek) {
-        return switch (dayOfWeek) {
-            case java.util.Calendar.MONDAY -> "M";
-            case java.util.Calendar.TUESDAY -> "T";
-            case java.util.Calendar.WEDNESDAY -> "W";
-            case java.util.Calendar.THURSDAY -> "Th";
-            case java.util.Calendar.FRIDAY -> "F";
-            case java.util.Calendar.SATURDAY -> "S";
-            default -> "";
-        };
-    }
-
-    public boolean isUsernameAvailable(String username) {
-        String sql = "SELECT fn_IsUsernameAvailable(?)";
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, username);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) return rs.getBoolean(1);
-            }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return false;
-    }
-
-    public String getRoomDescription(int roomID) {
-        String sql = "SELECT fn_GetRoomDescription(?)";
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, roomID);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) return rs.getString(1);
-            }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return "N/A";
-    }
-
-    public boolean validateAdminCode(int adminID, String code) {
-        String sql = "SELECT fn_ValidateAdminApproval(?, ?)";
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, adminID);
-            stmt.setString(2, code);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) return rs.getBoolean(1);
-            }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return false;
-    }
-
     public boolean syncLeaveToAttendance(int leaveRequestID) {
         String sql = "{CALL sp_SyncLeaveToAttendance(?)}";
 
@@ -1134,7 +771,6 @@ public class DataAccess {
         }
     }
 
-    // TODO java.sql.SQLException: Illegal mix of collations (utf8mb4_general_ci,IMPLICIT) and (utf8mb4_0900_ai_ci,IMPLICIT) for operation '='
     public boolean upsertAttendance(
             String classCode,
             Date date,
@@ -1232,7 +868,7 @@ public class DataAccess {
         String[] dayTokens = {"M", "Th", "W", "F", "S", "T"};
         for (String day : dayTokens) {
             if (hasDay(absentDays, day)) {
-                if (dayRegex.length() > 0) dayRegex.append("|");
+                if (!dayRegex.isEmpty()) dayRegex.append("|");
                 if (day.equals("Th")) {
                     dayRegex.append("Th");
                 } else if (day.equals("T")) {
@@ -1244,7 +880,7 @@ public class DataAccess {
         }
 
         // If the absent class has no recognisable days, return everyone (minus assignedInstructor).
-        if (dayRegex.length() == 0) {
+        if (dayRegex.isEmpty()) {
             return getAvailableSubstitutes(assignedInstructID);
         }
 
@@ -1289,22 +925,6 @@ public class DataAccess {
             e.printStackTrace();
         }
         return list;
-    }
-
-    public double getInstructorAttendanceRate(int instructID) {
-        String sql = "SELECT fn_GetInstructorAttendanceRate(?)";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setInt(1, instructID);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) return rs.getDouble(1);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return 0.0;
     }
 
     public boolean hasScheduleConflict(String classCode, Integer roomID, Integer instructID, String days, Time start, Time end) {
@@ -1356,64 +976,6 @@ public class DataAccess {
         }
 
         return schedule.contains(day);
-    }
-
-    public ClassSchedule getScheduleWithDetails(String classCode) {
-
-        String sql =
-                "SELECT cs.*, " +
-                        "       i.name AS instructorName, " +
-                        "       su.name AS checkerName, " +
-                        "       r.building, r.floor, r.roomType " +
-                        "FROM classschedule cs " +
-                        "LEFT JOIN instructor i ON cs.instructID = i.instructID " +
-                        "LEFT JOIN checker ch ON cs.assignedChecker = ch.checkerID " +
-                        "LEFT JOIN systemuser su ON ch.checkerID = su.userID " +
-                        "LEFT JOIN room r ON cs.roomID = r.roomID " +
-                        "WHERE cs.classCode = ?";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, classCode);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-
-                if (rs.next()) {
-
-                    ClassSchedule cs = new ClassSchedule(
-                            rs.getString("classCode") /* classCode is VARCHAR */,
-                            rs.getString("courseNo"),
-                            rs.getTime("startTime"),
-                            rs.getTime("endTime"),
-                            rs.getString("days"),
-                            (Integer) rs.getObject("instructID"),
-                            (Integer) rs.getObject("roomID"),
-                            (Integer) rs.getObject("assignedChecker")
-                    );
-
-                    cs.setAssignedChecker((Integer) rs.getObject("assignedChecker"));
-                    cs.setInstructorName(rs.getString("instructorName"));
-                    cs.setCheckerName(rs.getString("checkerName"));
-
-                    // Room description
-                    String building = rs.getString("building");
-                    String floor = rs.getString("floor");
-                    String roomType = rs.getString("roomType");
-
-                    if (building != null) {
-                        cs.setRoomDescription(building + " – " + floor + " (" + roomType + ")");
-                    }
-
-                    return cs;
-                }
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return null;
     }
 
     public boolean updateClassScheduleAssignments(String classCode, Integer instructID, Integer checkerID) {
@@ -1589,52 +1151,6 @@ public class DataAccess {
             }
         } catch (SQLException e) { e.printStackTrace(); }
         return list;
-    }
-
-    public boolean createUser(SystemUser user) {
-        String sql = "INSERT INTO systemuser " +
-                "(name, username, email, password, role, createdBy) " +
-                "VALUES (?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, user.getName());
-            stmt.setString(2, user.getUsername());
-            stmt.setString(3, user.getEmail());
-            stmt.setString(4, user.getPassword());
-            stmt.setString(5, user.getRole());
-
-            if (user.getCreatedBy() == null) {
-                stmt.setNull(6, Types.INTEGER);
-            } else {
-                stmt.setInt(6, user.getCreatedBy());
-            }
-
-            return stmt.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean usernameExists(String username) {
-        String sql = "SELECT userID FROM systemuser WHERE username = ?";
-
-        try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-            stmt.setString(1, username);
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                return rs.next();
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
     }
 
     public List<Attendance> getAttendanceRecords() {
@@ -1966,29 +1482,5 @@ public class DataAccess {
             e.printStackTrace();
         }
         return null;
-    }
-
-    public void saveOrUpdateAttendance(Attendance att) {
-        try (Connection conn = DataPB.getConnection();
-             CallableStatement stmt = conn.prepareCall("{call sp_CheckAttendance(?, ?, ?, ?, ?, ?, ?)}")) {
-
-            stmt.setString(1, att.getClassCode());
-            stmt.setDate(2, att.getStartDate());
-            stmt.setString(3, att.getInstructorStatus());
-            stmt.setInt(4, att.getCheckedBy());
-
-            // Handle nullable integers
-            if (att.getActualInstructID() != null) stmt.setInt(5, att.getActualInstructID());
-            else stmt.setNull(5, Types.INTEGER);
-
-            if (att.getLeaveRequestID() != null) stmt.setInt(6, att.getLeaveRequestID());
-            else stmt.setNull(6, Types.INTEGER);
-
-            stmt.setString(7, att.getRemarks());
-
-            stmt.execute();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 }
