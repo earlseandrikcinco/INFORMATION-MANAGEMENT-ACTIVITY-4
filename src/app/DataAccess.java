@@ -9,13 +9,10 @@ import java.util.List;
 
 public class DataAccess {
     public SystemUser getUser(String username) {
-        String sql = "SELECT * FROM systemuser WHERE username = ?";
-
         try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             CallableStatement stmt = conn.prepareCall("{call sp_GetSystemUser(?)}")) {
 
             stmt.setString(1, username);
-
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     SystemUser user = new SystemUser(
@@ -27,21 +24,7 @@ public class DataAccess {
                             rs.getString("role"),
                             rs.getObject("createdBy") != null ? rs.getInt("createdBy") : null
                     );
-
-                    // Set departmentID directly from systemuser table
                     user.setDepartmentID(rs.getObject("departmentID") != null ? rs.getInt("departmentID") : null);
-
-                    // Fetch approvalCode from the separate admin table
-                    if (user.getRole().equalsIgnoreCase("Admin")) {
-                        try (PreparedStatement adminStmt = conn.prepareStatement("SELECT approvalCode FROM admin WHERE adminID = ?")) {
-                            adminStmt.setInt(1, user.getUserID());
-                            try (ResultSet adminRs = adminStmt.executeQuery()) {
-                                if (adminRs.next()) {
-                                    user.setApprovalCode(adminRs.getString("approvalCode"));
-                                }
-                            }
-                        }
-                    }
                     return user;
                 }
             }
@@ -1922,20 +1905,9 @@ public class DataAccess {
         return list;
     }
 
-    /** Returns the existing attendance record for a class on a given date, or null if none. */
     public Attendance getAttendanceForClass(String classCode, java.sql.Date date) {
-        String sql = """
-        SELECT a.*, cs.instructID AS assignedInstructID
-        FROM attendance a
-        JOIN classschedule cs
-            ON a.classCode = cs.classCode
-        WHERE a.classCode = ?
-          AND a.startDate = ?
-        LIMIT 1
-        """;
-
         try (Connection conn = DataPB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             CallableStatement stmt = conn.prepareCall("{call sp_GetAttendanceByClass(?, ?)}")) {
 
             stmt.setString(1, classCode);
             stmt.setDate(2, date);
@@ -1959,5 +1931,26 @@ public class DataAccess {
             e.printStackTrace();
         }
         return null;
+    }public void saveOrUpdateAttendance(Attendance att) {
+        try (Connection conn = DataPB.getConnection();
+             CallableStatement stmt = conn.prepareCall("{call sp_CheckAttendance(?, ?, ?, ?, ?, ?, ?)}")) {
+
+            stmt.setString(1, att.getClassCode());
+            stmt.setDate(2, att.getStartDate());
+            stmt.setString(3, att.getInstructorStatus());
+            stmt.setInt(4, att.getCheckedBy());
+
+            if (att.getActualInstructID() != null) stmt.setInt(5, att.getActualInstructID());
+            else stmt.setNull(5, Types.INTEGER);
+
+            if (att.getLeaveRequestID() != null) stmt.setInt(6, att.getLeaveRequestID());
+            else stmt.setNull(6, Types.INTEGER);
+
+            stmt.setString(7, att.getRemarks());
+
+            stmt.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
