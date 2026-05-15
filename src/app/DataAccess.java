@@ -803,7 +803,7 @@ public class DataAccess {
 
     public String getActualInstructorName(int actualID) {
         String name = "Unknown";
-        String sql = "SELECT name FROM instructor WHERE instructorID = ?";
+        String sql = "SELECT name FROM instructor WHERE instructID = ?";
         try (Connection conn = DataPB.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, actualID);
